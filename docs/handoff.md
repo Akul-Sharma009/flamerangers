@@ -106,6 +106,32 @@ Not in the repo: the Vercel trial used a two-line `index.py` entrypoint and a `r
 | Season rule reproduces the stored seasons (lead's request) | `test_2_2_season_rule_reproduces_the_stored_seasons`, `test_2_2_season_rule_edges` |
 | AC5 Sat 18:00 checkpoint report | This entry; full parity by `tools/parity_full.py` on the lead's machine |
 
+## Store size probe (14 Nov, branch `teammate/2.3-ingest`)
+
+One year (2024) of FIRMS standard data, MODIS_SP (Aqua and Terra rows) and VIIRS_SNPP_SP, over the bounding boxes of Sumatra and Southern African savanna (`contract/regions.geojson`). 2024 is outside the tuning, selection and final years. Client: `burncal/pipeline/firms.py`. The files sit in `store/probe/` (git-ignored).
+
+| Region, source, 2024 | Rows | CSV | Parquet, all columns | Parquet, lean | Lean bytes/row |
+| --- | --- | --- | --- | --- | --- |
+| Southern Africa, MODIS_SP (406,125 Aqua, 92,891 Terra) | 499,016 | 37.9 MB | 6.2 MB | 3.9 MB | 8.3 |
+| Southern Africa, VIIRS_SNPP_SP | 1,833,804 | 138.1 MB | 33.4 MB | 17.1 MB | 9.8 |
+| Sumatra, MODIS_SP (4,728 Aqua, 2,625 Terra) | 7,353 | 0.5 MB | 0.15 MB | 0.10 MB | 14.2 |
+| Sumatra, VIIRS_SNPP_SP | 26,845 | 2.0 MB | 0.6 MB | 0.33 MB | 13.0 |
+
+- Parquet with zstd compression, sorted by time. "Lean" keeps only the columns a hotspot row needs: latitude and longitude as float32, time, satellite, confidence, frp, daynight and type, plus feeds_record, excluded_reason and weight. In the probe those last three hold constant values, so real lean files will be somewhat larger.
+- Download: 296 requests (5-day windows, 4 at a time), 0 failures, 193 s, 186 MB of CSV.
+- The 5 to 15 GB store figure in the planning notes is an estimate, not a measurement.
+
+### Object-storage timing: cold Sumatra calendar (14 Nov)
+
+- Store: Sumatra 2002-07 to 2026-08 from FIRMS standard data (Suomi NPP 2023 missing: FIRMS kept returning errors for those dates), 1,925,775 rows, one lean Parquet file of 17.0 MB (9.3 bytes/row), on a public Hugging Face dataset (`adk7712/burncal-store-trial`). `weight` and `feeds_record` are placeholders until Story 2.4.
+- Query: monthly `SUM(weight)` of feeding rows inside Sumatra's bounding box, all 290 months, DuckDB reading the Parquet where it sits (`hf://`, range requests). Nothing is downloaded first.
+- Service bundle with FastAPI and DuckDB only: under Vercel's standard size, so no dependency install at instance start (the full set with pyarrow and pandas installs for 2.8 s).
+
+| Where | Cold (new instance or process) | Warm |
+| --- | --- | --- |
+| Vercel Hobby function, iad1, request from Singapore, after 20 idle minutes | 4.07 s end to end; inside: imports 0.57 s, DuckDB httpfs install 0.82 s, query 1.34 s | 0.37–0.40 s end to end; query 0.10 s |
+| Laptop in Singapore, fresh process | 2.8–5.6 s (httpfs 0.9–1.6 s, query 1.6–3.7 s) | query 0.29 s |
+
 ## Story 1.5: the web shell
 
 - `cd web && npm run dev` opens the calendar page: placeholder banner, top navigation (calendar, evidence stub, about stub), Sumatra's year × month grid drawn with D3, and the legend.
