@@ -9,7 +9,15 @@ import pytest
 from burncal.pipeline import aggregate
 
 ROOT = Path(__file__).resolve().parents[2]
-SUMATRA_RECORD = ROOT / "store" / "record" / "sumatra"
+
+
+def _built_record(region: str) -> Path:
+    """The whole-tile build (Story 2.8) when present, else the earlier tuning-region record."""
+    built = ROOT / "store" / "build" / "record" / region
+    return built if built.exists() else ROOT / "store" / "record" / region
+
+
+SUMATRA_RECORD = _built_record("sumatra")
 
 
 def _record(rows):
@@ -70,18 +78,19 @@ def test_2_5_ac2_sumatra_thresholds_match_the_parity_targets():
 
 
 
-@pytest.mark.skipif(not (ROOT / "store" / "record" / "amazon_forest").exists(), reason="Amazon record not built")
+@pytest.mark.skipif(not _built_record("amazon_forest").exists(), reason="Amazon record not built")
 def test_2_5_ac2_amazon_thresholds_match_the_parity_targets():
-    got = aggregate.tuning_thresholds_parity("amazon_forest", ROOT / "store" / "record" / "amazon_forest")
+    got = aggregate.tuning_thresholds_parity("amazon_forest", _built_record("amazon_forest"))
     assert got["cells"] == 56 and got["cell_months"] == 672 and got["misses"] == [], got
 
 
-@pytest.mark.skipif(not (ROOT / "store" / "record" / "australia_grassland").exists(), reason="Australia record not built")
+@pytest.mark.skipif(not _built_record("australia_grassland").exists(), reason="Australia record not built")
 def test_2_5_ac2_australia_thresholds_match_except_the_known_cell():
-    got = aggregate.tuning_thresholds_parity("australia_grassland", ROOT / "store" / "record" / "australia_grassland")
+    got = aggregate.tuning_thresholds_parity("australia_grassland", _built_record("australia_grassland"))
     assert got["cells"] == 81 and got["cell_months"] == 972
-    # KNOWN, open: 136E 16S (the McArthur River mine) is higher in 5 months. The record was built without
-    # Suomi NPP 2016, which FIRMS kept refusing, so the static mask misses this persistent source.
-    # See DECISIONS.md; rebuild once that file is in and this list should be empty.
+    # KNOWN, open: the cell with south-west corner 136E 16S (Gulf of Carpentaria coast) is higher in 5 months.
+    # Not the static mask: the whole-tile rebuild with Suomi NPP 2016 misses the same 5 cell-months, and no
+    # 30-arc-second cell there reaches 50 hotspot days in a static-mask year. A coastline difference is the
+    # likelier cause, not yet checked against the harness's counts. See DECISIONS.md.
     assert [m[:3] for m in got["misses"]] in ([], [(136.0, -16.0, 1), (136.0, -16.0, 2), (136.0, -16.0, 10),
                                                   (136.0, -16.0, 11), (136.0, -16.0, 12)]), got
