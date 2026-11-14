@@ -11,11 +11,11 @@ from burncal.pipeline import clean as pclean
 LAND = shapely.box(0, 0, 10, 10)
 
 
-def _df(lon, lat, when, dn="D"):
+def _df(lon, lat, when, dn="D", sat="AQUA"):
     n = len(lon)
     return pd.DataFrame({"latitude": lat, "longitude": lon,
                          "acq_datetime_utc": pd.to_datetime(when, utc=True),
-                         "daynight": [dn] * n})
+                         "daynight": [dn] * n, "satellite": [sat] * n})
 
 
 def test_2_3_ac1_every_row_gets_daynight_and_excluded_reason():
@@ -30,15 +30,25 @@ def test_2_3_ac1_every_row_gets_daynight_and_excluded_reason():
 def test_2_3_ac2_offshore_and_static_rows_are_marked_not_deleted():
     lon = [5.0, 5.0, 20.0, 7.0]
     lat = [5.0, 5.0, 20.0, 7.0]
-    days = pd.date_range("2018-01-01", periods=50)
+    days = pd.date_range("2017-01-01", periods=50)
     when = ["2018-06-01 12:00", "2018-06-02 12:00", "2018-06-01 12:00", "2018-06-01 12:00"]
     df = _df(lon, lat, when)
-    # static cell: 50 days of hotspots at (5,5) in 2018
+    # static cell: 50 days of hotspots at (5,5) in 2017, a tuning year
     hist = _df([5.0] * 50, [5.0] * 50, days)
-    static = pclean.static_from(hist)
+    static = pclean.static_from(hist, LAND)
     out = pclean.clean(df, LAND, static)
     assert len(out) == len(df)
     assert list(out.excluded_reason) == ["static", "static", "offshore", "none"]
+
+
+def test_2_3_ac2_static_from_counts_only_modis_and_snpp_rows_on_land():
+    days = pd.date_range("2017-01-01", periods=50)
+    assert len(pclean.static_from(_df([5.0] * 50, [5.0] * 50, days, sat="SNPP"), LAND)) == 1
+    assert len(pclean.static_from(_df([5.0] * 50, [5.0] * 50, days, sat="TERRA"), LAND)) == 1
+    for sat in ("NOAA20", "NOAA21"):
+        assert len(pclean.static_from(_df([5.0] * 50, [5.0] * 50, days, sat=sat), LAND)) == 0
+    # offshore rows never make a cell static
+    assert len(pclean.static_from(_df([15.0] * 50, [5.0] * 50, days), LAND)) == 0
 
 
 def test_2_3_ac2_on_land_uses_prepared_geometry():

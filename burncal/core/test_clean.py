@@ -34,23 +34,31 @@ def _days(lon, lat, n, year, start="01-01"):
     return np.full(n, lon), np.full(n, lat), d
 
 
+def test_2_3_ac2_static_rule_is_the_scored_rule():
+    # Lead's decision (14 Nov): the harness rule, tuning years and MODIS + Suomi NPP only.
+    assert tuple(clean.STATIC_YEARS) == (2014, 2016, 2017, 2020)
+    assert set(clean.STATIC_SATELLITES) == {"AQUA", "TERRA", "SNPP"}
+
+
 def test_2_3_ac2_static_cells_need_50_days_in_one_year():
-    parts = [_days(10.0, 10.0, 50, 2015), _days(20.0, 20.0, 49, 2015),
-             _days(30.0, 30.0, 30, 2015), _days(30.0, 30.0, 30, 2016)]  # split across years: no
+    parts = [_days(10.0, 10.0, 50, 2016), _days(20.0, 20.0, 49, 2016),
+             _days(30.0, 30.0, 30, 2016), _days(30.0, 30.0, 30, 2017)]  # split across years: no
     lon, lat, d = (np.concatenate(x) for x in zip(*parts))
     got = clean.static_cells(lon, lat, pd.DatetimeIndex(d))
     assert list(got) == list(clean.static_cell_id([10.0], [10.0])) and got.dtype == np.int64
 
 
 def test_2_3_ac2_static_cells_count_a_day_once_across_satellites_and_ignore_other_years():
-    lon, lat, d = _days(10.0, 10.0, 30, 2015)
+    lon, lat, d = _days(10.0, 10.0, 30, 2016)
     # three satellites hit the same 30 days: still 30 days
     got = clean.static_cells(np.tile(lon, 3), np.tile(lat, 3), pd.DatetimeIndex(np.tile(d, 3)))
     assert len(got) == 0
-    lon2, lat2, d2 = _days(10.0, 10.0, 60, 2022)  # outside 2014-2021
-    assert len(clean.static_cells(lon2, lat2, pd.DatetimeIndex(d2))) == 0
-    lon3, lat3, d3 = _days(10.0, 10.0, 60, 2014)
-    assert len(clean.static_cells(lon3, lat3, pd.DatetimeIndex(d3))) == 1
+    for year in (2015, 2018, 2021, 2022):  # not tuning years
+        lon2, lat2, d2 = _days(10.0, 10.0, 60, year)
+        assert len(clean.static_cells(lon2, lat2, pd.DatetimeIndex(d2))) == 0
+    for year in (2014, 2020):
+        lon3, lat3, d3 = _days(10.0, 10.0, 60, year)
+        assert len(clean.static_cells(lon3, lat3, pd.DatetimeIndex(d3))) == 1
 
 
 def test_2_3_ac2_excluded_reason_offshore_beats_static_and_never_drops():

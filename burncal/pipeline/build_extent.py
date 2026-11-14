@@ -16,7 +16,8 @@ def build(raw_dir, land_path, out_dir) -> dict:
     df = ingest.ingest_csv_files(sorted(Path(raw_dir).glob("*.csv")))
     n_in = len(df)
     df = ingest.prefer_standard(df)
-    df = clean.clean(df, clean.load_land(land_path), clean.static_from(df))
+    land = clean.load_land(land_path)
+    df = clean.clean(df, land, clean.static_from(df, land))
     ingest.write_partitions(df, out_dir)
     by = df.groupby(["satellite", "quality", "excluded_reason"]).size()
     return {"rows_in": n_in, "nrt_rows_replaced_by_standard": n_in - len(df), "rows_stored": len(df),

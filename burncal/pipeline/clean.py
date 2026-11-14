@@ -40,9 +40,11 @@ def on_land(lon, lat, land_geom) -> np.ndarray:
     return shapely.contains_xy(prepare(land_geom), np.asarray(lon, float), np.asarray(lat, float))
 
 
-def static_from(df) -> np.ndarray:
-    """Persistent cells from rows with latitude, longitude, acq_datetime_utc."""
-    return core.static_cells(df["longitude"].values, df["latitude"].values, df["acq_datetime_utc"])
+def static_from(df, land_geom) -> np.ndarray:
+    """Persistent cells under the scored rule: MODIS and Suomi NPP rows on land, tuning years."""
+    rows = df[df["satellite"].isin(core.STATIC_SATELLITES).values
+              & on_land(df["longitude"].values, df["latitude"].values, land_geom)]
+    return core.static_cells(rows["longitude"].values, rows["latitude"].values, rows["acq_datetime_utc"])
 
 
 def clean(df, land_geom, static):

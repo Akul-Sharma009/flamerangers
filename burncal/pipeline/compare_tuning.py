@@ -122,7 +122,7 @@ def cause_table(cmp_p: pd.DataFrame, rows: pd.DataFrame, cause: np.ndarray, cmp_
     return out
 
 
-def static_years(df: pd.DataFrame, cells, years=core.STATIC_YEARS) -> dict:
+def static_years(df: pd.DataFrame, cells, years=range(2014, 2022)) -> dict:
     """For each cell id: sorted years (within `years`) with fire on >= 50 distinct UTC days."""
     t = pd.DatetimeIndex(df["acq_datetime_utc"]).tz_convert("UTC").tz_localize(None)
     d = pd.DataFrame({"cell": core.static_cell_id(df["longitude"].values, df["latitude"].values),
@@ -172,8 +172,8 @@ def main() -> None:
     h_rows = df[h_src & in_reg & land_ok]
     static_h = core.static_cells(h_rows["longitude"].values, h_rows["latitude"].values,
                                  h_rows["acq_datetime_utc"], years=TUNING_YEARS)
-    # Variant P: product rule, every ingested satellite, all rows, years 2014-2021.
-    static_p = pclean.static_from(df)
+    # Variant P: the product rule (the scored rule, without the region polygon: the store has no region).
+    static_p = pclean.static_from(df, land)
     print(f"static cells: H {len(static_h)}, P {len(static_p)}, P not in H {len(np.setdiff1d(static_p, static_h))}, H not in P {len(np.setdiff1d(static_h, static_p))}")
 
     aqua = (df["satellite"] == "AQUA").values & np.isin(year, TUNING_YEARS)
@@ -198,7 +198,10 @@ def main() -> None:
     cause = cause_of(a_reg, ex_h, ex_p)
     vc = pd.Series(cause[a_reg]).value_counts()
     print("\nRow-level causes, variant P versus H (rows in region):\n" + vc.to_string())
-    ct = cause_table(cmps["P"], a, cause, cmps["H"])
+    if (cause == "same").all():
+        print("\nVariant P counts every Aqua row exactly as variant H does.")
+        return
+    ct =cause_table(cmps["P"], a, cause, cmps["H"])
     print("\nCell-months differing in variant P, by cause (rows):")
     print(_fmt(ct))
     hit = core.static_cell_id(a["longitude"].values, a["latitude"].values)[a_reg & (cause == "static_p_only")]

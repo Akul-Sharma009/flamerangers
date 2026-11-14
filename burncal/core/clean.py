@@ -9,7 +9,9 @@ import pandas as pd
 STATIC_CELL_DEG = 1.0 / 120.0   # 30 arc-seconds, about 1 km
 STATIC_MIN_DAYS = 50            # hotspot days in one year that make a cell persistent
 SZA_DAY_LIMIT_DEG = 85.0        # day when solar zenith angle is below this
-STATIC_YEARS = range(2014, 2022)
+# Static rule = the scored rule (lead, 14 Nov): tuning years only, MODIS (Aqua, Terra) and Suomi NPP rows on land.
+STATIC_YEARS = (2014, 2016, 2017, 2020)
+STATIC_SATELLITES = ("AQUA", "TERRA", "SNPP")
 
 
 def solar_zenith_deg(lat, lon, when_utc) -> np.ndarray:
@@ -43,8 +45,9 @@ def static_cell_id(lon, lat) -> np.ndarray:
 def static_cells(lon, lat, utc_date, years=STATIC_YEARS) -> np.ndarray:
     """Sorted int64 ids of persistent cells: hotspots on >= 50 distinct UTC days in one year.
 
-    Only rows whose UTC year is in `years` count. All satellites are pooled and a
-    day counts once per cell however many detections it had.
+    Only rows whose UTC year is in `years` count. The caller passes only the rows that
+    may count (see STATIC_SATELLITES); they are pooled and a day counts once per cell
+    however many detections it had.
     """
     t = pd.DatetimeIndex(utc_date)
     if t.tz is not None:

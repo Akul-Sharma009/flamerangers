@@ -262,10 +262,19 @@ Each entry has: a status (**ASSUMED** or **TESTED**), its evidence, and a "revis
 
 ## Static mask: product rule versus the scored rule (14 Nov)
 
-- **Status:** ASSUMED
-- **Decision:** The product marks a 30 arc-second cell static if it has fire on 50 or more days in any year of 2014–2021, counting all ingested satellites (Story 2.3 AC2). The scoring harness used tuning years only (2014, 2016, 2017, 2020) and MODIS plus Suomi NPP. Offshore takes precedence over static when both apply.
-- **Evidence:** With the harness rule our Sumatra Aqua counts equal the harness's exactly. With the product rule they are 0.04% lower (15 detections in 13 cell-months). `docs/cleaning-differences.md`.
-- **Revisit if:** the lead prefers the scored rule for the product, or the world run cannot afford 8 years of all-satellite data to build the mask.
+## Static mask: the scored rule (14 Nov)
+
+- **Status:** TESTED (lead's decision, 14 Nov)
+- **Decision:** A 30 arc-second cell is static if it has hotspots on 50 or more distinct UTC days in one tuning year (2014, 2016, 2017, 2020), counting MODIS (Aqua, Terra) and Suomi NPP rows on land. This is the rule the scoring harness used, so the published record is cleaned the way C1 was scored, and the world run needs only those four years of three satellites to build the mask. The product has no region boundary at this step, so it uses every row in the build extent. Static rows are marked, never deleted. Offshore takes precedence over static.
+- **Evidence:** Sumatra tuning-year Aqua counts equal the harness's exactly: 41,377 detections, 3,600 cell-months, 0 differences (`uv run python -m burncal.pipeline.compare_tuning`, `docs/cleaning-differences.md`). The earlier rule (2014–2021, all satellites) gave 0.04% fewer.
+- **Revisit if:** hotspots after 2020 cluster on fixed sources such as new gas flares.
+
+## NOAA-20 standard data missing for 7 windows of 2024 (14 Nov)
+
+- **Status:** ASSUMED (lead accepted the gap, 14 Nov)
+- **Decision:** Keep the gap for now. NOAA-20 does not feed the record in 2024 (Suomi NPP does through 2 Nov 2026), so no published count changes. Three follow-ups: (1) the served `inputs[].days` must show the true day count for NOAA-20 in the affected months, not the calendar length (Story 2.6); (2) retry the download once before Story 2.10; (3) Story 2.10 drops the missing days from both satellites before comparing NOAA-20 with Suomi NPP.
+- **Evidence:** FIRMS returned errors for 7 five-day windows of `VIIRS_NOAA20_SP` 2024 on every retry; NRT does not cover 2024.
+- **Revisit if:** the retry fills the gap, or NOAA-20 is ever needed to feed 2024.
 
 ## Land layer read as GeoJSON (14 Nov)
 
