@@ -259,3 +259,17 @@ Each entry has: a status (**ASSUMED** or **TESTED**), its evidence, and a "revis
 - **Decision:** the links to `docs/planning/GUARDRAILS.md`, `docs/planning/test-plan.md` and `docs/planning/DECISIONS.md` are built from `VITE_REPO_URL` (not a secret) as `<url>/blob/master/<path>`. With it unset, the page names the three files without links and says so. No repository address is committed.
 - **Evidence:** the repository address contains an account name, and no committed file holds it so far; the hosted site is not served from the repository, so relative links would not reach the files. `outcome.test.tsx` covers both modes. Checked in the browser with the variable set.
 - **Revisit if:** the lead prefers the address committed in one place (a one-line change in `web/src/config.ts`), or the files move. The links 404 until Story 6.3 copies the three files in.
+
+## Static mask: product rule versus the scored rule (14 Nov)
+
+- **Status:** ASSUMED
+- **Decision:** The product marks a 30 arc-second cell static if it has fire on 50 or more days in any year of 2014–2021, counting all ingested satellites (Story 2.3 AC2). The scoring harness used tuning years only (2014, 2016, 2017, 2020) and MODIS plus Suomi NPP. Offshore takes precedence over static when both apply.
+- **Evidence:** With the harness rule our Sumatra Aqua counts equal the harness's exactly. With the product rule they are 0.04% lower (15 detections in 13 cell-months). `docs/cleaning-differences.md`.
+- **Revisit if:** the lead prefers the scored rule for the product, or the world run cannot afford 8 years of all-satellite data to build the mask.
+
+## Land layer read as GeoJSON (14 Nov)
+
+- **Status:** TESTED
+- **Decision:** The land mask is Natural Earth 1:10m land v5.1.1, read from the GeoJSON in that release (no shapefile reader is pinned). Points are tested with `shapely.contains_xy`, as the harness did.
+- **Evidence:** The harness-rule comparison matches exactly, so the GeoJSON copy and the shapefile give the same land test for Sumatra.
+- **Revisit if:** another region's comparison differs at the coast.

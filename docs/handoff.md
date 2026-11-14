@@ -106,6 +106,23 @@ Not in the repo: the Vercel trial used a two-line `index.py` entrypoint and a `r
 | Season rule reproduces the stored seasons (lead's request) | `test_2_2_season_rule_reproduces_the_stored_seasons`, `test_2_2_season_rule_edges` |
 | AC5 Sat 18:00 checkpoint report | This entry; full parity by `tools/parity_full.py` on the lead's machine |
 
+## Story 2.3: ingest and cleaning, Sumatra (branch `teammate/2.3-ingest`)
+
+- Run: `uv run python -m burncal.pipeline.build_extent <raw CSV dir> <land GeoJSON> <out dir>`. Prints counts only.
+- `burncal/pipeline/ingest.py` normalizes FIRMS area-API CSVs for Aqua, Terra, Suomi NPP, NOAA-20 and NOAA-21. It keeps every FIRMS column (FIRMS's own satellite code as `satellite_firms`) and adds `satellite` (contract enum), `quality` (SP/NRT) and the UTC time. Standard rows replace NRT rows per satellite-day.
+- `burncal/core/clean.py` (pure) holds the solar zenith angle and day/night rule (day when the angle is below 85°), the 30 arc-second static cells and `excluded_reason`. `burncal/pipeline/clean.py` handles the land layer. Rows are marked `offshore` (not on Natural Earth 1:10m land, v5.1.1) or `static` (30 arc-second cell with fire on 50 or more days in a year of 2014–2021, all satellites), never deleted.
+- **Sumatra store** (bounding box of the contract polygon, July 2002 to 14 Nov 2026): 2,737,022 rows in, 3,949 NRT rows replaced by standard rows, **2,733,073 rows stored**, 79 MB of Parquet with every column, 77 files, built in 15 s. By reason: none 2,572,714; offshore 88,621; static 71,738.
+- Known gap: NOAA-20 standard data for 2024. FIRMS returned errors for 7 five-day windows on every retry, and NRT does not cover 2024.
+- **Comparison with the harness (AC4):** with the harness's static rule (tuning years only, MODIS and Suomi NPP), cleaned Aqua counts match the harness exactly: 41,377 detections over 3,600 tuning-year cell-months, 0 differences. With the product rule (2014–2021, all satellites), 15 fewer detections (0.04%) in 13 cell-months, all from cells the wider rule marks static. Details and causes: `docs/cleaning-differences.md`.
+- Checks: `uv run pytest` passes; import check passed.
+
+| Criterion | Test or evidence |
+| --- | --- |
+| AC1 every row kept with FIRMS attributes, `quality`, recomputed `daynight`, `excluded_reason` | `test_2_3_ac1_*` in `burncal/pipeline/test_ingest.py`, `test_build_extent.py`, `burncal/core/test_clean.py`, `burncal/pipeline/test_clean.py`; Sumatra build above |
+| AC2 offshore and static rows marked, not deleted | `test_2_3_ac2_*` in the clean tests; `test_2_3_ac1_every_row_kept_with_quality_daynight_and_reason` |
+| AC3 standard beats NRT per satellite-day | `test_2_3_ac3_*` in `test_ingest.py` and `test_build_extent.py`; 3,949 NRT rows replaced in the Sumatra build |
+| AC4 tuning-year Aqua counts agree, or differences listed with causes | `test_2_3_ac4_*` in `test_compare_tuning.py`; `uv run python -m burncal.pipeline.compare_tuning`; `docs/cleaning-differences.md` |
+
 ## Store size probe (14 Nov, branch `teammate/2.3-ingest`)
 
 One year (2024) of FIRMS standard data, MODIS_SP (Aqua and Terra rows) and VIIRS_SNPP_SP, over the bounding boxes of Sumatra and Southern African savanna (`contract/regions.geojson`). 2024 is outside the tuning, selection and final years. Client: `burncal/pipeline/firms.py`. The files sit in `store/probe/` (git-ignored).

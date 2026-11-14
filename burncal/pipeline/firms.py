@@ -7,7 +7,8 @@ from pathlib import Path
 from urllib.request import Request, urlopen
 
 ENV_FILE = Path(__file__).resolve().parents[2] / ".env"
-SOURCES = ("MODIS_SP", "VIIRS_SNPP_SP", "VIIRS_NOAA20_SP", "VIIRS_NOAA20_NRT", "VIIRS_SNPP_NRT", "MODIS_NRT")
+SOURCES = ("MODIS_SP", "VIIRS_SNPP_SP", "VIIRS_NOAA20_SP", "VIIRS_NOAA20_NRT", "VIIRS_SNPP_NRT", "MODIS_NRT",
+           "VIIRS_NOAA21_NRT", "VIIRS_NOAA21_SP")
 
 
 def map_key(env_file: Path = ENV_FILE) -> str:
@@ -37,3 +38,13 @@ def area_csv(source: str, bbox: tuple[float, float, float, float], date: str, da
     if not text.lower().startswith("latitude"):
         raise RuntimeError("FIRMS returned no CSV (bad key, limit reached or bad request)")
     return text
+
+
+def data_availability() -> str:
+    """CSV of each FIRMS source's first and last available date."""
+    url = f"https://firms.modaps.eosdis.nasa.gov/api/data_availability/csv/{map_key()}/ALL"
+    try:
+        with urlopen(Request(url, headers={"User-Agent": "burncal-pipeline"}), timeout=60) as r:
+            return r.read().decode("utf-8")
+    except Exception as exc:  # noqa: BLE001
+        raise RuntimeError(f"FIRMS request failed ({type(exc).__name__}); URL withheld") from None
