@@ -33,11 +33,34 @@ def tile_id(lon, lat) -> np.ndarray:
 
 
 def evidence_class(sw_lon, sw_lat, geoms: dict, classes: dict) -> np.ndarray:
-    """Per 1-degree cell: the strongest evidence class of any region overlapping it with positive area."""
-    cells = shapely.box(np.asarray(sw_lon, float), np.asarray(sw_lat, float),
-                        np.asarray(sw_lon, float) + 1.0, np.asarray(sw_lat, float) + 1.0)
-    rank = np.full(len(cells), EVIDENCE_ORDER.index("not_evaluated"))
+    """Per 1-degree cell: the class covering most of its area (lead's call, 14 Nov).
+
+    The part of the cell outside every region counts as not_evaluated. A tie between two region
+    classes goes to the weaker one; a tie between a region class and the outside part goes to the
+    region class (this reproduces the lead's counts for the six regions). Areas are planar, in
+    square degrees.
+    """
+    lon, lat = np.asarray(sw_lon, float), np.asarray(sw_lat, float)
+    cells = shapely.box(lon, lat, lon + 1.0, lat + 1.0)
+    share = np.zeros((len(cells), len(EVIDENCE_ORDER)))
     for rid, g in geoms.items():
-        hit = shapely.area(shapely.intersection(cells, g)) > 0
-        rank = np.where(hit, np.minimum(rank, EVIDENCE_ORDER.index(classes[rid])), rank)
-    return np.array(EVIDENCE_ORDER, dtype=object)[rank]
+        share[:, EVIDENCE_ORDER.index(classes[rid])] += shapely.area(shapely.intersection(cells, g))
+    outside = np.clip(1.0 - share.sum(axis=1), 0.0, None)
+    regional = share[:, :-1]
+    top = regional.max(axis=1)
+    # among region classes, the weaker one wins a tie
+    weakest_top = regional.shape[1] - 1 - np.argmax(regional[:, ::-1] >= top[:, None] - 1e-12, axis=1)
+    best = np.where((top > 0) & (top >= outside - 1e-12), weakest_top, len(EVIDENCE_ORDER) - 1)
+    return np.array(EVIDENCE_ORDER, dtype=object)[best]
+
+
+def tile_extent(bounds) -> tuple:
+    """The build extent widened to whole 5-degree season tiles, so no tile's history is cut."""
+    x0, y0, x1, y1 = bounds
+    t = SEASON_TILE_DEG
+    return (float(np.floor(x0 / t) * t), float(np.floor(y0 / t) * t),
+            float(np.ceil(x1 / t) * t), float(np.ceil(y1 / t) * t))
+
+
+def is_tile_extent(bounds) -> bool:
+    return tuple(float(b) for b in bounds) == tile_extent(bounds)

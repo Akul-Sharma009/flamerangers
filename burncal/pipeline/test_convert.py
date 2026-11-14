@@ -92,9 +92,11 @@ def test_2_4_ac3_every_1deg_cell_has_an_evidence_class(tmp_path, params):
     clean = tmp_path / "clean"; clean.mkdir()
     _rows([("AQUA", "2015-01-01 06:00", 101.5, -1.5, "none"),
            ("AQUA", "2015-01-01 06:00", 98.5, 3.5, "none")]).to_parquet(clean / "AQUA_2015.parquet")
-    summary = convert.build(clean, tmp_path / "out", regions_path=regions, params=params)
+    with pytest.raises(ValueError, match="5-degree tiles"):
+        convert.build(clean, tmp_path / "bad", extent=(98.5, -1.5, 101.5, 3.5), regions_path=regions, params=params)
+    summary = convert.build(clean, tmp_path / "out", extent=(95.0, -5.0, 105.0, 5.0), regions_path=regions, params=params)
     ev = pd.read_parquet(tmp_path / "out" / "evidence_1deg.parquet")
-    assert len(ev) == 4 * 6  # every 1-degree cell of the rows' extent
+    assert len(ev) == 10 * 10  # every 1-degree cell of the build extent
     got = {(r.sw_lon, r.sw_lat): r.evidence_class for r in ev.itertuples()}
     assert got[(101.0, -2.0)] == "tuned" and got[(98.0, 3.0)] == "not_evaluated"
     rec = pd.read_parquet(tmp_path / "out" / "AQUA_2015.parquet")

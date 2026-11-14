@@ -1,6 +1,7 @@
 """Story 2.4: the convert step. Cleaned rows in, harmonized record rows out (AD-2 to AD-5).
 
-Run: uv run python -m burncal.pipeline.convert <clean dir> <out dir>
+Run: uv run python -m burncal.pipeline.convert <clean dir> <out dir> <coverage.json>
+The build extent comes from coverage.json and must be whole 5-degree season tiles (lead's call, 14 Nov).
 Adds region_id, rules_region, in_season, feeds_record, validated_satellite and weight to every row.
 No row is removed. Prints counts only.
 """
@@ -84,24 +85,29 @@ def convert(df: pd.DataFrame, params: dict, geoms: dict) -> pd.DataFrame:
     return out
 
 
-def evidence_cells(lon, lat, geoms, classes) -> pd.DataFrame:
-    """Every 1-degree cell of the rows' extent with its evidence_class."""
-    x0, x1 = np.floor(np.min(lon) + 1e-9), np.floor(np.max(lon) + 1e-9)
-    y0, y1 = np.floor(np.min(lat) + 1e-9), np.floor(np.max(lat) + 1e-9)
-    gx, gy = np.meshgrid(np.arange(x0, x1 + 1), np.arange(y0, y1 + 1), indexing="ij")
+def evidence_cells(extent, geoms, classes) -> pd.DataFrame:
+    """Every 1-degree cell of the build extent with its evidence_class."""
+    x0, y0, x1, y1 = (int(round(v)) for v in extent)
+    gx, gy = np.meshgrid(np.arange(x0, x1, dtype=float), np.arange(y0, y1, dtype=float), indexing="ij")
     sw_lon, sw_lat = gx.ravel(), gy.ravel()
     return pd.DataFrame({"sw_lon": sw_lon, "sw_lat": sw_lat,
                          "evidence_class": regions.evidence_class(sw_lon, sw_lat, geoms, classes)})
 
 
-def build(clean_dir, out_dir, *, regions_path=REGIONS_FILE, params=None) -> dict:
+def build(clean_dir, out_dir, *, extent, regions_path=REGIONS_FILE, params=None) -> dict:
+    """extent: (west, south, east, north) of the build, whole 5-degree tiles, holding every row."""
+    if not regions.is_tile_extent(extent):
+        raise ValueError(f"build extent {tuple(extent)} is not whole 5-degree tiles; use {regions.tile_extent(extent)}")
     params = params or c1_params.read_c1_params()
     geoms, classes = load_regions(regions_path)
     df = pd.concat([pd.read_parquet(p) for p in sorted(Path(clean_dir).glob("[A-Z]*_[0-9]*.parquet"))], ignore_index=True)
+    x0, y0, x1, y1 = extent
+    if not (df["longitude"].between(x0, x1).all() and df["latitude"].between(y0, y1).all()):
+        raise ValueError("rows fall outside the build extent")
     df = convert(df, params, geoms)
     out_dir = Path(out_dir)
     ingest.write_partitions(df, out_dir)
-    evidence_cells(df["longitude"], df["latitude"], geoms, classes).to_parquet(out_dir / "evidence_1deg.parquet", index=False)
+    evidence_cells(extent, geoms, classes).to_parquet(out_dir / "evidence_1deg.parquet", index=False)
     feeding = df[df["feeds_record"] & (df["excluded_reason"] == "none")]
     return {
         "rows": len(df),
@@ -112,4 +118,5 @@ def build(clean_dir, out_dir, *, regions_path=REGIONS_FILE, params=None) -> dict
 
 
 if __name__ == "__main__":
-    print(json.dumps(build(sys.argv[1], sys.argv[2]), indent=1))
+    extent = json.loads(Path(sys.argv[3]).read_text(encoding="utf-8"))["extent"]
+    print(json.dumps(build(sys.argv[1], sys.argv[2], extent=extent), indent=1))
