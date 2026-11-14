@@ -165,18 +165,20 @@ def footprints(time_utc, lat, lon, frp_mw, scan_km, track_km, include=None, *, p
 
 
 # --- 1A -------------------------------------------------------------------------
-def footprint_1a(params, region, time_utc, lat, lon, frp_mw, scan_km, track_km, include=None) -> np.ndarray:
-    """Per row: the footprint's max(k*p + miss, 0) on its anchor row, 0 elsewhere."""
+def _anchor_features(params, time_utc, lat, lon, frp_mw, scan_km, track_km, include):
+    """fp_id, anchor rows, and the 1A feature matrix of each anchor row."""
     fp_id, anchor, theta, frp_sum = _footprints(params, time_utc, lat, lon, frp_mw, scan_km, track_km, include)
-    out = np.zeros(len(fp_id))
     a = np.flatnonzero(anchor)
-    if len(a) == 0:
-        return out
     X = np.column_stack([
         np.log(np.maximum(frp_sum[fp_id[a]], 0.01)),
         theta[a],
         np.log(np.maximum(np.asarray(scan_km, float)[a] * np.asarray(track_km, float)[a], 1e-3)),
-    ])
+    ]) if len(a) else np.zeros((0, 3))
+    return fp_id, a, X
+
+
+def _term_1a(params, region, X) -> np.ndarray:
+    """max(k*p + miss, 0) per footprint, with the region's 1A rules or the pooled ones."""
     if region in params["regions_fit"]:
         m, gi = params["model"], params["regions_fit"].index(region)
         k, miss = params["per_det"][region], params["miss"][region]
@@ -184,7 +186,15 @@ def footprint_1a(params, region, time_utc, lat, lon, frp_mw, scan_km, track_km, 
         m, gi = params["pooled_model"], 0
         k, miss = params["pooled_per_det"], params["pooled_miss"]
     eta = ((X - m["mu"]) / m["sd"]) @ m["b"] + m["a"][gi]
-    out[a] = np.clip(k / (1 + np.exp(-eta)) + miss, 0, None)
+    return np.clip(k / (1 + np.exp(-eta)) + miss, 0, None)
+
+
+def footprint_1a(params, region, time_utc, lat, lon, frp_mw, scan_km, track_km, include=None) -> np.ndarray:
+    """Per row: the footprint's max(k*p + miss, 0) on its anchor row, 0 elsewhere."""
+    fp_id, a, X = _anchor_features(params, time_utc, lat, lon, frp_mw, scan_km, track_km, include)
+    out = np.zeros(len(fp_id))
+    if len(a):
+        out[a] = _term_1a(params, region, X)
     return out
 
 
@@ -223,4 +233,30 @@ def row_weights(params, region, *, time_utc, lat, lon, frp_mw, scan_km, track_km
     else:
         raise ValueError(f"unknown method {method!r}")
     term = footprint_1a(params, region, time_utc, lat, lon, frp_mw, scan_km, track_km, include)
+    return np.where(inc, (1.0 - w) * r4a + w * term, 0.0)
+
+
+def row_weights_mixed(params, rules_region, in_season, *, time_utc, lat, lon, frp_mw, scan_km, track_km,
+                      night, include=None) -> np.ndarray:
+    """C1 row weights when rows lie in different areas (Story 2.4, AD-4).
+
+    rules_region: per row, a tuning-region id or "" for the pooled rules. Each row takes its own
+    4A ratio; a footprint's 1A term uses the rules of its anchor row's area. in_season: per row,
+    whether its calendar month is fire season where it lies; w is w_season there, else w_off.
+    Footprints are built over all rows passed (worldwide in production).
+    """
+    n = len(lat)
+    inc = np.ones(n, bool) if include is None else np.asarray(include, bool)
+    rules_region = np.asarray(rules_region, object)
+    time_utc, night = np.asarray(time_utc), np.asarray(night, bool)
+    r4a = np.zeros(n)
+    for r in set(rules_region.tolist()):
+        m = rules_region == r
+        r4a[m] = row_4a(params, r, time_utc[m], night[m])
+    term = np.zeros(n)
+    fp_id, a, X = _anchor_features(params, time_utc, lat, lon, frp_mw, scan_km, track_km, include)
+    for r in set(rules_region[a].tolist()):
+        m = rules_region[a] == r
+        term[a[m]] = _term_1a(params, r, X[m])
+    w = np.where(np.asarray(in_season, bool), params["w_season"], params["w_off"])
     return np.where(inc, (1.0 - w) * r4a + w * term, 0.0)

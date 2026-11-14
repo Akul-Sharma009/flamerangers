@@ -385,3 +385,15 @@ Each entry has: a status (**ASSUMED** or **TESTED**), its evidence, and a "revis
 - **Decision:** The land mask is Natural Earth 1:10m land v5.1.1, read from the GeoJSON in that release (no shapefile reader is pinned). Points are tested with `shapely.contains_xy`, as the harness did.
 - **Evidence:** The harness-rule comparison matches exactly, so the GeoJSON copy and the shapefile give the same land test for Sumatra.
 - **Revisit if:** another region's comparison differs at the coast.
+
+## Story 2.4: how the convert step applies C1 per row (14 Nov)
+
+- **Status:** ASSUMED. The lead reviewed all five points on 14 Nov: 1, 2 and 4 confirmed; 3 confirmed with tile-aligned extents added; 5 changed to the rule below.
+- **Decision:**
+  - A row uses a tuning region's rules when it lies strictly inside that region's polygon in `contract/regions.geojson` (`shapely.contains_xy`, the harness's test; a point exactly on the edge is outside). Every other row uses the pooled rules.
+  - Each row takes the 4A ratio of its own area. A 1A footprint's term uses the rules of its anchor row's area, and the blend weight of the anchor's month and area. Footprints are built over all feeding rows of one satellite in the build extent.
+  - Fire season: tuning regions use C1's stored months. Southern Africa, Siberia and Punjab use their own 2003–2011 cleaned Aqua history. Everywhere else uses the history of a fixed 5° tile (AD-4's untested extension). The history counts Aqua rows with `excluded_reason` `none`. **Every build extent is whole 5° tiles** (lead's call), so no tile's history is cut; the convert step refuses any other extent. The extent is declared in `coverage.json`.
+  - The 1A anchor tie rule (equal FRP goes to the earlier row) runs on rows sorted by satellite, time, latitude and longitude. The harness's own row order is not available for new data.
+  - **The `evidence_class` of a 1° cell is the class covering most of the cell's area** (lead's call). The part outside every region counts as `not_evaluated`; areas are planar. An exact tie goes to the weaker class (lead's call, 14 Nov, correcting his first counts), so Punjab's 8 cells that are exactly half inside are `not_evaluated`. Over the six regions: 225 tuned, 570 tested_unseen, 6 reported_only, 38 not_evaluated.
+- **Evidence:** `uv run pytest burncal/core/test_c1.py burncal/core/test_regions.py burncal/pipeline/test_convert.py`. With every row in one tuning region, the per-row weights equal Story 2.2's weights, and parity still passes with the case set. `test_2_4_ac3_six_regions_give_the_leads_counts` reproduces the lead's corrected counts.
+- **Revisit if:** the lead wants a cell's class taken from its centre.
