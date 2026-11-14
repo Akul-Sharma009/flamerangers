@@ -2,7 +2,7 @@
 
 Short running status for the next session. Facts only; decisions and their status are in `DECISIONS.md`, story status in `sprint-status.yaml`.
 
-Updated: Sat 14 Nov 2026, evening SGT (Story 5.2).
+Updated: Sat 14 Nov 2026, evening SGT (Story 5.3).
 
 ## Where things stand
 
@@ -18,6 +18,7 @@ Updated: Sat 14 Nov 2026, evening SGT (Story 5.2).
 | 5.1 Scoring files and claims | Done | `evidence/claims.yaml` written and checked; the lead approved the wording. See below. |
 | 6.6 Pitch storyline | Done | Drafted in `docs/pitch/storyline.md` as a 7-slide deck. See below. |
 | 5.2 Evidence build and checks | Done | Merged to `master`. See below. |
+| 5.3 The outcome in plain words | Done | Merged to `master`. See below. |
 
 `master` holds Stories 1.1 to 1.5, 2.1, 2.2 and 5.1. New work branches from `master`.
 
@@ -154,6 +155,22 @@ Not in the repo: the Vercel trial used a two-line `index.py` entrypoint and a `r
 | AC2 a number that differs from its source fails the build | `test_5_2_ac2_a_figure_that_differs_from_its_source_fails[*]` (value, claim, interval, beyond noise, display, pointer), `..._the_cli_exits_nonzero_on_a_tampered_file`, `..._a_claim_that_differs_from_its_source_fails_the_build`, `..._a_changed_scoring_file_fails` |
 | AC3 wording check on the built site and the README | `test_5_2_ac3_readme_and_site_pass_the_wording_check`, `..._wording_check_fails_on_each_listed_claim[*]`, `..._the_fixed_claims_pass_the_wording_check`, `..._phrase_split_across_lines_is_caught`, `..._a_missing_path_fails`; `evidence/wording.py` on a fresh build |
 
+## Story 5.3: the outcome in plain words (branch `lead/5.3-outcome`)
+
+- `#/evidence` now opens the evidence view's first screen: the outcome (claim `flag-precision-vs-b`) in large serif, "What it means for the record" (`aqua-through-2021` and one typed sentence), "The scores behind it" (`count-error-vs-b`, `trade-off-recall`, `margin-vs-4a`, `best-of-three`), then a right column with C1 in plain words and the three planning files. On a phone the columns stack.
+- `evidence.json` loads with a dynamic `import()` when the view opens; the build puts it in its own chunk (`evidence-*.js`, 2.1 MB, 156 KB gzipped), so the calendar's bundle stays as it was. Vite warns about the chunk's size; not acted on.
+- Claims are printed word for word from `evidence.json`. The page's own words are in `web/src/evidence/outcome.ts` and hold no number; the switch dates come from `messages.yaml` (`record_switch`).
+- Links to the planning files need `VITE_REPO_URL` (the public repository's address, e.g. `https://github.com/<owner>/<repo>`) at build time. Without it the page names the files and does not link them. The links 404 until Story 6.3 copies `GUARDRAILS.md`, `research/test-plan.md` and the planning `DECISIONS.md` into `docs/planning/`.
+- If `evidence.json` fails to load, the page shows interim words, marked TODO in `web/src/pages/EvidencePage.tsx` (no sentence for it in `messages.yaml`).
+- Checks: `npm run typecheck`, `npm run test` (25 passed, 10 of them Story 5.3), `npm run build`; `uv run pytest` 176 passed, 9 skipped; evidence check, wording check (on a fresh build) and import check passed. Looked at in the built-in browser at 1280 px and 375 px: no horizontal scroll, no console errors, outcome above the fold at 1280 × 800.
+- For the lead: the copy (headings, the method paragraph, the typed record sentence) and the choice of claims are ASSUMED and need your OK (see `DECISIONS.md`).
+
+| Criterion | Test or evidence |
+| --- | --- |
+| AC1 opened from the top navigation; the top states the outcome row, the deviation and what it means for the record, from `claims.yaml` | `outcome.test.tsx`: "the evidence view is in the top navigation", "the top states the outcome row and the recorded deviation…", "it says what the outcome means for the record", "every claim on the page is printed word for word…"; browser check |
+| AC2 C1 in plain language (transfer table, per-footprint detection model, weighted by fire season), changes only months from January 2022 | "the method is explained in plain words…" |
+| AC3 links to the guardrails, the test plan and the selection record in the public repo | "it links to the guardrails…", "with no repository address the files are named, not linked"; browser check of the three hrefs. The copies themselves are Story 6.3 (lead). |
+
 ## Contract 0.2.0: what changed from the first draft
 
 The first draft passed its tests but an independent review found it could not carry the product. The rewrite:
@@ -172,7 +189,7 @@ The points where the plan left room are listed in `DECISIONS.md` ("Contract 0.2.
 ## Next
 
 1. Data owner: Stories 1.3 and 2.2 are merged; next is Story 2.3 (ingest and cleaning for one extent).
-2. Lead: review and merge Story 5.2; then Stories 5.3 to 5.6 (the evidence view, reading `evidence.json`), and the open points in Story 6.6's storyline.
+2. Lead: review Story 5.3 (copy and claim choice, the `VITE_REPO_URL` approach); then Stories 5.4 to 5.6 below it on the same page, and the open points in Story 6.6's storyline.
 
 ## Checkpoints (flags, not deadlines; times in SGT)
 

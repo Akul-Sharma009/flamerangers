@@ -57,7 +57,29 @@ ol.notes li { margin-bottom: 4px; }
 .stub h1 { font-family: var(--serif); font-weight: 600; font-size: 28px; margin: 4px 0 8px; }
 .stub p { max-width: 60ch; line-height: 1.5; color: var(--muted); }
 
+/* Evidence view (Story 5.3): the same ledger page, sentences in serif. */
+main.evidence { display: grid; grid-template-columns: minmax(0, 7fr) minmax(0, 5fr); gap: 40px; }
+.evidence .kicker { font-size: 12px; color: var(--muted); letter-spacing: .05em; text-transform: uppercase; margin: 0; }
+.evidence h1 { font-family: var(--serif); font-weight: 600; font-size: 30px; margin: 4px 0 12px; }
+.evidence h2 { font-family: var(--serif); font-weight: 600; font-size: 17px; margin: 22px 0 6px; padding-top: 8px; border-top: 1px solid var(--rule); }
+.evidence p, .evidence li { line-height: 1.55; max-width: 66ch; }
+.evidence .lead { font-family: var(--serif); font-size: 23px; line-height: 1.4; margin: 0 0 8px; }
+.evidence .claim, .evidence ol.claims li { font-family: var(--serif); font-size: 16.5px; }
+.evidence ol.claims { padding-left: 22px; margin: 0; }
+.evidence ol.claims li { margin-bottom: 8px; }
+.evidence .aside { font-size: 12px; color: var(--muted); }
+.evidence .method { font-size: 14px; }
+.evidence .method > section:first-child h2 { margin-top: 6px; }
+.evidence ul.parts, .evidence ul.files { padding-left: 18px; margin: 0 0 8px; }
+.evidence ul.parts li, .evidence ul.files li { margin-bottom: 6px; }
+.evidence .rule { border-left: 3px double var(--ink); padding-left: 10px; }
+.evidence code { font-family: var(--num); font-size: 12px; overflow-wrap: anywhere; }
+.evidence .files .label { font-weight: 600; }
+
 @media (max-width: 800px) {
+  main.evidence { grid-template-columns: 1fr; gap: 8px; }
+  .evidence h1 { font-size: 25px; }
+  .evidence .lead { font-size: 19.5px; }
   header.mast { padding: 8px 16px; }
   .mast nav a { margin-left: 0; margin-right: 12px; font-size: 12.5px; }
   main.page { padding: 14px 16px 24px; }

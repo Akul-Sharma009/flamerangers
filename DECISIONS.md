@@ -238,3 +238,24 @@ Each entry has: a status (**ASSUMED** or **TESTED**), its evidence, and a "revis
 - **Decision:** rows of the run and by-year tables are keyed by JSON pointer (`/blocks/sumatra`, `/truth_flags_1deg`, `/sumatra/2015`), as the decisions table already was. The schema leaves the key's format open.
 - **Evidence:** keys like `southern_africa.2015` in a `"key":` field matched gitleaks' `generic-api-key` rule 30 times and blocked the commit. The pointer form passes the unchanged hook, so no allowlist was added.
 - **Revisit if:** the evidence view (Stories 5.3–5.6) needs another key format; keep it out of the `name.name` shape or the hook will flag it again.
+
+## Story 5.3: which fixed claims open the evidence view (14 Nov 2026)
+
+- **Status:** ASSUMED. The lead approves the wording.
+- **Decision:** the first screen leads with `flag-precision-vs-b` (it names the outcome row, "nothing beat one global factor", and the recorded deviation), then `aqua-through-2021` under "What it means for the record", then `count-error-vs-b`, `trade-off-recall`, `margin-vs-4a` and `best-of-three` under "The scores behind it". Each is printed word for word from `evidence.json`. One typed sentence follows `aqua-through-2021`: the months after the sensor change are VIIRS counts converted by C1, the method kept as the deviation, not by one global factor. It describes the record, not how C1 scored. The remaining claims are left to Stories 5.4 to 5.6.
+- **Evidence:** Story 5.3 AC1; test-plan section 11, row "Nothing beats (b), (a) is beaten"; `web/src/evidence/outcome.test.tsx`. Not shown to a reader yet.
+- **Revisit if:** the lead wants the first screen to be two sentences only (the user story's wording), or wants `margin-vs-4a` out of the first screen.
+
+## Story 5.3: the typed words on the evidence view hold no number (14 Nov 2026)
+
+- **Status:** TESTED (`outcome.test.tsx`, "the typed words hold no number")
+- **Decision:** the page's own words (headings, the plain-language method, the file list) live in `web/src/evidence/outcome.ts` and contain no digit apart from the method names C1, 4A and 1A. The switch dates come from `messages.yaml`'s `record_switch` note, which the method section quotes to meet AC2 ("changes only months from January 2022"). The method description is read from the 4A, 1A and C1 method notes in the planning record and states no fitted value.
+- **Evidence:** AD-8 ("no number is typed into the web"); the test.
+- **Revisit if:** the method wording needs a number; then it goes in `claims.yaml` or `messages.yaml` with its source, not in the web.
+
+## Story 5.3: the planning-file links take the repository address from the build (14 Nov 2026)
+
+- **Status:** ASSUMED. Flag to the lead.
+- **Decision:** the links to `docs/planning/GUARDRAILS.md`, `docs/planning/test-plan.md` and `docs/planning/DECISIONS.md` are built from `VITE_REPO_URL` (not a secret) as `<url>/blob/master/<path>`. With it unset, the page names the three files without links and says so. No repository address is committed.
+- **Evidence:** the repository address contains an account name, and no committed file holds it so far; the hosted site is not served from the repository, so relative links would not reach the files. `outcome.test.tsx` covers both modes. Checked in the browser with the variable set.
+- **Revisit if:** the lead prefers the address committed in one place (a one-line change in `web/src/config.ts`), or the files move. The links 404 until Story 6.3 copies the three files in.
