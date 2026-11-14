@@ -407,3 +407,33 @@ def test_4_1_ac2_every_number_equals_the_calendar(client, versions):
         assert row["partial_reasons"] == ";".join(m["partial_reasons"])
         assert row["inputs"] == ";".join(f'{i["satellite"]}:{i["quality"]}:{i["days"]}' + ("*" if i["feeds_record"] else "")
                                          for i in m["inputs"])
+
+
+# --- Story 4.5: the numbers-agree check ---------------------------------------------
+import importlib.util  # noqa: E402
+
+_spec = importlib.util.spec_from_file_location("check_numbers", ROOT / "tools" / "check_numbers.py")
+check_numbers = importlib.util.module_from_spec(_spec)
+_spec.loader.exec_module(check_numbers)
+
+
+@pytest.mark.parametrize("area", ["sumatra", "amazon", "punjab"])
+def test_4_5_ac1_calendar_csvs_and_hotspots_agree(client, versions, area):
+    report = check_numbers.check(client, versions[0], AREAS[area], name=area)
+    assert report["failures"] == [], report["failures"][:5]
+    assert report["months_compared"] == 300 and report["hotspot_months_compared"] == 233
+
+
+def test_4_5_ac2_a_failing_check_fails(client, versions, monkeypatch):
+    real = check_numbers._calendar
+
+    def off_by_one(*a, **kw):
+        cal = real(*a, **kw)
+        m = next(m for m in cal["months"] if m["count"])
+        m["count"] += 1
+        return cal
+
+    monkeypatch.setattr(check_numbers, "_calendar", off_by_one)
+    report = check_numbers.check(client, versions[0], PUNJAB, name="punjab")
+    assert report["failures"]
+    assert check_numbers.exit_code(report) == 1
