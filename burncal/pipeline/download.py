@@ -2,8 +2,8 @@
 
     uv run python -m burncal.pipeline.download <region_id> <raw dir> <data_through YYYY-MM-DD>
 
-Needs FIRMS_MAP_KEY (environment or .env). One CSV per source and year; a year whose windows keep
-failing is left out and reported, and rerunning fetches only what is missing. Writes coverage.json
+Needs FIRMS_MAP_KEY (environment or .env). One CSV per source and year. Windows that succeed are kept, so
+a rerun fetches only the windows still missing; a year is written once all its windows are in. Writes coverage.json
 from the files present, so a missing year shows as not loaded, never as zero. The plan is the record's
 needs plus NOAA-20 from 2022 (the "middle" scope, DECISIONS.md, Story 2.8).
 """
@@ -62,10 +62,45 @@ def _fetch(args):
     extent, source, start, days = args
     for attempt in range(ATTEMPTS):
         try:
-            return firms.area_csv(source, extent, start.isoformat(), days)
+            text = firms.area_csv(source, extent, start.isoformat(), days)
+            if text.lower().startswith("latitude"):
+                return text
         except RuntimeError:
-            time.sleep(10 * (attempt + 1))
+            pass
+        time.sleep(10 * (attempt + 1))
     return None
+
+
+def fetch_year(source, extent, a: date, b: date, raw_dir) -> int:
+    """One source-year, window by window. A window that succeeds is kept under .parts/, so a rerun
+    fetches only the windows still missing. Returns how many windows are still missing (0 = done)."""
+    raw_dir = Path(raw_dir)
+    out = raw_dir / f"{source}_{a.year}.csv"
+    if out.exists():
+        return 0
+    parts = raw_dir / ".parts" / out.stem
+    parts.mkdir(parents=True, exist_ok=True)
+    wins = list(windows(a, b))
+    todo = [(s, n) for s, n in wins if not (parts / f"{s.isoformat()}.csv").exists()]
+    with ThreadPoolExecutor(WORKERS) as ex:
+        texts = list(ex.map(_fetch, [(extent, source, s, n) for s, n in todo]))
+    for (s, _), text in zip(todo, texts):
+        if text is not None:
+            tmp = parts / f"{s.isoformat()}.part"
+            tmp.write_text(text)
+            tmp.replace(parts / f"{s.isoformat()}.csv")
+    missing = [s for s, _ in wins if not (parts / f"{s.isoformat()}.csv").exists()]
+    if missing:
+        return len(missing)
+    texts = [(parts / f"{s.isoformat()}.csv").read_text() for s, _ in wins]
+    rows = [line for t in texts for line in t.splitlines()[1:] if line]
+    tmp = out.with_suffix(".part")
+    tmp.write_text("\n".join([texts[0].splitlines()[0]] + rows) + "\n")
+    tmp.replace(out)
+    for f in parts.iterdir():
+        f.unlink()
+    parts.rmdir()
+    return 0
 
 
 def coverage(raw_dir, extent, plan_: dict) -> dict:
@@ -83,25 +118,26 @@ def coverage(raw_dir, extent, plan_: dict) -> dict:
     return out
 
 
-def download(region_id: str, raw_dir, data_through: date) -> dict:
-    extent, raw_dir = region_extent(region_id), Path(raw_dir)
+def download_plan(plan_: dict, extent, raw_dir) -> dict:
+    """Every source-year of the plan that is not yet on disk; writes coverage.json from what is."""
+    raw_dir = Path(raw_dir)
     raw_dir.mkdir(parents=True, exist_ok=True)
-    p, done, failed = plan(data_through=data_through), [], []
-    for source, spans in p.items():
+    done, failed = [], []
+    for source, spans in plan_.items():
         for y, a, b in years(spans):
-            path = raw_dir / f"{source}_{y}.csv"
-            if path.exists() or a > b:
+            if (raw_dir / f"{source}_{y}.csv").exists() or a > b:
                 continue
-            with ThreadPoolExecutor(WORKERS) as ex:
-                texts = list(ex.map(_fetch, [(extent, source, s, n) for s, n in windows(a, b)]))
-            if any(t is None or not t.lower().startswith("latitude") for t in texts):
-                failed.append(f"{source}_{y}")
-                continue
-            rows = [line for t in texts for line in t.splitlines()[1:] if line]
-            path.write_text("\n".join([texts[0].splitlines()[0]] + rows) + "\n")
-            done.append(f"{source}_{y}")
-    (raw_dir / "coverage.json").write_text(json.dumps(coverage(raw_dir, extent, p), indent=1))
-    return {"extent": extent, "downloaded": done, "failed_rerun_to_retry": failed}
+            missing = fetch_year(source, extent, a, b, raw_dir)
+            if missing:
+                failed.append(f"{source}_{y} ({missing} of {len(list(windows(a, b)))} windows)")
+            else:
+                done.append(f"{source}_{y}")
+    (raw_dir / "coverage.json").write_text(json.dumps(coverage(raw_dir, extent, plan_), indent=1))
+    return {"extent": list(extent), "downloaded": done, "failed_rerun_to_retry": failed}
+
+
+def download(region_id: str, raw_dir, data_through: date) -> dict:
+    return download_plan(plan(data_through=data_through), region_extent(region_id), raw_dir)
 
 
 if __name__ == "__main__":

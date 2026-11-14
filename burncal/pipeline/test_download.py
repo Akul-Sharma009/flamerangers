@@ -26,3 +26,30 @@ def test_6_2_coverage_names_only_the_years_present(tmp_path):
 
 def test_6_2_region_extent_is_whole_tiles():
     assert download.region_extent("sumatra") == (90.0, -10.0, 110.0, 10.0)
+
+
+def test_6_2_download_keeps_good_windows_and_retries_only_failed_ones(tmp_path, monkeypatch):
+    calls, fail_once = [], {"2024-01-06"}
+    HEADER = "latitude,longitude,acq_date\n"
+
+    def fake(source, extent, start, days):
+        calls.append(start)
+        if start in fail_once:
+            fail_once.discard(start)
+            raise RuntimeError("FIRMS request failed (HTTPError); URL withheld")
+        return HEADER + f"1.0,2.0,{start}\n"
+
+    monkeypatch.setattr(download.firms, "area_csv", fake)
+    monkeypatch.setattr(download, "ATTEMPTS", 1)
+    monkeypatch.setattr(download.time, "sleep", lambda s: None)
+    plan = {"MODIS_SP": [(date(2024, 1, 1), date(2024, 1, 12))]}
+    first = download.download_plan(plan, (90.0, -10.0, 110.0, 10.0), tmp_path)
+    assert first["failed_rerun_to_retry"] == ["MODIS_SP_2024 (1 of 3 windows)"]
+    assert not (tmp_path / "MODIS_SP_2024.csv").exists()
+    calls.clear()
+    second = download.download_plan(plan, (90.0, -10.0, 110.0, 10.0), tmp_path)
+    assert calls == ["2024-01-06"]  # only the window that failed is fetched again
+    assert second["downloaded"] == ["MODIS_SP_2024"]
+    text = (tmp_path / "MODIS_SP_2024.csv").read_text()
+    assert text.splitlines()[0] == HEADER.strip() and len(text.splitlines()) == 4
+    assert not (tmp_path / ".parts").exists() or not any((tmp_path / ".parts").iterdir())
