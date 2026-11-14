@@ -1,6 +1,7 @@
 import { useMemo } from "react";
 import { messages } from "../api/messages";
-import { MARKS, buildClasses, type Calendar } from "./model";
+import { anomalyScaleText, buildAnomalyClasses, type GridSentences } from "./anomaly";
+import { MARKS, buildClasses, type Calendar, type Measure } from "./model";
 import "./grid.css";
 
 const STROKE = { stroke: "var(--ink)", strokeWidth: 1.2 } as const;
@@ -10,23 +11,45 @@ function Mark({ glyph }: { glyph: string }) {
 }
 
 /** The key to the grid and the table: class breaks, the unit, and every mark. */
-export function GridLegend({ calendar }: { calendar: Calendar }) {
+export function GridLegend({ calendar, measure = "count", sentences }: { calendar: Calendar; measure?: Measure; sentences?: GridSentences }) {
   const classes = useMemo(() => buildClasses(calendar), [calendar]);
+  const anomalyClasses = useMemo(() => buildAnomalyClasses(calendar), [calendar]);
   const p = messages.labels.partial_reason;
   return (
-    <div className="gridlegend">
-      <div className="scale">
-        <span className="unit">{calendar.unit_label}, lower bound of each class</span>
-        <span className="ramp" role="list" aria-label="Colour classes, lower bound of each">
-          {classes.map((c) => (
-            <span className="step" role="listitem" key={c.index}>
-              <i style={{ background: `var(--c${c.index})` }} />
-              <span>{c.label}</span>
-            </span>
-          ))}
-        </span>
-      </div>
+    <div className="gridlegend" data-measure={measure}>
+      {measure === "anomaly" ? (
+        <div className="scale">
+          {/* sentences.anomaly_scale once contract 0.4.0 merges; until then a label naming the served period. */}
+          <span className="unit">{anomalyScaleText(calendar.reference_period, sentences)}</span>
+          <span className="ramp" role="list" aria-label="Anomaly classes, lower bound of each">
+            {anomalyClasses.map((c) => (
+              <span className="step" role="listitem" key={c.index} data-tone={c.tone}>
+                <i style={{ background: `var(--a-${c.tone})` }} />
+                <span>{c.label}</span>
+              </span>
+            ))}
+          </span>
+        </div>
+      ) : (
+        <div className="scale">
+          <span className="unit">{calendar.unit_label}, lower bound of each class</span>
+          <span className="ramp" role="list" aria-label="Colour classes, lower bound of each">
+            {classes.map((c) => (
+              <span className="step" role="listitem" key={c.index}>
+                <i style={{ background: `var(--c${c.index})` }} />
+                <span>{c.label}</span>
+              </span>
+            ))}
+          </span>
+        </div>
+      )}
       <ul className="symbols">
+        {measure === "anomaly" ? (
+          <li className="item" data-legend="no-anomaly">
+            <svg width="16" height="12" aria-hidden="true"><rect x="0.5" y="0.5" width="15" height="11" fill="var(--paper)" stroke="var(--rule)" /></svg>
+            {messages.notes.no_typical_activity}
+          </li>
+        ) : null}
         <li className="item">
           <svg width="22" height="12" aria-hidden="true"><line x1="0" y1="6" x2="22" y2="6" stroke="var(--ink)" strokeWidth="2" /></svg>
           {messages.notes.record_switch}
@@ -69,13 +92,17 @@ export function GridLegend({ calendar }: { calendar: Calendar }) {
         <li className="item"><Mark glyph={MARKS.nrt} />{messages.labels.quality.NRT}</li>
         <li className="item"><Mark glyph={MARKS.incomplete} />{p.record_start} {p.missing_days}</li>
         <li className="item"><Mark glyph={MARKS.cut} />{p.range_cut}</li>
-        <li className="item">
+        <li className="item" data-legend="flag-strong">
           <svg width="12" height="12" aria-hidden="true"><path d="M1,1 L11,1 L1,11 Z" fill="var(--ink)" /></svg>
-          {messages.labels.flag_state.strong}
+          <span>{messages.labels.flag_state.strong} {messages.notes.strong_tier}</span>
         </li>
-        <li className="item">
+        <li className="item" data-legend="flag-marginal">
           <svg width="12" height="12" aria-hidden="true"><circle cx="6" cy="6" r="4" fill="none" {...STROKE} /></svg>
           {messages.labels.flag_state.marginal}
+        </li>
+        <li className="item" data-legend="flag-scale">
+          <svg width="12" height="12" aria-hidden="true"><rect x="0.6" y="0.6" width="10.8" height="10.8" fill="none" {...STROKE} /></svg>
+          {messages.notes.flag_scale}
         </li>
         <li className="item">
           <svg width="16" height="16" aria-hidden="true">

@@ -95,3 +95,34 @@
 @media (max-width: 420px) {
   .gridlegend .step i { width: 36px; }
 }
+
+/* Story 3.8: the anomaly view. A two-hue diverging ramp with a neutral middle
+   (UI-CONCEPT.md): slate below the reference mean, ochre-brown above, no red. */
+:root {
+  --a-cool3: #2f4f6b;
+  --a-cool2: #6f8ea8;
+  --a-cool1: #b9c7d2;
+  --a-neutral: #e6dfd0;
+  --a-warm1: #dcb98a;
+  --a-warm2: #b07a3e;
+  --a-warm3: #6e3a15;
+}
+.switches { display: flex; flex-wrap: wrap; gap: 6px 10px; }
+.calgrid .cell.a-cool3 .bg { fill: var(--a-cool3); }
+.calgrid .cell.a-cool2 .bg { fill: var(--a-cool2); }
+.calgrid .cell.a-cool1 .bg { fill: var(--a-cool1); }
+.calgrid .cell.a-neutral .bg { fill: var(--a-neutral); }
+.calgrid .cell.a-warm1 .bg { fill: var(--a-warm1); }
+.calgrid .cell.a-warm2 .bg { fill: var(--a-warm2); }
+.calgrid .cell.a-warm3 .bg { fill: var(--a-warm3); }
+.calgrid .cell.a-none .bg { fill: var(--paper); stroke: var(--rule); stroke-width: 1; }
+.calgrid .cell[class*=" a-"] { color: var(--ink); }
+.calgrid .cell.a-cool3, .calgrid .cell.a-warm3 { color: var(--paper); }
+.calgrid .a-cool3 .mtd, .calgrid .a-warm3 .mtd { stroke: var(--paper); }
+.caltable.anomaly td.a-cool3, .caltable.anomaly td.a-warm3 { background: var(--a-cool3); color: var(--paper); }
+.caltable.anomaly td.a-warm3 { background: var(--a-warm3); }
+.caltable.anomaly td.a-cool2 { background: var(--a-cool2); }
+.caltable.anomaly td.a-cool1 { background: var(--a-cool1); }
+.caltable.anomaly td.a-neutral { background: var(--a-neutral); }
+.caltable.anomaly td.a-warm1 { background: var(--a-warm1); }
+.caltable.anomaly td.a-warm2 { background: var(--a-warm2); }
