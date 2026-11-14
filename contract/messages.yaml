@@ -84,6 +84,7 @@ notes:
   noaa20_check: "Reported only. This compares converted NOAA-20 counts with converted Suomi NPP counts and is not a validation against Aqua."
   noaa20_check_not_run: "The NOAA-20 comparison has not been run yet."
   range_and_reference: "Rankings cover the dates you chose. Medians and anomalies always use the reference period."
+  month_complete: "Complete month: every day of input data is in."
   missing_days_to_date: "Some days of input data are missing so far this month, so the count to date may be low."
 
 # Card sentences with {placeholders}. The service fills no words; the web fills
