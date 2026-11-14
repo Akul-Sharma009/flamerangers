@@ -138,15 +138,41 @@ def write_points(record_files, out: Path, data_through: date) -> int:
     return int(con.execute(f"SELECT count(*) FROM read_parquet('{out.as_posix()}')").fetchone()[0])
 
 
-def _parity_gate(data_through: date, parity_check) -> dict:
-    """AD-2: a version holding converted counts (any month from January 2022) needs a passing parity check."""
+def params_sha256() -> str:
+    return _sha256(c1_params.PARAMS_FILE)
+
+
+def clean_code_revision(run=subprocess.run) -> str:
+    """The commit the version is built from. Refuses when burncal/ has uncommitted changes, so the
+    revision in the manifest names the exact code that passed the parity check (Codex review, 14 Nov)."""
+    dirty = run(["git", "status", "--porcelain", "--", "burncal"], capture_output=True, text=True, check=True).stdout
+    if dirty.strip():
+        raise RuntimeError("burncal/ has uncommitted changes; commit them before publishing:\n" + dirty)
+    return run(["git", "rev-parse", "--short=12", "HEAD"], capture_output=True, text=True, check=True).stdout.strip()
+
+
+def _parity_gate(data_through: date, parity_check, code_revision: str) -> dict:
+    """AD-2: a version holding converted counts (any month from January 2022) needs a passing parity check,
+    run on the params file this version is published with and recorded with the code revision."""
     if data_through < record.VIIRS_FIRST:
         return {"required": False}
     result = (parity_check or parity.check_case)()
     if not result.get("passed"):
         raise RuntimeError(f"AD-2: parity check did not pass, so converted counts are not published: "
                            f"{result.get('reason') or result.get('misses')}")
-    return {"required": True, "passed": True, "misses": result["misses"]}
+    if result.get("params_sha256") != params_sha256():
+        raise RuntimeError("AD-2: the parity pass was not run on this version's C1 params file")
+    return {"required": True, "passed": True, "misses": result["misses"],
+            "params_sha256": result["params_sha256"], "code_revision": code_revision}
+
+
+def _load_check(vdir: Path) -> None:
+    """Load the version once, as the service does at start-up, before the pointer names it (AD-11)."""
+    from burncal.service.store import Version
+    try:
+        Version(vdir)
+    except Exception as exc:  # noqa: BLE001
+        raise RuntimeError(f"the new version does not load, so the pointer is not switched: {type(exc).__name__}: {exc}") from exc
 
 
 def publish_many(builds, store_root, *, data_through: date, code_revision: str, parity_check=None) -> str:
@@ -154,7 +180,7 @@ def publish_many(builds, store_root, *, data_through: date, code_revision: str, 
     name is its raw dir's name. Extents must not overlap. Each keeps its own coverage tables, and its
     record rows under records/<name>/; grids, evidence and points are joined."""
     builds = [tuple(map(Path, b)) for b in builds]
-    gate = _parity_gate(data_through, parity_check)
+    gate = _parity_gate(data_through, parity_check, code_revision)
     root = Path(store_root)
     version = record_version([raw for _, _, raw in builds], data_through, code_revision)
     final = root / "versions" / version
@@ -193,17 +219,19 @@ def publish_many(builds, store_root, *, data_through: date, code_revision: str, 
         pd.concat(missing_all, ignore_index=True).to_parquet(tmp / "missing_days.parquet", index=False)
         n_points = write_points(pts_all, tmp / "points.parquet", data_through)
         manifest = {"record_version": version, "data_through": data_through.isoformat(), "extents": extents,
-                    "code_revision": code_revision, "params_sha256": _sha256(c1_params.PARAMS_FILE),
+                    "code_revision": code_revision, "params_sha256": params_sha256(),
                     "inputs": inputs, "rows_in_counts": n_points, "parity": gate}
         (tmp / "manifest.json").write_text(json.dumps(manifest, indent=1))
+        _load_check(tmp)
         os.replace(tmp, final)
+    else:
+        _load_check(final)
     _write_pointer(root, version)
     return version
 
 
 if __name__ == "__main__":
     # publish <store root> <data_through> <record dir>,<grids dir>,<raw dir> [more extents ...]
-    rev = subprocess.run(["git", "rev-parse", "--short=12", "HEAD"], capture_output=True, text=True,
-                         check=True).stdout.strip()
+    rev = clean_code_revision()
     builds = [tuple(arg.split(",")) for arg in sys.argv[3:]]
     print(publish_many(builds, sys.argv[1], data_through=date.fromisoformat(sys.argv[2]), code_revision=rev))

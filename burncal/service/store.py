@@ -35,6 +35,12 @@ def _cell_ix(x):
     return np.floor(np.asarray(x, float) / FINE + 1e-9).astype(np.int64)
 
 
+# Everything a calendar needs from a version; hotspot record files are read on use.
+SERVING = ["manifest.json", "coverage_days.parquet", "missing_days.parquet", "points.parquet",
+           "grids/cells_1deg.parquet", "grids/cells_025deg.parquet", "grids/thresholds_1deg.parquet",
+           "grids/flags_1deg.parquet", "records/evidence_1deg.parquet"]
+
+
 class Version:
     def __init__(self, path, fetch=None):
         self.path = Path(path)
@@ -246,15 +252,25 @@ class Version:
 
 
 class Store:
-    """The pointer file names the current version and the previous one; both are answered."""
+    """The pointer file names the current version and the previous one; both are answered. The current
+    one loads at start-up; the previous one only when a request names it, so a bad previous version
+    cannot stop the current one (Codex review, 14 Nov)."""
 
     def __init__(self, root, fetch=None):
         self.root = Path(root)
         self._fetch_file = fetch
         self.pointer = self.root / "CURRENT.json"
         self._mtime, self._versions, self.current, self.previous = None, {}, None, None
+        self._broken = {}
         self.load_error = None
         self.refresh()
+
+    def _load(self, v: str) -> Version:
+        path = self.root / "versions" / v
+        if self._fetch_file is not None:
+            for rel in SERVING:
+                self._fetch_file(path / rel)
+        return Version(path, self._fetch_file)
 
     def refresh(self) -> None:
         """Re-read the pointer when it changes. A version that fails to load is not switched to:
@@ -264,8 +280,10 @@ class Store:
             if mtime == self._mtime:
                 return
             p = json.loads(self.pointer.read_text(encoding="utf-8"))
-            keep = {p["record_version"], p["previous"]} - {None}
-            versions = {v: self._versions.get(v) or Version(self.root / "versions" / v, self._fetch_file) for v in keep}
+            cur, prev = p["record_version"], p["previous"]
+            versions = {cur: self._versions.get(cur) or self._load(cur)}
+            if prev in self._versions:
+                versions[prev] = self._versions[prev]
         except Exception as exc:  # noqa: BLE001
             self._mtime = mtime if "mtime" in locals() else self._mtime  # do not retry a broken pointer on every request
             self.load_error = f"{type(exc).__name__}: {exc}"
@@ -274,11 +292,18 @@ class Store:
             log.warning("store refresh failed; still serving %s (%s)", self.current, self.load_error)
             return
         self._versions, self.load_error = versions, None
-        self.current, self.previous, self._mtime = p["record_version"], p["previous"], mtime
+        self.current, self.previous, self._mtime = cur, prev, mtime
 
     def get(self, record_version: str) -> Version | None:
         self.refresh()
-        return self._versions.get(record_version)
+        v = record_version
+        if v is not None and v == self.previous and v not in self._versions and v not in self._broken:
+            try:
+                self._versions[v] = self._load(v)
+            except Exception as exc:  # noqa: BLE001
+                self._broken[v] = self.load_error = f"{type(exc).__name__}: {exc}"
+                log.warning("previous version %s does not load (%s)", v, self.load_error)
+        return self._versions.get(v)
 
     def latest(self) -> Version:
         self.refresh()

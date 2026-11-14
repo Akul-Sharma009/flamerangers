@@ -3,6 +3,7 @@
 The case (Sumatra, September 2015) is derived from held-back inputs, so it is never in this repo.
 BURNCAL_PARITY_CASE_DIR points at the planning record's exports/c1/out/intermediate folder.
 """
+import hashlib
 import os
 from pathlib import Path
 
@@ -23,6 +24,7 @@ def check_case(case_dir=None) -> dict:
     case_dir = case_dir or os.environ.get("BURNCAL_PARITY_CASE_DIR")
     if not case_dir or not (Path(case_dir) / CASE_FILE).exists():
         return {"passed": False, "reason": "parity case not available (set BURNCAL_PARITY_CASE_DIR)", "misses": {}}
+    params_sha256 = hashlib.sha256(c1_params.PARAMS_FILE.read_bytes()).hexdigest()
     params = c1_params.read_c1_params()
     df = pd.read_csv(Path(case_dir) / CASE_FILE)
     x = dict(time_utc=pd.to_datetime(df["acq_datetime_utc"]).to_numpy("datetime64[s]"),
@@ -39,4 +41,4 @@ def check_case(case_dir=None) -> dict:
             got = np.bincount(df[col].to_numpy(), weights=w, minlength=n)
             want = target[f"count_{scale}|sumatra"][:, YEAR_AXIS, MONTH_AXIS]
             misses[f"{method} {scale}"] = float(np.abs(got - want).max())
-    return {"passed": all(m <= TOL for m in misses.values()), "misses": misses}
+    return {"passed": all(m <= TOL for m in misses.values()), "misses": misses, "params_sha256": params_sha256}

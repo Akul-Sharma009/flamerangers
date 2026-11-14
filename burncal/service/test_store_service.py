@@ -22,7 +22,8 @@ SUMATRA = REGIONS["sumatra"]
 AMAZON = {"type": "Polygon", "coordinates": [[[-59.3, -11.2], [-55.1, -11.9], [-52.6, -8.4], [-54.9, -5.6], [-58.8, -6.7], [-59.3, -11.2]]]}
 PUNJAB = REGIONS["punjab"]
 AREAS = {"sumatra": SUMATRA, "amazon": AMAZON, "punjab": PUNJAB}
-PARITY_OK = lambda: {"passed": True, "misses": {}}  # noqa: E731  stand-in for the AD-2 case check
+PARITY_OK = lambda: {"passed": True, "misses": {},  # noqa: E731  stand-in for the AD-2 case check
+                    "params_sha256": publish.params_sha256()}
 DT = date(2026, 11, 13)
 EXTENT = [-62.0, -13.0, 108.0, 33.0]
 
@@ -527,3 +528,35 @@ def test_review_hotspot_csv_streams_a_large_year(client, versions, monkeypatch):
     r = client.post("/hotspots.csv", json={**_body(versions[0], SUMATRA, "2002-07-01", "2026-11-13", name=None),
                                             "all_satellites": True, "year": 2015})
     assert r.status_code == 200 and r.text.count("\n2015-") == 0 and "2015-" in r.text
+
+
+# --- Codex review (14 Nov): the previous version loads only when a request names it ----------
+def test_2_6_ad11_only_the_current_version_loads_at_start(store_root, versions):
+    s = Store(store_root)
+    assert set(s._versions) == {versions[0]}
+    assert s.get(versions[1]) is not None and set(s._versions) == {versions[0], versions[1]}
+
+
+def test_2_6_ad11_a_broken_previous_version_does_not_stop_the_current(store_root, versions, tmp_path):
+    import shutil
+    root = tmp_path / "copy"
+    shutil.copytree(store_root, root)
+    (root / "versions" / versions[1] / "manifest.json").write_text("{not json")
+    app = TestClient(create_app(root))
+    assert app.get("/meta").json()["record_version"] == versions[0]
+    assert app.post("/calendar", json=_body(versions[0], PUNJAB, name=None)).status_code == 200
+    r = app.post("/calendar", json=_body(versions[1], PUNJAB, name=None))
+    assert r.status_code == 410 and r.json()["current_record_version"] == versions[0]
+    assert app.post("/calendar", json=_body(versions[0], PUNJAB, name=None)).status_code == 200
+
+
+def test_2_6_sync_copies_the_current_version_and_fetches_the_previous_on_use(store_root, versions, tmp_path):
+    from burncal.service import remote
+    local = remote.sync(store_root.as_uri(), tmp_path / "tmpstore")
+    assert (local / "versions" / versions[0] / "manifest.json").exists()
+    assert not (local / "versions" / versions[1]).exists()
+    app = TestClient(create_app(local, fetch=remote.fetcher(store_root.as_uri(), local)))
+    direct = TestClient(create_app(store_root))
+    body = _body(versions[1], AMAZON, name=None)
+    assert app.post("/calendar", json=body).json() == direct.post("/calendar", json=body).json()
+    assert (local / "versions" / versions[1] / "points.parquet").exists()

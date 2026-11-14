@@ -170,6 +170,8 @@ Not in the repo: the Vercel trial used a two-line `index.py` entrypoint and a `r
 | Cold start | 8.3 s for the first request to a new deployment (inside: imports 1.3 s, store sync 1.0–1.2 s, loading 1.5 s; the rest is the dependency install on a new instance) |
 | **2.6 AC6**: 20 Sumatra calendars | p50 0.82 s, **p95 1.09 s** against 3 s; max 1.11 s |
 
+- **Redeployed 14 Nov, whole-tile Sumatra** (`20261113-9cedd502`, built only from the planned files; see `DECISIONS.md`): parity PASS (worst 2.9e-10), `check_numbers` 0 failures over 300 months, threshold parity 899/900 (the known September cell). Hosted: `/meta` placeholder false; 20 calendars p50 0.88 s, **p95 1.12 s**, max 1.17 s; start-up log RSS 275 MB, `/tmp` free 106 MB with two versions synced (53 MB); cold first request 8.1 s. The deploy folder (code, `contract/messages.yaml`, `regions.geojson`, fixture problems, `index.py`, pinned `requirements.txt` with duckdb, `.python-version` 3.14, `.vercelignore`) is rebuilt outside the repo for each deploy.
+- **Codex review items** (14 Nov, `DECISIONS.md`): the parity pass carries the params hash and code revision, and publish refuses uncommitted `burncal/` code; publish loads a version before the pointer names it; the service loads (and the host syncs) the previous version only when a request names it. Not yet deployed.
 - **Six regions: fixed.** The service now reads hotspots from disk with DuckDB (`DECISIONS.md`, 15 Nov), so memory no longer grows with the area: two Sumatra versions take 217 MB steady (was 1,025 MB). Not yet deployed: the next deploy needs `duckdb` in the deploy requirements and a version published in the new format.
 
 ## Story 2.8: coverage for the six evaluated regions (branch `teammate/2.8-coverage`, in progress)

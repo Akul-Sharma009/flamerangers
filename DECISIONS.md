@@ -511,3 +511,21 @@ Each entry has: a status (**ASSUMED** or **TESTED**), its evidence, and a "revis
   - **Not done, needs a contract change (lead):** the current-month card has no field to say that days 1 to *d* of the current month have missing input days. Its reference years are already only complete months. A `cautions` list on `CurrentMonth`, or a `missing_days` boolean, in contract 0.4.0 would carry it.
 - **Evidence:** `test_review_*` in `burncal/core/test_stats.py` and `burncal/service/test_store_service.py`; a year of Sumatra hotspots for all satellites (24.5 MB) downloaded from the live service in 10.4 s.
 - **Revisit if:** the web needs hotspot rows sorted by time across satellites.
+
+## Codex review items: parity pass tied to the version, lazy previous version, load check before the pointer (14 Nov)
+
+- **Status:** TESTED
+- **Decision:**
+  - **AD-2, tied to the version.** The parity check returns the sha256 of the `c1_params.json` it read. `publish` refuses unless that hash equals the hash it writes into the manifest, and records both the hash and the code revision under `parity`. The publish command refuses to run while `burncal/` has uncommitted changes, so the manifest's revision names the code that passed.
+  - **AD-11, previous version on demand.** The service loads only the current version at start-up. The previous one loads the first time a request names it; if it fails, that request gets `410 version_superseded` naming the current version, the failure is kept and not retried, and the current version keeps answering.
+  - **AD-11, load before switching.** `publish` loads the new version once, as the service does, before it moves the version into place and switches `CURRENT.json`. A version that does not load is never named by the pointer.
+  - **Hosting.** `remote.sync` copies only the current version's serving files; the previous version's files are fetched when a request first names it. `/tmp` (106 MB free on Vercel after a Sumatra sync) is the tighter limit, not memory.
+- **Evidence:** `test_2_6_ad2_the_parity_pass_is_tied_to_the_params_hash_and_code_revision`, `test_2_6_ad2_publish_refuses_a_pass_for_other_params`, `test_2_6_ad2_publish_refuses_uncommitted_code`, `test_2_6_ad11_publish_loads_the_new_version_before_switching_the_pointer`, `test_2_6_ad11_only_the_current_version_loads_at_start`, `test_2_6_ad11_a_broken_previous_version_does_not_stop_the_current`, `test_2_6_sync_copies_the_current_version_and_fetches_the_previous_on_use`; the real parity case returns the frozen params hash. Publish test inputs now carry small real grids, since placeholder grids no longer load.
+- **Revisit if:** a hosted refresh (Story 2.9) publishes without the case folder; it then needs a recorded pass keyed on the same hash and revision.
+
+## Sumatra rebuilt on whole tiles and redeployed (14 Nov)
+
+- **Status:** TESTED
+- **Decision:** Sumatra is rebuilt from whole-tile downloads (90–110°E, 10°S–10°N) and served as version `20261113-9cedd502`. Only the files the download plan names are built: each region's planned files are linked into a staging folder named by `region_id`, so files left over from earlier trial plans (NOAA-21, Suomi NPP years outside the static-mask years, NOAA-20 before 2022) are not in the version. Those rows would have had weight 0, so no count changes; they would only have added rows to the all-satellites hotspot CSV for Sumatra and not for other regions.
+- **Evidence:** parity gate PASS (worst miss 2.9e-10, C1 0.25° 5.2e-11); `tools/check_numbers.py`: 0 failures over 300 months; Sumatra threshold parity 899/900 (only the known September cell at 105°E 6°S); hosted on Vercel: `/meta` placeholder false, 20 Sumatra calendars p50 0.88 s, p95 1.12 s, max 1.17 s; start-up log: imports 1.3–1.4 s, store sync 1.7–2.1 s, load 0.2–0.3 s, RSS 275 MB, `/tmp` free 106 MB (two versions synced, 53 MB, before the lazy previous version above was deployed).
+- **Revisit if:** a planned source-year cannot be downloaded (its months then show as not loaded), or the lead wants NOAA-21 or the extra Suomi NPP years in the hotspot CSV.

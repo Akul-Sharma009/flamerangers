@@ -1,7 +1,8 @@
 """Hosting: copy a published store version from public storage (a URL prefix) onto local disk.
 
-At start, sync() copies the pointer and, for the current and previous versions, everything a calendar
-needs (about 31 MB for Sumatra). Hotspot record files are fetched the first time a request needs them.
+At start, sync() copies the pointer and, for the current version, everything a calendar needs (about
+22 MB for Sumatra). The previous version's files are fetched the first time a request names it, and
+hotspot record files the first time a request needs them; /tmp is the tight limit on the host.
 Public URLs only; no credentials. urllib handles https:// and file:// alike.
 """
 import json
@@ -10,9 +11,7 @@ import urllib.error
 import urllib.request
 from pathlib import Path
 
-SERVING = ["manifest.json", "coverage_days.parquet", "missing_days.parquet", "points.parquet",
-           "grids/cells_1deg.parquet", "grids/cells_025deg.parquet", "grids/thresholds_1deg.parquet",
-           "grids/flags_1deg.parquet", "records/evidence_1deg.parquet"]
+from burncal.service.store import SERVING
 
 
 def _get(url: str, dest: Path) -> bool:
@@ -34,7 +33,7 @@ def _get(url: str, dest: Path) -> bool:
 
 
 def sync(base_url: str, local_root) -> Path:
-    """Copy the pointer and the serving files of the versions it names. Returns the local root."""
+    """Copy the pointer and the serving files of the current version. Returns the local root."""
     root, base = Path(local_root), base_url.rstrip("/")
     root.mkdir(parents=True, exist_ok=True)
     tmp = root / "CURRENT.json.download"
@@ -42,9 +41,9 @@ def sync(base_url: str, local_root) -> Path:
     if not _get(f"{base}/CURRENT.json", tmp):
         raise FileNotFoundError("no CURRENT.json at the store URL")
     pointer = json.loads(tmp.read_text(encoding="utf-8"))
-    for v in {pointer["record_version"], pointer.get("previous")} - {None}:
-        for rel in SERVING:
-            _get(f"{base}/versions/{v}/{rel}", root / "versions" / v / rel)
+    v = pointer["record_version"]
+    for rel in SERVING:
+        _get(f"{base}/versions/{v}/{rel}", root / "versions" / v / rel)
     new = tmp.read_text(encoding="utf-8")
     cur = root / "CURRENT.json"
     if not cur.exists() or cur.read_text(encoding="utf-8") != new:

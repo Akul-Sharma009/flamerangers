@@ -5,7 +5,7 @@ from datetime import date
 import pandas as pd
 import pytest
 
-from burncal.pipeline import publish
+from burncal.pipeline import aggregate, publish
 
 COVERAGE = {"extent": [100.0, -2.0, 102.0, 0.0], "sources": {
     "MODIS_SP": [["2002-07-01", "2021-12-31"]],
@@ -13,7 +13,8 @@ COVERAGE = {"extent": [100.0, -2.0, 102.0, 0.0], "sources": {
     "VIIRS_SNPP_NRT": [["2026-08-01", "2026-11-02"]],
     "VIIRS_NOAA20_NRT": [["2026-08-01", "2026-11-13"]],
 }}
-PARITY_OK = lambda: {"passed": True, "misses": {}}  # noqa: E731  stand-in for the AD-2 case check
+PARITY_OK = lambda: {"passed": True, "misses": {},  # noqa: E731  stand-in for the AD-2 case check
+                    "params_sha256": publish.params_sha256()}
 
 
 def test_2_6_ac1_coverage_days_per_satellite_quality_month():
@@ -47,11 +48,19 @@ def _inputs(tmp_path):
                          "excluded_reason": ["none", "static"], "feeds_record": [True, True], "weight": [1.0, 0.0]})
     rows.to_parquet(rec / "AQUA_2015.parquet")
     pd.DataFrame({"sw_lon": [101.0], "sw_lat": [-2.0], "evidence_class": ["tuned"]}).to_parquet(rec / "evidence_1deg.parquet")
-    for name in ("cells_1deg", "cells_025deg", "thresholds_1deg", "flags_1deg"):
-        pd.DataFrame({"x": [1]}).to_parquet(grids / f"{name}.parquet")
+    _grids(rows, pd.DataFrame({"sw_lon": [101.0], "sw_lat": [-2.0]}), grids)
     (raw / "MODIS_SP_2015.csv").write_text("latitude\n")
     (raw / "coverage.json").write_text(json.dumps(COVERAGE))
     return rec, grids, raw
+
+
+def _grids(rows, cells, grids_dir):
+    """Small but real grids, so a published version loads as the service loads it."""
+    g1, g025 = aggregate.cell_months(rows, 1.0), aggregate.cell_months(rows, 0.25)
+    thr = aggregate.thresholds_1deg(g1, cells)
+    for name, t in (("cells_1deg", g1), ("cells_025deg", g025), ("thresholds_1deg", thr),
+                    ("flags_1deg", aggregate.flags_1deg(g1, thr, cells, data_through=date(2026, 11, 13)))):
+        t.to_parquet(grids_dir / f"{name}.parquet")
 
 
 def test_2_6_ac1_publish_writes_a_version_and_switches_the_pointer(tmp_path):
@@ -86,8 +95,7 @@ def test_2_8_one_version_holds_several_extents(tmp_path):
     rows = pd.read_parquet(rec / "AQUA_2015.parquet").assign(longitude=[25.0, 25.5], latitude=[-10.0, -10.5])
     rows.to_parquet(other / "record" / "AQUA_2015.parquet")
     pd.DataFrame({"sw_lon": [25.0], "sw_lat": [-11.0], "evidence_class": ["tested_unseen"]}).to_parquet(other / "record" / "evidence_1deg.parquet")
-    for name in ("cells_1deg", "cells_025deg", "thresholds_1deg", "flags_1deg"):
-        pd.DataFrame({"x": [2]}).to_parquet(other / "grids" / f"{name}.parquet")
+    _grids(rows, pd.DataFrame({"sw_lon": [25.0], "sw_lat": [-11.0]}), other / "grids")
     (other / "southern" / "MODIS_SP_2015.csv").write_text("latitude\n")
     cov = {"extent": [20.0, -20.0, 35.0, -5.0], "sources": {"MODIS_SP": [["2002-07-01", "2015-12-31"]]}}
     (other / "southern" / "coverage.json").write_text(json.dumps(cov))
@@ -122,11 +130,13 @@ def test_2_6_ad2_publish_refuses_converted_counts_without_parity(tmp_path):
 
 def test_2_6_ad2_publish_records_the_parity_result(tmp_path):
     rec, grids, raw = _inputs(tmp_path)
-    ok = lambda: {"passed": True, "misses": {"C1 1deg": 1.5e-10}}  # noqa: E731
+    h = publish.params_sha256()
+    ok = lambda: {"passed": True, "misses": {"C1 1deg": 1.5e-10}, "params_sha256": h}  # noqa: E731
     v = publish.publish(rec, grids, raw, tmp_path / "store", data_through=date(2026, 11, 13), code_revision="a",
                         parity_check=ok)
     man = json.loads((tmp_path / "store" / "versions" / v / "manifest.json").read_text())
-    assert man["parity"] == {"required": True, "passed": True, "misses": {"C1 1deg": 1.5e-10}}
+    assert man["parity"] == {"required": True, "passed": True, "misses": {"C1 1deg": 1.5e-10},
+                             "params_sha256": h, "code_revision": "a"}
 
 
 @pytest.mark.skipif(not __import__("os").environ.get("BURNCAL_PARITY_CASE_DIR"), reason="BURNCAL_PARITY_CASE_DIR not set")
@@ -134,6 +144,7 @@ def test_2_6_ad2_the_real_parity_case_passes():
     from burncal.pipeline import parity
     got = parity.check_case()
     assert got["passed"] and len(got["misses"]) == 6, got
+    assert got["params_sha256"] == publish.params_sha256()
 
 
 
@@ -144,3 +155,46 @@ def test_2_6_null_is_not_zero_a_month_with_no_feeding_day_is_uncovered():
     m = missing.set_index(["year", "month"])["uncovered"]
     assert bool(m[(2023, 5)]) is True
     assert (2023, 4) not in m.index and (2023, 6) not in m.index
+
+
+# --- Codex review (14 Nov): the parity pass names what it checked; publish loads before it switches ---
+def test_2_6_ad2_the_parity_pass_is_tied_to_the_params_hash_and_code_revision(tmp_path):
+    rec, grids, raw = _inputs(tmp_path)
+    root = tmp_path / "store"
+    v = publish.publish(rec, grids, raw, root, data_through=date(2026, 11, 13), code_revision="abc123",
+                        parity_check=PARITY_OK)
+    man = json.loads((root / "versions" / v / "manifest.json").read_text())
+    assert man["parity"]["params_sha256"] == man["params_sha256"] == publish.params_sha256()
+    assert man["parity"]["code_revision"] == man["code_revision"] == "abc123"
+
+
+def test_2_6_ad2_publish_refuses_a_pass_for_other_params(tmp_path):
+    rec, grids, raw = _inputs(tmp_path)
+    other = lambda: {"passed": True, "misses": {}, "params_sha256": "0" * 64}  # noqa: E731
+    with pytest.raises(RuntimeError, match="AD-2"):
+        publish.publish(rec, grids, raw, tmp_path / "store", data_through=date(2026, 11, 13), code_revision="x",
+                        parity_check=other)
+    assert not (tmp_path / "store" / "CURRENT.json").exists()
+
+
+def test_2_6_ad2_publish_refuses_uncommitted_code():
+    dirty = lambda *a, **k: type("R", (), {"stdout": " M burncal/core/c1.py\n", "returncode": 0})()  # noqa: E731
+    with pytest.raises(RuntimeError, match="uncommitted"):
+        publish.clean_code_revision(run=dirty)
+    clean = lambda args, **k: type("R", (), {"stdout": "" if "status" in args else "abc123def456\n", "returncode": 0})()  # noqa: E731
+    assert publish.clean_code_revision(run=clean) == "abc123def456"
+
+
+def test_2_6_ad11_publish_loads_the_new_version_before_switching_the_pointer(tmp_path, monkeypatch):
+    rec, grids, raw = _inputs(tmp_path)
+    root = tmp_path / "store"
+    v1 = publish.publish(rec, grids, raw, root, data_through=date(2026, 11, 13), code_revision="a", parity_check=PARITY_OK)
+    from burncal.service import store
+
+    def broken(self, path, fetch=None):
+        raise ValueError("cannot load")
+    monkeypatch.setattr(store.Version, "__init__", broken)
+    with pytest.raises(RuntimeError, match="does not load"):
+        publish.publish(rec, grids, raw, root, data_through=date(2026, 11, 13), code_revision="b", parity_check=PARITY_OK)
+    assert json.loads((root / "CURRENT.json").read_text())["record_version"] == v1
+    assert sorted(d.name for d in (root / "versions").iterdir() if not d.name.startswith(".")) == [v1]
