@@ -60,8 +60,9 @@ def assert_valid(body, schema_name):
 
 
 @pytest.fixture
-def client(monkeypatch):
+def client(monkeypatch, tmp_path):
     monkeypatch.setenv("CORS_ORIGINS", f"{WEB_ORIGIN}, {LOCAL_WEB}")
+    monkeypatch.setenv("BURNCAL_STORE_ROOT", str(tmp_path))  # no published store: fixture mode
     from burncal.service.app import create_app
 
     return TestClient(create_app())

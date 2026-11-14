@@ -1,4 +1,9 @@
-"""Story 1.3 service stub: answers every contract endpoint (0.2.0) from the fixture."""
+"""The service (contract 0.2.0).
+
+With a published store (BURNCAL_STORE_ROOT, default store/published, holding CURRENT.json), /meta,
+/calendar and /cells answer from the record (Story 2.6). Without one, every endpoint answers from the
+fixture (Story 1.3). The CSV endpoints answer from the fixture until Stories 2.7, 4.1 and 4.2.
+"""
 import csv
 import io
 import json
@@ -12,9 +17,16 @@ from fastapi import FastAPI, Request
 from fastapi.exceptions import RequestValidationError
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import JSONResponse, Response
+import shapely
+from shapely.geometry import shape
 from pydantic import BaseModel, ConfigDict, Field, StrictBool, StrictInt, field_validator
 
-CONTRACT = Path(__file__).resolve().parents[2] / "contract"
+from burncal.service import answers
+from burncal.service.store import Store
+
+ROOT = Path(__file__).resolve().parents[2]
+CONTRACT = ROOT / "contract"
+DEFAULT_STORE = ROOT / "store" / "published"
 DEFAULT_ORIGINS = "http://localhost:5173"
 PROBLEM = "application/problem+json"
 VERSION = r"^\d{8}-[0-9a-f]{8}$"
@@ -76,7 +88,19 @@ def _csv(header, columns, rows):
     return Response(out.getvalue(), media_type="text/csv")
 
 
-def create_app() -> FastAPI:
+def _regions():
+    gj = json.loads((CONTRACT / "regions.geojson").read_text(encoding="utf-8"))
+    return {f["properties"]["region_id"]: (f["properties"]["name"], f["properties"]["evidence_class"],
+                                           shape(f["geometry"])) for f in gj["features"]}
+
+
+def _open_store(root):
+    root = Path(root or environ.get("BURNCAL_STORE_ROOT", DEFAULT_STORE))
+    return Store(root) if (root / "CURRENT.json").exists() else None
+
+
+def create_app(store_root=None) -> FastAPI:
+    store, regions = _open_store(store_root), _regions()
     load = lambda p: json.loads((CONTRACT / "fixture" / p).read_text(encoding="utf-8"))  # noqa: E731
     meta, calendar, cells = load("meta.json"), load("calendar.json"), load("cells.json")
     hotspot_rows = load("hotspot_rows.json")["rows"]
@@ -85,7 +109,8 @@ def create_app() -> FastAPI:
     notes = dict(re.findall(r'^  (\w+): "(.*)"$', text, re.M))
     limits = [("counting_limits", notes[k]) for k in ("hotspot_definition", "monthly_validation_only", "flag_scale")]
 
-    app = FastAPI(title="burncal service (fixture stub)")
+    outside = load("problems/outside_coverage.json")
+    app = FastAPI(title="burncal service")
     # Comma-separated exact origins; not a secret.
     origins = [o.strip() for o in environ.get("CORS_ORIGINS", DEFAULT_ORIGINS).split(",") if o.strip()]
     app.add_middleware(CORSMiddleware, allow_origins=origins, allow_methods=["GET", "POST"],
@@ -100,6 +125,28 @@ def create_app() -> FastAPI:
     def stale(req):
         if req.record_version != meta["record_version"]:
             return JSONResponse(superseded, status_code=410, media_type=PROBLEM)
+
+    def problem(body, status, v, **extra):
+        return JSONResponse({**body, "status": status, "record_version": v.record_version,
+                             "data_through": v.data_through.isoformat(), **extra},
+                            status_code=status, media_type=PROBLEM)
+
+    def version_and_area(req):
+        """(version, geometry, None) or (None, None, problem response)."""
+        v = store.get(req.record_version)
+        if v is None:
+            cur = store.latest()
+            return None, None, problem(superseded, 410, cur, current_record_version=cur.record_version)
+        try:
+            geom = shape(req.aoi.geometry.model_dump())
+        except Exception:  # noqa: BLE001
+            geom = None
+        if geom is None or geom.is_empty or not geom.is_valid or geom.bounds[2] - geom.bounds[0] > 180:
+            return None, None, JSONResponse({**invalid, "status": 400, "detail": "aoi.geometry: not a valid area"},
+                                            status_code=400, media_type=PROBLEM)
+        if not shapely.covers(v.extent, geom):
+            return None, None, problem(outside, 404, v)
+        return v, geom, None
 
     def header(req, title, extra):
         aoi, rs = calendar["aoi"], meta["record_switch"]
@@ -117,15 +164,22 @@ def create_app() -> FastAPI:
 
     @app.get("/meta")
     def get_meta():
-        return meta
+        return answers.meta(store.latest(), regions) if store else meta
 
     @app.post("/calendar")
     def post_calendar(req: Range):
-        return stale(req) or calendar
+        if not store:
+            return stale(req) or calendar
+        v, geom, bad = version_and_area(req)
+        return bad or answers.calendar(v, geom, req.aoi.name, date.fromisoformat(req.start),
+                                       date.fromisoformat(req.end), regions)
 
     @app.post("/cells")
     def post_cells(req: CellsRequest):
-        return stale(req) or cells
+        if not store:
+            return stale(req) or cells
+        v, geom, bad = version_and_area(req)
+        return bad or answers.cells(v, geom, int(req.month[:4]), int(req.month[5:]))
 
     @app.post("/analytics.csv")
     def analytics(req: Range):

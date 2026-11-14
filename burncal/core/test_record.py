@@ -51,3 +51,19 @@ def test_2_4_ac4_months_after_data_through_are_null_and_its_month_partial():
     assert record.month_state(2026, 11, data_through=date(2026, 11, 14)) == ("partial", "data_through")
     assert record.month_state(2026, 12, data_through=date(2026, 11, 14)) == ("null", "outside_record")
     assert record.month_state(2026, 10, data_through=date(2026, 10, 31)) == ("complete", None)
+
+
+def test_2_6_ac2_now_comes_from_data_through():
+    got = record.meta_dates(date(2026, 11, 13))
+    assert got == {"current_month": "2026-11", "data_through_day": 13,
+                   "reference_period": {"start_year": 2003, "end_year": 2025}}
+    assert record.meta_dates(date(2026, 1, 1))["reference_period"] == {"start_year": 2003, "end_year": 2025}
+
+
+def test_2_6_ac3_partial_reasons():
+    dt = date(2026, 11, 13)
+    assert record.partial_reasons(2002, 7, data_through=dt, missing_days=False, start=date(2002, 7, 1), end=dt) == ["record_start"]
+    assert record.partial_reasons(2026, 11, data_through=dt, missing_days=False, start=date(2002, 7, 1), end=dt) == ["data_through"]
+    assert record.partial_reasons(2024, 3, data_through=dt, missing_days=True, start=date(2024, 3, 5), end=dt) == ["missing_days", "range_cut"]
+    assert record.partial_reasons(2024, 3, data_through=dt, missing_days=False, start=date(2024, 1, 1), end=date(2024, 3, 31)) == []
+    assert record.partial_reasons(2001, 3, data_through=dt, missing_days=False, start=date(2001, 1, 1), end=dt) == []
