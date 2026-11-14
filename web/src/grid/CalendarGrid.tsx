@@ -2,7 +2,7 @@ import { useEffect, useMemo, useRef, useState, type KeyboardEvent } from "react"
 import { MONTH_INITIALS } from "../format";
 import { CalendarTable } from "./CalendarTable";
 import { GAP, layoutGrid, move, type Layout } from "./layout";
-import { asSentence, buildGridModel, detailAt, type Calendar, type CellModel, type GridModel, type Meta, type Pos } from "./model";
+import { asSentence, buildGridModel, detailAt, type Calendar, type CellModel, type GridModel, type GridSentences, type Measure, type Meta, type Pos } from "./model";
 import "./grid.css";
 
 type View = "grid" | "table";
@@ -11,22 +11,39 @@ const key = (p: Pos) => `${p.r}-${p.c}`;
 const same = (a: Pos | null, b: Pos) => a !== null && a.r === b.r && a.c === b.c;
 
 /**
- * The year × month calendar (Story 3.5), with a table view of the same data.
- * `width`, `initialView` and `initialActive` let tests render a fixed state.
+ * The year × month calendar (Story 3.5), with a table view of the same data,
+ * coloured by the count or, in the anomaly view (Story 3.8), by the anomaly.
+ * `width`, `initialView`, `initialMeasure` and `initialActive` let tests render
+ * a fixed state. `measure` with `onMeasureChange` lets the page hold the
+ * measure, so the legend and the cells panel follow it; `onPick` reports the
+ * month the user focused or tapped.
  */
 export function CalendarGrid({
-  calendar, meta, width: fixedWidth, initialView = "grid", initialActive = null,
+  calendar, meta, width: fixedWidth, initialView = "grid", initialMeasure = "count", initialActive = null,
+  measure: heldMeasure, onMeasureChange, onPick, sentences,
 }: {
   calendar: Calendar;
   meta: Meta;
   width?: number;
   initialView?: View;
+  initialMeasure?: Measure;
   initialActive?: Pos | null;
+  measure?: Measure;
+  onMeasureChange?: (m: Measure) => void;
+  onPick?: (month: string) => void;
+  /** The contract's sentences; tests pass their own. Default: messages.yaml. */
+  sentences?: GridSentences;
 }) {
   const wrapRef = useRef<HTMLDivElement>(null);
   const [measured, setMeasured] = useState(0);
   const [view, setView] = useState<View>(initialView);
-  const model = useMemo(() => buildGridModel(calendar, meta), [calendar, meta]);
+  const [ownMeasure, setOwnMeasure] = useState<Measure>(initialMeasure);
+  const measure = heldMeasure ?? ownMeasure;
+  const setMeasure = (m: Measure) => {
+    setOwnMeasure(m);
+    onMeasureChange?.(m);
+  };
+  const model = useMemo(() => buildGridModel(calendar, meta, sentences), [calendar, meta, sentences]);
 
   useEffect(() => {
     const el = wrapRef.current;
@@ -41,26 +58,46 @@ export function CalendarGrid({
 
   return (
     <div className="calfigure">
-      <div className="viewswitch" role="group" aria-label="Calendar view">
-        <button type="button" aria-pressed={view === "grid"} onClick={() => setView("grid")}>Grid</button>
-        <button type="button" aria-pressed={view === "table"} onClick={() => setView("table")}>Table</button>
+      <div className="switches">
+        <div className="viewswitch" role="group" aria-label="Calendar view">
+          <button type="button" aria-pressed={view === "grid"} onClick={() => setView("grid")}>Grid</button>
+          <button type="button" aria-pressed={view === "table"} onClick={() => setView("table")}>Table</button>
+        </div>
+        <div className="viewswitch" role="group" aria-label="Colour cells by">
+          <button type="button" aria-pressed={measure === "count"} onClick={() => setMeasure("count")}>Counts</button>
+          <button type="button" aria-pressed={measure === "anomaly"} onClick={() => setMeasure("anomaly")}>Anomalies</button>
+        </div>
       </div>
       {view === "grid" ? (
-        <div className="calgrid" ref={wrapRef}>
+        <div className="calgrid" ref={wrapRef} data-measure={measure}>
           {width > 0 ? (
-            <GridSvg model={model} layout={layoutGrid(model, width)} initialActive={initialActive} />
+            <GridSvg model={model} layout={layoutGrid(model, width)} measure={measure} initialActive={initialActive} onPick={onPick} />
           ) : null}
         </div>
       ) : (
-        <CalendarTable model={model} />
+        <CalendarTable model={model} measure={measure} />
       )}
     </div>
   );
 }
 
-function GridSvg({ model, layout: L, initialActive }: { model: GridModel; layout: Layout; initialActive: Pos | null }) {
+function GridSvg({
+  model, layout: L, measure, initialActive, onPick,
+}: {
+  model: GridModel;
+  layout: Layout;
+  measure: Measure;
+  initialActive: Pos | null;
+  onPick?: (month: string) => void;
+}) {
   // pinned: set by focus or tap; hover: the pointer, shown over pinned while it lasts.
-  const [pinned, setPinned] = useState<Pos | null>(initialActive);
+  const [pinned, setPinnedState] = useState<Pos | null>(initialActive);
+  const anomaly = measure === "anomaly";
+  const setPinned = (p: Pos | null) => {
+    setPinnedState(p);
+    const month = p && p.c < 12 ? model.rows[p.r]?.cells[p.c]?.month : undefined;
+    if (month) onPick?.(month);
+  };
   const [hover, setHover] = useState<Pos | null>(null);
   const refs = useRef(new Map<string, SVGGElement>());
   const shown = hover ?? pinned;
@@ -142,7 +179,7 @@ function GridSvg({ model, layout: L, initialActive }: { model: GridModel; layout
               {row.cells.map((c, ci) => (
                 <g
                   key={c.month}
-                  className={`cell ${c.count === null ? "nullcell" : `k${c.colourClass ?? 0}`}`}
+                  className={`cell ${c.count === null ? "nullcell" : anomaly ? `a-${c.tone ?? "none"}` : `k${c.colourClass ?? 0}`}`}
                   transform={`translate(${cellX(ci)},${ry})`}
                   data-month={c.month}
                   data-state={c.state}
@@ -150,9 +187,10 @@ function GridSvg({ model, layout: L, initialActive }: { model: GridModel; layout
                   data-mtd={c.monthToDate || undefined}
                   data-marks={c.marks || undefined}
                   data-satswitch={c.satelliteSwitch || undefined}
-                  {...focusable({ r: ri, c: ci }, asSentence(c.detail))}
+                  data-anomaly-class={anomaly && c.anomalyClass !== null ? c.anomalyClass : undefined}
+                  {...focusable({ r: ri, c: ci }, asSentence(anomaly ? c.anomalyDetail : c.detail))}
                 >
-                  <Cell c={c} w={w} h={h} showNums={L.showNums} />
+                  <Cell c={c} w={w} h={h} showNums={L.showNums} anomaly={anomaly} />
                   {same(shown, { r: ri, c: ci }) ? <rect className="ring" x={-1.5} y={-1.5} width={w + 3} height={h + 3} /> : null}
                 </g>
               ))}
@@ -205,18 +243,20 @@ function GridSvg({ model, layout: L, initialActive }: { model: GridModel; layout
         <line className="foot-rule" x1={L.yearW} x2={L.width} y1={L.footY} y2={L.footY} />
         <g role="row" className="medians">
           <text className="colhead foot-label" role="rowheader" x={L.yearW - 6} y={L.footY + 15} style={{ textAnchor: "end" }}>
-            {L.narrow ? "med." : "median"}
+            {anomaly ? "mean" : L.narrow ? "med." : "median"}
           </text>
           {model.medians.map((m, i) => {
             const p = { r: nRows, c: i };
             const x = cellX(i);
+            // The anomaly view's foot row is the served reference mean, the centre of its ramp.
+            const footLabel = anomaly ? m.meanLabel : m.label;
             return (
-              <g key={i} className="median" transform={`translate(${x},${L.footY})`} {...focusable(p, asSentence(m.detail))}>
+              <g key={i} className="median" transform={`translate(${x},${L.footY})`} {...focusable(p, asSentence(anomaly ? m.meanDetail : m.detail))}>
                 <rect className="hit" width={w} height={L.footH} />
                 {L.narrow ? (
-                  <text className="median-num" transform={`translate(${w / 2 + 3},${L.footH - 3}) rotate(-90)`}>{m.label}</text>
+                  <text className="median-num" transform={`translate(${w / 2 + 3},${L.footH - 3}) rotate(-90)`}>{footLabel}</text>
                 ) : (
-                  <text className="median-num" x={w / 2} y={15} style={{ textAnchor: "middle" }}>{m.label}</text>
+                  <text className="median-num" x={w / 2} y={15} style={{ textAnchor: "middle" }}>{footLabel}</text>
                 )}
                 {same(shown, p) ? <rect className="ring" x={-1.5} y={1} width={w + 3} height={L.footH - 1} /> : null}
               </g>
@@ -224,13 +264,14 @@ function GridSvg({ model, layout: L, initialActive }: { model: GridModel; layout
           })}
         </g>
       </svg>
-      {shown ? <DetailCard model={model} layout={L} pos={shown} /> : null}
+      {shown ? <DetailCard model={model} layout={L} pos={shown} measure={measure} /> : null}
     </div>
   );
 }
 
-function Cell({ c, w, h, showNums }: { c: CellModel; w: number; h: number; showNums: boolean }) {
+function Cell({ c, w, h, showNums, anomaly }: { c: CellModel; w: number; h: number; showNums: boolean; anomaly: boolean }) {
   const isNull = c.count === null;
+  const label = anomaly ? c.anomalyLabel : c.label;
   // With numerals shown, marks sit after the count as superscripts (about 5.2 px a glyph).
   const marksW = showNums && c.marks ? c.marks.length * 5.2 + 1 : 0;
   return (
@@ -244,7 +285,7 @@ function Cell({ c, w, h, showNums }: { c: CellModel; w: number; h: number; showN
       ) : (
         <>
           <rect className="bg" width={w} height={h} />
-          {showNums ? <text className={`num${marksW && c.label.length >= 7 ? " tight" : ""}`} x={w - 3 - marksW} y={h / 2 + 4.5}>{c.label}</text> : null}
+          {showNums && label ? <text className={`num${(marksW && label.length >= (anomaly ? 6 : 7)) || label.length >= 8 ? " tight" : ""}`} x={w - 3 - marksW} y={h / 2 + 4.5}>{label}</text> : null}
         </>
       )}
       {c.monthToDate ? <rect className="mtd" x={1} y={1} width={w - 2} height={h - 2} /> : null}
@@ -260,8 +301,8 @@ function Cell({ c, w, h, showNums }: { c: CellModel; w: number; h: number; showN
 
 const CARD_W = 270;
 
-function DetailCard({ model, layout: L, pos }: { model: GridModel; layout: Layout; pos: Pos }) {
-  const lines = detailAt(model, pos);
+function DetailCard({ model, layout: L, pos, measure }: { model: GridModel; layout: Layout; pos: Pos; measure: Measure }) {
+  const lines = detailAt(model, pos, measure);
   if (!lines) return null;
   const isMedian = pos.r === model.rows.length;
   const x = pos.c === 12 ? L.totalX : L.yearW + pos.c * L.cellW;

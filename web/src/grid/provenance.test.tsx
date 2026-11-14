@@ -107,7 +107,8 @@ describe("Story 3.6 AC1: focusing any cell reads every input satellite, standard
     }
     expect(completeNote()).toBeNull();
     const done = linesFor(fixture, "2015-09");
-    expect(done.slice(2)).toEqual([messages.labels.source.aqua_real, "From Aqua (MODIS), 30 days, standard quality", messages.labels.flag_state.strong]);
+    // Story 3.8 appends the month's flag lines after the flag label; the provenance lines before them are unchanged.
+    expect(done.slice(2, 5)).toEqual([messages.labels.source.aqua_real, "From Aqua (MODIS), 30 days, standard quality", messages.labels.flag_state.strong]);
   });
 
   it("says a month is complete once the contract adds notes.month_complete, and only for complete months", () => {

@@ -1,0 +1,24 @@
+/* Story 3.8: flag state of each 1° cell. Marks are shapes and lines, not colour. */
+.flagcells { margin-top: 16px; padding-top: 10px; border-top: 1px solid var(--rule); font-size: 12px; color: var(--muted); }
+.flagcells[aria-busy="true"] { opacity: 0.6; }
+.flagcells h3 { font-family: var(--serif); font-size: 15px; font-weight: 600; color: var(--ink); margin: 0 0 4px; }
+.flagcells .fc-note { margin: 0 0 4px; line-height: 1.4; }
+.fc-map { display: block; max-width: 100%; height: auto; margin: 6px 0; }
+.fc-cell rect { fill: var(--paper); stroke: var(--ink); stroke-width: 0.8; }
+.fc-cell.not_flaggable rect { stroke: var(--muted); stroke-dasharray: 1.5 1.5; }
+.fc-cell.outside_record rect { stroke: var(--rule); }
+.fc-hatch-line { stroke: var(--rule); stroke-width: 1; }
+.fc-strong { fill: var(--ink); }
+.fc-marginal { fill: none; stroke: var(--ink); stroke-width: 1.2; }
+.fc-key { list-style: none; margin: 4px 0 0; padding: 0; display: grid; grid-template-columns: repeat(auto-fill, minmax(220px, 1fr)); gap: 3px 14px; font-size: 11.5px; }
+.fc-key li { display: flex; align-items: flex-start; gap: 6px; line-height: 1.35; }
+.fc-key svg { flex: none; margin-top: 1px; }
+.fc-table { margin-top: 8px; }
+.fc-table summary { cursor: pointer; color: var(--ink); }
+.fc-table summary:focus-visible { outline: 2px solid var(--ink); outline-offset: 2px; }
+.fc-table table { border-collapse: collapse; margin-top: 4px; font-size: 11px; width: 100%; }
+.fc-table th, .fc-table td { text-align: left; padding: 2px 6px 2px 0; border-bottom: 1px solid var(--faint); vertical-align: top; }
+.fc-table thead th { color: var(--muted); border-bottom: 1px solid var(--ink); font-weight: 400; }
+.fc-table tbody th { font-weight: 400; font-family: var(--num); white-space: nowrap; color: var(--ink); }
+.fc-table td { color: var(--ink); }
+.fc-table td.num { font-family: var(--num); font-variant-numeric: tabular-nums; text-align: right; }

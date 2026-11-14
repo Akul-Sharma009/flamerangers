@@ -45,3 +45,10 @@ export function formatRatio(value: number): string {
 export function formatSigned(value: number): string {
   return signedFormat.format(value).replace("-", "−");
 }
+
+const signedPctFormat = new Intl.NumberFormat("en-US", { maximumFractionDigits: 2, signDisplay: "exceptZero" });
+
+/** A served percentage (2 decimals) with its sign, no "%": 277.55 -> "+277.55", -81.34 -> "−81.34". */
+export function formatSignedPct(value: number): string {
+  return signedPctFormat.format(value).replace("-", "−");
+}

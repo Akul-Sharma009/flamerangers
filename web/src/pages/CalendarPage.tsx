@@ -7,8 +7,11 @@ import { loadArea, type AreaResult } from "../area/load";
 import { areaProblemText } from "../area/words";
 import { CurrentMonthCard } from "../card/CurrentMonthCard";
 import { formatYearMonth } from "../format";
+import type { Measure } from "../grid/anomaly";
 import { CalendarGrid } from "../grid/CalendarGrid";
+import { FlagCellsPanel } from "../grid/FlagCells";
 import { GridLegend } from "../grid/GridLegend";
+import type { CellsLoader } from "../provenance/cells";
 import { CaveatLine, RegionCaveat } from "../provenance/RegionCaveat";
 
 const UNREACHABLE = messages.client.service_unreachable;
@@ -49,14 +52,21 @@ export function CalendarPage({ service = client }: { service?: ServiceClient }) 
 
 /** The page for one state of the view. Exported so tests can render each state. */
 export function CalendarView({
-  view, onSelect, onSelectRange, initialOpen,
+  view, onSelect, onSelectRange, initialOpen, initialMeasure = "count", loadFlagCells,
 }: {
   view: View;
   onSelect: (aoi: AoiInput) => void;
   onSelectRange?: (range: DateRange | null) => void;
   initialOpen?: boolean;
+  /** Story 3.8: what the grid is coloured by on first draw. */
+  initialMeasure?: Measure;
+  /** Story 3.8: the /cells loader for the anomaly view's cell panel (tests pass their own). */
+  loadFlagCells?: CellsLoader;
 }) {
   const { selected, range, result } = view;
+  // The measure and the picked month live here so the legend and the cell panel follow the grid.
+  const [measure, setMeasure] = useState<Measure>(initialMeasure);
+  const [picked, setPicked] = useState<string | null>(null);
   const ready = result?.status === "ready" ? result : null;
   const calendar = ready?.calendar ?? null;
   const problemText =
@@ -99,8 +109,18 @@ export function CalendarView({
             <span>{ready.calendar.unit_label} · record {ready.calendar.record_version}</span>
           </div>
           <CaveatLine calendar={ready.calendar} />
-          <CalendarGrid calendar={ready.calendar} meta={ready.meta} />
-          <GridLegend calendar={ready.calendar} />
+          <CalendarGrid calendar={ready.calendar} meta={ready.meta} measure={measure} onMeasureChange={setMeasure} onPick={setPicked} />
+          <GridLegend calendar={ready.calendar} measure={measure} />
+          {/* The anomaly view shows each 1° cell's flag state for the picked month, else the current month. */}
+          {measure === "anomaly" ? (
+            <FlagCellsPanel
+              meta={ready.meta}
+              aoi={selected}
+              month={picked ?? ready.meta.current_month}
+              unit={ready.calendar.unit_label}
+              loadCells={loadFlagCells}
+            />
+          ) : null}
         </section>
       ) : result === null ? (
         <section aria-label="Calendar">

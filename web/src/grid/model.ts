@@ -4,6 +4,12 @@
 import type { components } from "../api/schema";
 import { messages } from "../api/messages";
 import { MONTH_NAMES, formatCount, formatYearMonth, parseYearMonth } from "../format";
+import {
+  anomalyLabel, anomalyLine, anomalyScaleText, buildAnomalyClasses, flagCounts, flagLines, gridSentences, neutralIndex, periodLines, toneOf,
+  type AnomalyClass, type GridSentences, type Measure, type Periods, type Tone,
+} from "./anomaly";
+
+export type { GridSentences, Measure, Tone } from "./anomaly";
 
 type S = components["schemas"];
 export type Calendar = S["Calendar"];
@@ -56,6 +62,16 @@ export interface CellModel {
   marks: string;
   /** Exact count and provenance, one line each, for the hover/focus/tap card. */
   detail: string[];
+  /** Story 3.8: served anomaly_class, and its step on the diverging ramp. */
+  anomalyClass: number | null;
+  tone: Tone | null;
+  /** The cell's text in the anomaly view: the served anomaly_pct, signed; "–" when the count is null. */
+  anomalyLabel: string;
+  /** The card in the anomaly view: the anomaly first, then the periods, flags and provenance. */
+  anomalyDetail: string[];
+  /** Served reference_year and provisional. */
+  referenceYear: boolean;
+  provisional: boolean;
 }
 
 export interface TotalModel {
@@ -80,6 +96,9 @@ export interface MedianModel {
   calendarMonth: number;
   label: string;
   detail: string[];
+  /** Story 3.8: the served reference_mean, which the anomaly view's foot row shows. */
+  meanLabel: string;
+  meanDetail: string[];
 }
 
 export interface GridModel {
@@ -93,6 +112,19 @@ export interface GridModel {
   unitLabel: string;
   /** "2003–2025", from the served reference period. */
   referenceLabel: string;
+  /** "2003–2011", from the served flag reference years. */
+  flagReferenceLabel: string;
+  /** One per served anomaly break (Story 3.8). */
+  anomalyClasses: AnomalyClass[];
+  /** The anomaly scale's caption: the contract's sentence, else a label. */
+  anomalyScale: string;
+}
+
+/** Periods and ramp a month's anomaly lines need; from the calendar, not the month. */
+export interface CellContext {
+  periods: Periods;
+  neutral: number;
+  sentences: GridSentences;
 }
 
 const INCOMPLETE_REASONS: PartialReason[] = ["record_start", "missing_days"];
@@ -133,8 +165,9 @@ export function satelliteSwitchMonth(meta: Meta): string {
   return meta.satellite_switch.noaa20_from.slice(0, 7);
 }
 
-export function buildCell(m: Month, unitLabel: string, switchMonth: string | null = null): CellModel {
-  const flag = m.cells_flagged_strong ? "strong" : m.cells_flagged_marginal ? "marginal" : null;
+export function buildCell(m: Month, unitLabel: string, switchMonth: string | null = null, ctx: CellContext | null = null): CellModel {
+  const fc = flagCounts(m);
+  const flag = fc.strong ? "strong" : fc.marginal ? "marginal" : null;
   const nrt = m.inputs.some((i) => i.feeds_record && i.quality === "NRT");
   const incomplete = m.partial_reasons.some((r) => INCOMPLETE_REASONS.includes(r));
   const cut = m.partial_reasons.includes("range_cut");
@@ -147,26 +180,49 @@ export function buildCell(m: Month, unitLabel: string, switchMonth: string | nul
   const afterPick = m.source === "viirs_converted";
   const satelliteSwitch = switchMonth !== null && m.month === switchMonth;
 
-  const detail: string[] = [formatYearMonth(m.month)];
-  if (!counted) {
-    detail.push(messages.labels.null_reason[m.null_reason ?? "outside_record"]);
-  } else {
-    detail.push(`${label} ${unitLabel}`);
-    if (m.source) detail.push(messages.labels.source[m.source]);
+  const head = formatYearMonth(m.month);
+  const countLine = counted ? `${label} ${unitLabel}` : messages.labels.null_reason[m.null_reason ?? "outside_record"];
+  // Provenance (Story 3.6): the same lines in both views.
+  const provenance: string[] = [];
+  if (counted) {
+    if (m.source) provenance.push(messages.labels.source[m.source]);
     const fed = inputLines(m);
-    if (fed.length) detail.push(`From ${fed.join("; ")}`);
+    if (fed.length) provenance.push(`From ${fed.join("; ")}`);
     // The NRT sentence says why such a count can still change; standard quality needs no more than its tag.
-    if (nrt) detail.push(messages.labels.quality.NRT);
+    if (nrt) provenance.push(messages.labels.quality.NRT);
   }
-  for (const r of m.partial_reasons) detail.push(messages.labels.partial_reason[r]);
+  for (const r of m.partial_reasons) provenance.push(messages.labels.partial_reason[r]);
   if (counted && m.complete) {
     const done = completeNote();
-    if (done) detail.push(done);
+    if (done) provenance.push(done);
   }
-  if (unvalidated) detail.push(messages.notes.validated_satellite_false);
-  if (satelliteSwitch) detail.push(messages.notes.satellite_switch);
-  if (afterPick) detail.push(messages.notes.after_pick_years);
-  if (flag) detail.push(messages.labels.flag_state[flag]);
+  if (unvalidated) provenance.push(messages.notes.validated_satellite_false);
+  if (satelliteSwitch) provenance.push(messages.notes.satellite_switch);
+  if (afterPick) provenance.push(messages.notes.after_pick_years);
+  // Flags (Story 3.8): the mark's meaning, then the month's flagged cells per tier on the 1° scale.
+  const sentences = ctx?.sentences ?? gridSentences();
+  const flagged = flag ? [messages.labels.flag_state[flag], ...flagLines(m, sentences)] : [];
+  // Reference years and provisional months say so in both views (Story 3.8, AC3).
+  const states: string[] = [];
+  if (counted && m.reference_year) states.push(messages.notes.reference_year);
+  if (counted && m.provisional) states.push(messages.notes.provisional);
+
+  const detail: string[] = [head, countLine, ...provenance, ...flagged, ...states];
+
+  // The anomaly view's card: the anomaly first, then both periods and the flags,
+  // stated even when no cell is flagged (AC4), then the same provenance.
+  const anomalyDetail: string[] = counted && ctx
+    ? [
+        head,
+        anomalyLine(m, unitLabel, ctx.periods, sentences),
+        countLine,
+        ...periodLines(m, unitLabel, ctx.periods, sentences),
+        ...(flag ? [messages.labels.flag_state[flag]] : []),
+        ...flagLines(m, sentences),
+        ...states,
+        ...provenance,
+      ]
+    : detail;
 
   return {
     month: m.month,
@@ -186,6 +242,12 @@ export function buildCell(m: Month, unitLabel: string, switchMonth: string | nul
     label,
     marks,
     detail,
+    anomalyClass: m.anomaly_class,
+    tone: counted && m.anomaly_class !== null && ctx ? toneOf(m.anomaly_class, ctx.neutral) : null,
+    anomalyLabel: anomalyLabel(m),
+    anomalyDetail,
+    referenceYear: m.reference_year,
+    provisional: m.provisional,
   };
 }
 
@@ -197,13 +259,22 @@ function buildTotal(t: YearTotal, unitLabel: string, topRank: number | null): To
   return { year: t.year, label, complete: t.complete, shareOfMax: t.share_of_max, rank: t.rank, topRank, detail };
 }
 
-export function buildGridModel(calendar: Calendar, meta: Meta): GridModel {
+export function buildGridModel(calendar: Calendar, meta: Meta, sentences: GridSentences = gridSentences()): GridModel {
   const unit = calendar.unit_label;
   const byYear = new Map<number, CellModel[]>();
   const switchMonth = satelliteSwitchMonth(meta);
+  const ref = calendar.reference_period;
+  const referenceLabel = `${ref.start_year}–${ref.end_year}`;
+  const fr = calendar.flag_reference_years;
+  const flagReferenceLabel = `${fr.start_year}–${fr.end_year}`;
+  const ctx: CellContext = {
+    periods: { reference: ref, flag: fr },
+    neutral: neutralIndex(calendar.statistics.anomaly_breaks),
+    sentences,
+  };
   for (const m of calendar.months) {
     const y = parseYearMonth(m.month).year;
-    const cell = buildCell(m, unit, switchMonth);
+    const cell = buildCell(m, unit, switchMonth, ctx);
     const list = byYear.get(y);
     if (list) list.push(cell);
     else byYear.set(y, [cell]);
@@ -214,14 +285,14 @@ export function buildGridModel(calendar: Calendar, meta: Meta): GridModel {
     .sort((a, b) => b - a)
     .map((year) => ({ year, cells: byYear.get(year) ?? [], total: totals.get(year) ?? null }));
 
-  const ref = calendar.reference_period;
-  const referenceLabel = `${ref.start_year}–${ref.end_year}`;
   const medians: MedianModel[] = calendar.calendar_month_medians.map((e) => {
     // A median of 0 is a served 0 and is shown as "0"; only null is "–".
     const label = e.median === null ? "–" : formatCount(e.median);
     const detail = [`${MONTH_NAMES[e.calendar_month - 1]}, median ${referenceLabel}`, e.median === null ? "–" : `${label} ${unit}`];
     if (e.no_typical_activity) detail.push(messages.notes.no_typical_activity);
-    return { calendarMonth: e.calendar_month, label, detail };
+    const meanLabel = e.reference_mean === null ? "–" : formatCount(e.reference_mean);
+    const meanDetail = [`${MONTH_NAMES[e.calendar_month - 1]}, reference mean ${referenceLabel}`, e.reference_mean === null ? "–" : `${meanLabel} ${unit}`];
+    return { calendarMonth: e.calendar_month, label, detail, meanLabel, meanDetail };
   });
 
   return {
@@ -232,6 +303,9 @@ export function buildGridModel(calendar: Calendar, meta: Meta): GridModel {
     classes: buildClasses(calendar),
     unitLabel: unit,
     referenceLabel,
+    flagReferenceLabel,
+    anomalyClasses: buildAnomalyClasses(calendar),
+    anomalyScale: anomalyScaleText(ref, sentences),
   };
 }
 
@@ -252,10 +326,15 @@ export interface Pos {
 }
 
 /** The detail lines for a place in the grid, or null when there is none. */
-export function detailAt(model: GridModel, pos: Pos): string[] | null {
-  if (pos.r === model.rows.length) return model.medians[pos.c]?.detail ?? null;
+export function detailAt(model: GridModel, pos: Pos, measure: Measure = "count"): string[] | null {
+  const anomaly = measure === "anomaly";
+  if (pos.r === model.rows.length) {
+    const m = model.medians[pos.c];
+    return m ? (anomaly ? m.meanDetail : m.detail) : null;
+  }
   const row = model.rows[pos.r];
   if (!row) return null;
   if (pos.c === 12) return row.total?.detail ?? null;
-  return row.cells[pos.c]?.detail ?? null;
+  const c = row.cells[pos.c];
+  return c ? (anomaly ? c.anomalyDetail : c.detail) : null;
 }
