@@ -31,6 +31,13 @@ export function GridLegend({ calendar }: { calendar: Calendar }) {
           <svg width="22" height="12" aria-hidden="true"><line x1="0" y1="6" x2="22" y2="6" stroke="var(--ink)" strokeWidth="2" /></svg>
           {messages.notes.record_switch}
         </li>
+        <li className="item" data-legend="satellite-switch">
+          <svg width="16" height="14" aria-hidden="true">
+            <rect x="5" y="1" width="10" height="12" fill="var(--c2)" />
+            <line x1="4" y1="0" x2="4" y2="14" stroke="var(--ink)" strokeWidth="2" />
+          </svg>
+          {messages.notes.satellite_switch}
+        </li>
         <li className="item">
           <svg width="16" height="12" aria-hidden="true">
             <defs>

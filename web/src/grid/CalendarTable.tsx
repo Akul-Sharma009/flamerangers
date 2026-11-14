@@ -8,6 +8,7 @@ function MonthCell({ c }: { c: CellModel }) {
   const cls = [
     c.count === null ? `null ${c.state}` : "count",
     c.monthToDate ? "mtd" : "",
+    c.satelliteSwitch ? "satswitch" : "",
   ].filter(Boolean).join(" ");
   return (
     <td className={cls} data-month={c.month} data-state={c.state} title={c.detail.join("\n")} aria-label={asSentence(c.detail)}>

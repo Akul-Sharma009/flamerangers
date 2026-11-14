@@ -11,6 +11,7 @@ export type Meta = S["Meta"];
 type Month = S["Month"];
 type NullReason = S["NullReason"];
 type PartialReason = S["PartialReason"];
+type Quality = S["Quality"];
 type YearTotal = S["YearTotal"];
 
 /**
@@ -40,6 +41,14 @@ export interface CellModel {
   nrt: boolean;
   incomplete: boolean;
   cut: boolean;
+  /** Served `complete`. */
+  complete: boolean;
+  /** A counted month whose feeding satellite was not part of the validation (served validated_satellite false). */
+  unvalidated: boolean;
+  /** A converted month: outside the years used to choose the method. */
+  afterPick: boolean;
+  /** The month the feeding VIIRS satellite changes (meta.satellite_switch); marked on the grid. */
+  satelliteSwitch: boolean;
   flag: "strong" | "marginal" | null;
   /** The count as shown: formatted, or "–" for null. */
   label: string;
@@ -77,6 +86,8 @@ export interface GridModel {
   rows: RowModel[];
   /** Year of meta.record_switch.viirs_from; the rule is drawn above its row's predecessor. */
   switchYear: number | null;
+  /** The month the feeding VIIRS satellite changed, from meta.satellite_switch ("2026-11"). */
+  satelliteSwitchMonth: string;
   medians: MedianModel[];
   classes: { index: number; label: string }[];
   unitLabel: string;
@@ -86,14 +97,43 @@ export interface GridModel {
 
 const INCOMPLETE_REASONS: PartialReason[] = ["record_start", "missing_days"];
 
-/** Feeding inputs as "Suomi NPP (VIIRS), 2 days". Days are a served integer. */
+/**
+ * A quality label's first sentence as a short tag: "standard quality", "near
+ * real time". The words are the contract's (labels.quality); only the case of
+ * the first letter changes, so it reads inside a list.
+ */
+export function qualityTag(q: Quality): string {
+  const head = messages.labels.quality[q].split(/(?<=\.)\s/)[0].replace(/\.$/, "");
+  return head.charAt(0).toLowerCase() + head.slice(1);
+}
+
+/**
+ * Every input that feeds the month, each with its own quality and served days:
+ * "Suomi NPP (VIIRS), 2 days, near real time" (Story 3.6, AC1). A satellite
+ * served with both qualities in one month gets one entry for each.
+ */
 function inputLines(m: Month): string[] {
   return m.inputs
     .filter((i) => i.feeds_record)
-    .map((i) => `${messages.labels.satellite[i.satellite]}, ${formatCount(i.days)} ${i.days === 1 ? "day" : "days"}`);
+    .map((i) => `${messages.labels.satellite[i.satellite]}, ${formatCount(i.days)} ${i.days === 1 ? "day" : "days"}, ${qualityTag(i.quality)}`);
 }
 
-export function buildCell(m: Month, unitLabel: string): CellModel {
+/**
+ * The sentence for a month whose partial_reasons are empty of record_start,
+ * data_through and missing_days. contract 0.3.0 has none; the web types none.
+ * TODO(label): notes.month_complete, suggested in DECISIONS.md (Story 3.6).
+ */
+export function completeNote(): string | null {
+  const v = (messages.notes as unknown as Record<string, unknown>).month_complete;
+  return typeof v === "string" && v.trim() !== "" ? v : null;
+}
+
+/** The month of the served satellite switch (AD-5), e.g. "2026-11". String slicing only. */
+export function satelliteSwitchMonth(meta: Meta): string {
+  return meta.satellite_switch.noaa20_from.slice(0, 7);
+}
+
+export function buildCell(m: Month, unitLabel: string, switchMonth: string | null = null): CellModel {
   const flag = m.cells_flagged_strong ? "strong" : m.cells_flagged_marginal ? "marginal" : null;
   const nrt = m.inputs.some((i) => i.feeds_record && i.quality === "NRT");
   const incomplete = m.partial_reasons.some((r) => INCOMPLETE_REASONS.includes(r));
@@ -101,19 +141,31 @@ export function buildCell(m: Month, unitLabel: string): CellModel {
   const monthToDate = m.partial_reasons.includes("data_through");
   const marks = [nrt ? MARKS.nrt : "", incomplete ? MARKS.incomplete : "", cut ? MARKS.cut : ""].join("");
   const label = m.count === null ? "–" : formatCount(m.count);
+  // Provenance and evidence (Story 3.6), each read from a served field.
+  const counted = m.count !== null;
+  const unvalidated = counted && !m.validated_satellite;
+  const afterPick = m.source === "viirs_converted";
+  const satelliteSwitch = switchMonth !== null && m.month === switchMonth;
 
   const detail: string[] = [formatYearMonth(m.month)];
-  if (m.count === null) {
+  if (!counted) {
     detail.push(messages.labels.null_reason[m.null_reason ?? "outside_record"]);
   } else {
     detail.push(`${label} ${unitLabel}`);
     if (m.source) detail.push(messages.labels.source[m.source]);
     const fed = inputLines(m);
     if (fed.length) detail.push(`From ${fed.join("; ")}`);
-    const qualities = new Set(m.inputs.filter((i) => i.feeds_record).map((i) => i.quality));
-    for (const q of ["SP", "NRT"] as const) if (qualities.has(q)) detail.push(messages.labels.quality[q]);
+    // The NRT sentence says why such a count can still change; standard quality needs no more than its tag.
+    if (nrt) detail.push(messages.labels.quality.NRT);
   }
   for (const r of m.partial_reasons) detail.push(messages.labels.partial_reason[r]);
+  if (counted && m.complete) {
+    const done = completeNote();
+    if (done) detail.push(done);
+  }
+  if (unvalidated) detail.push(messages.notes.validated_satellite_false);
+  if (satelliteSwitch) detail.push(messages.notes.satellite_switch);
+  if (afterPick) detail.push(messages.notes.after_pick_years);
   if (flag) detail.push(messages.labels.flag_state[flag]);
 
   return {
@@ -121,11 +173,15 @@ export function buildCell(m: Month, unitLabel: string): CellModel {
     count: m.count,
     colourClass: m.colour_class,
     nullReason: m.null_reason,
-    state: m.count === null ? (m.null_reason ?? "outside_record") : "count",
+    state: counted ? "count" : (m.null_reason ?? "outside_record"),
     monthToDate,
     nrt,
     incomplete,
     cut,
+    complete: m.complete,
+    unvalidated,
+    afterPick,
+    satelliteSwitch,
     flag,
     label,
     marks,
@@ -144,9 +200,10 @@ function buildTotal(t: YearTotal, unitLabel: string, topRank: number | null): To
 export function buildGridModel(calendar: Calendar, meta: Meta): GridModel {
   const unit = calendar.unit_label;
   const byYear = new Map<number, CellModel[]>();
+  const switchMonth = satelliteSwitchMonth(meta);
   for (const m of calendar.months) {
     const y = parseYearMonth(m.month).year;
-    const cell = buildCell(m, unit);
+    const cell = buildCell(m, unit, switchMonth);
     const list = byYear.get(y);
     if (list) list.push(cell);
     else byYear.set(y, [cell]);
@@ -170,6 +227,7 @@ export function buildGridModel(calendar: Calendar, meta: Meta): GridModel {
   return {
     rows,
     switchYear: parseYearMonth(meta.record_switch.viirs_from).year,
+    satelliteSwitchMonth: switchMonth,
     medians,
     classes: buildClasses(calendar),
     unitLabel: unit,
