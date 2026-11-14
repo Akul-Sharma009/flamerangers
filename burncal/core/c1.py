@@ -44,6 +44,9 @@ def load_params() -> dict:
         "w_season": float(c1["w_season"]),
         "w_off": float(c1["w_off"]),
         "season": {r: np.asarray(s, bool) for r, s in c1["season_months_in_state_by_region"].items()},
+        "season_share": float(c1["season_share_fixed"]),
+        "history_aqua_2003_2011": {r: np.asarray(v, float)
+                                   for r, v in c1["history_aqua_month_totals_2003_2011_by_region"].items()},
         "regions_fit": list(m1["regions_fit"]),
         "table_by_region": c1["m4"]["table_by_region"],
         "pooled_table": c1["m4"]["pooled_table"],
@@ -201,6 +204,18 @@ def footprint_1a(params, region, time_utc, lat, lon, frp_mw, scan_km, track_km, 
 
 
 # --- blend ----------------------------------------------------------------------
+def season_months(params, aqua_month_totals) -> np.ndarray:
+    """Bool [12]: calendar months holding >= season_share of a region's 2003-2011 Aqua annual total.
+
+    The frozen rule from C1; nothing is fitted. aqua_month_totals: 12 whole-region sums.
+    """
+    by_month = np.asarray(aqua_month_totals, float).reshape(-1, 12).sum(0)
+    total = by_month.sum()
+    if total <= 0:
+        return np.zeros(12, bool)
+    return by_month >= params["season_share"] * total
+
+
 def blend_weight(params, region, calendar_month) -> float:
     """w_season in the region's fire-season months, w_off otherwise (tuning regions only)."""
     if region not in params["season"]:

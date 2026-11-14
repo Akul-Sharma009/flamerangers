@@ -46,10 +46,12 @@ cd web && npm install && npm run typecheck && npm run test && npm run build
 | C1 | 1.5e-10 | 5.2e-11 | 11,572.7 |
 
   All are within the 1e-6 tolerance. Footprints, anchors and view angles also match the harness row for row.
-- **Not yet checked:** the other 23 months, and Australian grassland and Amazon forest for 2015 and 2018. Their input records are held-out inputs kept outside this repo; how to check them is the lead's call.
+- **Full parity (lead runs it, option 1):** the other 23 Sumatra months and Australian grassland and Amazon forest for 2015 and 2018 need the selection-year inputs, which stay on the lead's machine. Command:
+  `uv run python tools/parity_full.py --snpp-dir <planning repo>/data/heldout/inputs/processed/snpp`
+  It prints aggregate misses only and exits 0 on PASS. Plumbing checked here on the Sumatra 2015-09 case (`--only 2015-09`): same misses as above, PASS.
 - The parity case is never copied here. To run those tests, set `BURNCAL_PARITY_CASE_DIR` to the planning record's `exports/c1/out/intermediate` folder; without it they are skipped.
-- Open: C1 for a region outside the three tuning regions needs that region's fire-season months, from its 2003–2011 Aqua history (`predict_rules.unseen_region`). `blend_weight` raises for such a region until that history exists (Story 2.4/2.5).
-- Checks: `uv run pytest` 51 passed, 9 skipped (no case path); with the case path, all 12 Story 2.2 tests pass. Import check passed.
+- Season rule: `c1.season_months` applies the frozen rule (a month is fire season if it holds at least 10% of the 2003–2011 Aqua annual total). It reproduces the stored seasons for Sumatra, Australian grassland and Amazon forest from `history_aqua_month_totals_2003_2011_by_region`. Other regions get their seasons from their own 2003–2011 Aqua history in Stories 2.4/2.5; until then `blend_weight` refuses them.
+- Checks: with the case path set, all 14 Story 2.2 tests pass; without it the 9 case tests are skipped. Import check passed.
 
 | Criterion | Test |
 | --- | --- |
@@ -57,7 +59,8 @@ cd web && npm install && npm run typecheck && npm run test && npm run build
 | AC2 only feeding, non-excluded rows form footprints; 1A term on the anchor | `test_2_2_ac2_excluded_rows_form_no_footprints_and_weigh_nothing` |
 | AC3 weight formula; weights sum to the gridded prediction | `test_2_2_ac3_row_weight_formula`, `..._weights_of_a_region_month_sum_to_the_gridded_prediction` |
 | AC4 imports nothing from tests; reads only the parameter file | `test_2_2_ac4_c1_imports_no_tests_and_reads_only_the_param_file`, `tools/check_imports.py` |
-| AC5 Sat 18:00 checkpoint report | This entry |
+| Season rule reproduces the stored seasons (lead's request) | `test_2_2_season_rule_reproduces_the_stored_seasons`, `test_2_2_season_rule_edges` |
+| AC5 Sat 18:00 checkpoint report | This entry; full parity by `tools/parity_full.py` on the lead's machine |
 
 ## Story 1.5: the web shell
 

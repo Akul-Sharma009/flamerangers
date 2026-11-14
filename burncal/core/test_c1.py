@@ -127,3 +127,18 @@ def test_2_2_ac4_c1_imports_no_tests_and_reads_only_the_param_file():
     for banned in ("read_csv", "read_parquet", "np.load", "urlopen", "requests", "environ", "datetime.now", "time.time"):
         assert banned not in src, banned
     assert src.count("open(") + src.count("read_text(") <= 1, "only the parameter file may be read"
+
+
+def test_2_2_season_rule_reproduces_the_stored_seasons(params):
+    # The frozen rule (a month is fire season if it holds >= 10% of the 2003-2011
+    # Aqua annual total) must give back the seasons stored for the tuning regions
+    # before it is applied to any other region.
+    for region in ("sumatra", "australia_grassland", "amazon_forest"):
+        got = c1.season_months(params, params["history_aqua_2003_2011"][region])
+        assert (got == params["season"][region]).all(), region
+
+
+def test_2_2_season_rule_edges(params):
+    assert not c1.season_months(params, np.zeros(12)).any()  # no history: no season
+    totals = np.array([10.0, 90.0] + [0.0] * 10)  # month 1 holds exactly 10%
+    assert c1.season_months(params, totals)[0]
