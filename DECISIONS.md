@@ -652,3 +652,17 @@ Each entry has: a status (**ASSUMED** or **TESTED**), its evidence, and a "revis
 - **Decision:** The locator map (`web/src/area/MapView.tsx`, MapLibre) was outside this story's files, so the cells are marked on a small SVG map of the area's 1° cells inside the caveat, beside the locator: one square per cell from `POST /cells` (served `sw_lon`, `sw_lat`, `evidence_class`), north up. Tuned cells are plain; tested-but-not-tuned get horizontal lines, reported-only vertical lines, not evaluated a cross-hatch, all in ink, so no class rests on colour and none reuses the grid's hatching or dots. A key gives `labels.evidence_class` for each class the area holds (served `evidence_class_counts` not 0). The map shows only when the area carries a caveat; Sumatra shows none and loads neither `/cells` nor `evidence.json`. The `/cells` call lives in `web/src/provenance/cells.ts`, not in `ServiceClient`, because `web/src/api/` was outside scope; a failed call leaves the map out and keeps the words. evidence.json is loaded lazily, sharing the evidence view's chunk.
 - **Evidence:** `caveat.test.tsx` AC4 block (each served cell drawn with its class's pattern; four distinct fills; no colour fill; the key; north-up placement; the `/cells` request body; a refused call gives no map). Built-in browser with a scratch mock service serving the contract's untuned and savanna examples: 1280 and 375 px, page width 375, patterns readable at 28 px a cell.
 - **Revisit if:** the lead wants the classes drawn on the locator itself (move the patterns into `MapView`), or `postCells` is added to `ServiceClient` (move the loader there), or a very large area makes 3 px squares unreadable.
+
+## Story 6.5: which claims the submission text quotes (15 Nov 2026)
+
+- **Status:** ASSUMED. Needs the lead's OK.
+- **Decision:** The Project Summary quotes two claims, `count-error-vs-b` and `flag-precision-vs-b`, so the failed test sits beside the result in the shortest field. The Project Details quotes the ten claims the storyline puts on slides 5 and 6 (every `used_for_pick` claim plus `comparator-vs-b`). The three reported-only claims are left out of the form, as the storyline keeps them for questions. Each is quoted word for word with its id; the id label is dropped when pasting.
+- **Evidence:** Story 6.5 AC1 (summary and details use the `claims.yaml` sentences); `docs/pitch/storyline.md` slides 5 and 6 and "If a judge asks"; `docs/submission/test_text.py` checks the quotes word for word and that both fields carry the failed test.
+- **Revisit if:** the live form has a limit the details field exceeds (cut order is given under the field), or the lead wants the reported-only results in the form.
+
+## Story 6.5: word counts and product names in the submission text (15 Nov 2026)
+
+- **Status:** ASSUMED
+- **Decision:** No word or character limit is known: Story 6.5 gives none and the brief's field list (organisers' email, judging guide) gives none. Each field states its word count as pasted (claim labels dropped, pending markers counted as they stand), checked by `docs/submission/test_text.py`. The official names of the FIRMS products, which contain the word the project does not use, are left to Story 6.1 and the lead; the draft says "hotspot products".
+- **Evidence:** Story 6.5 criteria; the brief's "Singapore organisers' email" and "Eligibility for global judging" lists in the planning record.
+- **Revisit if:** the live form shows limits, or the lead rules that proper names are exempt from the "hotspots" rule.

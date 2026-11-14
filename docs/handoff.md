@@ -20,12 +20,12 @@ Updated: Sat 14 Nov 2026, late evening SGT (PRs 3 to 11 merged; the lead's revie
 | 5.2 Evidence build and checks | Done | Merged to `master`. See below. |
 | 5.3 The outcome in plain words | Done | Merged to `master`. See below. |
 | 5.4 Head-to-head table | Done | Reviewed by the lead and merged to master. See below. |
-| 5.5 Aqua only and the incumbent | Review | On `claude/5-5-aqua-incumbent-10b884`, not committed. Claim approved and added; the copy needs the lead's OK. See below. |
+| 5.5 Aqua only and the incumbent | Done | Merged 15 Nov. The claim `aqua-only-every-method-failed-precision` was approved and added; the section's copy was approved with it. See below. |
 | 3.3 Select an area | Done | Reviewed by the lead and merged to master. See below. |
 | 3.5 The burning activity calendar | Done | Merged 14 Nov. See below. |
 | 3.4 Select a date range | Done | Merged 14 Nov. Sentences for refused ranges and the reference-period note wait for contract 0.4.0 (see below). |
 | 3.7 Current-month card | Done | Merged 14 Nov. Sentences wait for contract 0.4.0; the NOAA-20 comparison waits for Story 2.10 (see below). |
-| 3.6 Provenance and evidence caveats | Review | Built on `claude/3-6-provenance-35f09f`, not committed. Caveat claims approved and in use; `notes.month_complete` approved, waits for contract 0.4.0 to merge (see below). |
+| 3.6 Provenance and evidence caveats | Done | Merged 15 Nov. The caveat claims are approved and in use; `notes.month_complete` is approved and in the contract 0.4.0 draft, so complete months show no sentence until 0.4.0 merges. The caveat on an untuned area was checked in the browser before the claims were reworded, not after. See below. |
 | 2.3 Ingest and cleaning | Done | PR 3, merged 14 Nov |
 | 2.4 Weights and the record | Done | PR 4, merged 14 Nov, with the weaker-class tie rule (225 / 570 / 6 / 38); full C1 parity PASS |
 | 2.5 Grids, thresholds, flags | In progress | PR 5, merged 14 Nov. Open: AC2 results for Australia and Amazon not recorded; static-input check (Next) |
@@ -35,6 +35,7 @@ Updated: Sat 14 Nov 2026, late evening SGT (PRs 3 to 11 merged; the lead's revie
 | 2.7 and 4.2 Hotspots and CSV | Done | PR 9, merged 14 Nov; an empty search now gives a header and no rows (was a 500) |
 | 4.1 Analytics CSV | Done | PR 10, merged 14 Nov |
 | 4.5 Numbers-agree check | Done | PR 11, merged 14 Nov |
+| 6.5 Demo assets and submission text | In progress | Text draft merged 15 Nov (`docs/submission/`); the lead approved its choices. Its "still to come" list predates 3.6 and 5.5. Demo assets wait for the deployed app. See below. |
 
 `master` holds every story above. The teammate's branches 2.3 to 4.5 are merged; new work branches from `master`.
 
@@ -476,6 +477,15 @@ One year (2024) of FIRMS standard data, MODIS_SP (Aqua and Terra rows) and VIIRS
 | AC5 southern Africa states the facts as results for the region | AC5 block (region sentence then `caveat-southern-africa`; no hedging words; a missing claim leaves only the contract sentence) |
 | AC6 words and figures from claims.yaml and evidence.json; only evidence_class decides | AC6 block (every number is a `display` of the quoted claim's figures; the claim is taken from evidence.json by id; shown exactly when `region_caveat` says; the caveat code imports no boundary or land data) |
 | Markers do not dominate | `grid/provenance.test.tsx` last block (one new mark in the whole grid; labels are words only; the caveat stays off the grid); Sumatra screenshot at 1280 px |
+
+## Story 6.5 (text draft) (branch `claude/6-5-submission-text-43275c`)
+
+- `docs/submission/text.md`: one section per form field (project name, challenge, Project Summary, Project Demo, Final Project Link, Project Details, NASA data, References), the Members-tab checklist, and what needs the lead. Each field states its word count; no limit is known (see `DECISIONS.md`).
+- Claims are quoted from `evidence/claims.yaml` word for word with their ids: two in the summary, ten in the details. `uv run pytest docs/submission` checks the quotes, the banned words and the word counts.
+- `docs/submission/demo-assets.md`: the shot list for the 7-slide deck, in deck order, with what each shot waits on, and an optional 30-second Sumatra journey. The evidence-page shots can be taken now from a local build.
+- Pending in the text: the web address and repository address; Story 6.1 (NASA data, References, the haze source, product documentation, links for FIRMS, Worldview, GWIS and INPE); Stories 2.8 and 2.9 (regions, daily current month); 3.6, 3.8, 3.9, 3.10, 4.3, 4.4, 5.5 to 5.7 (listed as still to come).
+- Checks: `uv run python evidence/wording.py docs/submission` passed; `uv run pytest` 307 passed, 10 skipped.
+- For the lead: the list under "Needs the lead" in `docs/submission/text.md`, and the two Story 6.5 entries in `DECISIONS.md`.
 
 ## Contract 0.3.0
 
