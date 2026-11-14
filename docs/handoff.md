@@ -10,6 +10,7 @@ Updated: Sat 14 Nov 2026, afternoon SGT (Story 1.5).
 | --- | --- | --- |
 | 1.1 Repo scaffold | Done | Reviewed by the lead |
 | 1.2 Contract and fixture | Done | Contract 0.2.0 is frozen (14 Nov). A change needs both owners and a version bump. |
+| 1.4 UI concept | Done | `UI-CONCEPT.md` in the planning record |
 | 1.3 Service stub | Not started in this repo | The host measurements for the Sat 12:00 checkpoint are not in yet |
 | 2.1 C1 parameters | Done | In `burncal/core/params/`; Story 2.2 is unblocked |
 | 1.5 Web shell | Review | Draws Sumatra from the fixture; not committed yet. See below. |
