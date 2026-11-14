@@ -1,8 +1,8 @@
 """The service (contract 0.3.0).
 
 With a published store (BURNCAL_STORE_ROOT, default store/published, holding CURRENT.json), /meta,
-/calendar and /cells answer from the record (Story 2.6). Without one, every endpoint answers from the
-fixture (Story 1.3). The CSV endpoints answer from the fixture until Stories 2.7, 4.1 and 4.2.
+/calendar, /cells and both CSVs answer from the record (Stories 2.6, 2.7, 4.1). Without one, every endpoint answers from the
+fixture (Story 1.3). Both CSVs are built from the same objects as the JSON answers (Stories 2.7, 4.1, 4.2).
 """
 import csv
 import io
@@ -33,6 +33,11 @@ PROBLEM = "application/problem+json"
 VERSION = r"^\d{8}-[0-9a-f]{8}$"
 HOTSPOT_COLUMNS = ["latitude", "longitude", "acq_datetime_utc", "satellite", "instrument", "confidence", "frp",
                    "daynight", "type", "quality", "feeds_record", "excluded_reason", "weight"]
+ANALYTICS_COLUMNS = ["aoi_id", "year", "month", "harmonized_count", "null_reason", "source", "raw_aqua", "raw_terra",
+                     "raw_snpp", "raw_noaa20", "raw_noaa21", "inputs", "complete", "partial_reasons",
+                     "validated_satellite", "historical_median", "reference_mean", "ratio_to_median", "anomaly_count",
+                     "anomaly_pct", "cells_flagged_strong", "cells_flagged_marginal", "cells_total", "reference_year",
+                     "provisional", "rank"]
 ROW_COUNT_NOTE = ("After December 2021 the number of rows differs from the harmonized count. The `weight` column "
                   "sums to the harmonized count over rows where `feeds_record` is true and `excluded_reason` is none.")
 
@@ -201,27 +206,30 @@ def create_app(store_root=None) -> FastAPI:
 
     @app.post("/analytics.csv")
     def analytics(req: Range):
-        if (bad := stale(req)):
-            return bad
-        cols = ["aoi_id", "year", "month", "harmonized_count", "null_reason", "source", "raw_aqua", "raw_terra",
-                "raw_snpp", "raw_noaa20", "raw_noaa21", "inputs", "complete", "partial_reasons",
-                "validated_satellite", "historical_median", "reference_mean", "ratio_to_median", "anomaly_count",
-                "anomaly_pct", "cells_flagged_strong", "cells_flagged_marginal", "cells_total", "reference_year",
-                "provisional", "rank"]
+        if store:
+            v, geom, bad = version_and_area(req)
+            if bad:
+                return bad
+            cal = answers.calendar(v, geom, req.aoi.name, date.fromisoformat(req.start),
+                                   date.fromisoformat(req.end), regions)
+        else:
+            if (bad := stale(req)):
+                return bad
+            v, geom, cal = None, None, calendar
         rows = []
-        for m in calendar["months"]:
+        for m in cal["months"]:
             year, month = m["month"].split("-")
             inputs = ";".join(f'{i["satellite"]}:{i["quality"]}:{i["days"]}' + ("*" if i["feeds_record"] else "")
                               for i in m["inputs"])
-            flat = {**m, "aoi_id": calendar["aoi"]["aoi_id"], "year": year, "month": month, "inputs": inputs,
+            flat = {**m, "aoi_id": cal["aoi"]["aoi_id"], "year": year, "month": month, "inputs": inputs,
                     "harmonized_count": m["count"], "historical_median": m["median"],
                     "partial_reasons": ";".join(m["partial_reasons"]),
                     **{f"raw_{k}": v for k, v in m["raw"].items()}}
-            rows.append([flat[c] for c in cols])
+            rows.append([flat[c] for c in ANALYTICS_COLUMNS])
         head = header(req, "monthly analytics", lambda span: [
-            ("reference_period", span(calendar["reference_period"])),
-            ("flag_reference_years", span(calendar["flag_reference_years"]))])
-        return _csv(head, cols, rows)
+            ("reference_period", span(cal["reference_period"])),
+            ("flag_reference_years", span(cal["flag_reference_years"]))], v, geom)
+        return _csv(head, ANALYTICS_COLUMNS, rows)
 
     @app.post("/hotspots.csv")
     def hotspots(req: HotspotsRequest):

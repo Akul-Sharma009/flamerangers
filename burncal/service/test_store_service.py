@@ -362,3 +362,48 @@ def test_4_2_ac3_header_explains_the_row_count_and_limits(client, versions):
     assert head["record_version"] == versions[0] and head["data_through"] == "2026-11-13"
     assert "weight" in head["row_count_note"] and "December 2021" in head["row_count_note"]
     assert text.count("\n# counting_limits: ") == 3 and head["row_filter"] == "rows that feed the record"
+
+
+# --- Story 4.1: analytics CSV -----------------------------------------------------
+ANALYTICS_COLUMNS = ["aoi_id", "year", "month", "harmonized_count", "null_reason", "source", "raw_aqua", "raw_terra",
+                     "raw_snpp", "raw_noaa20", "raw_noaa21", "inputs", "complete", "partial_reasons",
+                     "validated_satellite", "historical_median", "reference_mean", "ratio_to_median", "anomaly_count",
+                     "anomaly_pct", "cells_flagged_strong", "cells_flagged_marginal", "cells_total", "reference_year",
+                     "provisional", "rank"]
+
+
+def _cell_text(v):
+    return "" if v is None else str(v).lower() if isinstance(v, bool) else str(v)
+
+
+def test_4_1_ac1_one_row_per_month_and_the_header(client, versions):
+    from burncal.service.test_service import ANALYTICS_KEYS
+    body = _body(versions[0], AMAZON, start="2010-03-15", end="2026-11-13", name="Amazon test")
+    r = client.post("/analytics.csv", json=body)
+    assert r.status_code == 200 and r.headers["content-type"].startswith("text/csv")
+    keys, head, cols, rows = split_csv(r.text)
+    assert keys == ANALYTICS_KEYS and cols == ANALYTICS_COLUMNS
+    assert head["record_version"] == versions[0] and head["data_through"] == "2026-11-13"
+    assert head["reference_period"] == "2003 to 2025" and head["aoi_name"] == "Amazon test"
+    assert head["date_range"] == "2010-03-15 to 2026-11-13"
+    assert len(rows) == (2026 - 2010 + 1) * 12
+
+
+def test_4_1_ac2_every_number_equals_the_calendar(client, versions):
+    body = _body(versions[0], PUNJAB, name=None)
+    cal = client.post("/calendar", json=body).json()
+    _, _, _, rows = split_csv(client.post("/analytics.csv", json=body).text)
+    assert len(rows) == len(cal["months"])
+    for row, m in zip(rows, cal["months"]):
+        assert row["aoi_id"] == cal["aoi"]["aoi_id"] and f'{row["year"]}-{row["month"]}' == m["month"]
+        assert row["harmonized_count"] == _cell_text(m["count"])
+        assert row["historical_median"] == _cell_text(m["median"])
+        for f in ("null_reason", "source", "complete", "validated_satellite", "reference_mean", "ratio_to_median",
+                  "anomaly_count", "anomaly_pct", "cells_flagged_strong", "cells_flagged_marginal", "cells_total",
+                  "reference_year", "provisional", "rank"):
+            assert row[f] == _cell_text(m[f]), (m["month"], f)
+        for s, v in m["raw"].items():
+            assert row[f"raw_{s}"] == _cell_text(v)
+        assert row["partial_reasons"] == ";".join(m["partial_reasons"])
+        assert row["inputs"] == ";".join(f'{i["satellite"]}:{i["quality"]}:{i["days"]}' + ("*" if i["feeds_record"] else "")
+                                         for i in m["inputs"])

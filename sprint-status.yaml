@@ -70,7 +70,7 @@ development_status:
   epic-3-retrospective: optional
 
   epic-4: backlog
-  4-1-analytics-csv-t: backlog
+  4-1-analytics-csv-t: review
   4-2-hotspot-csv-t: review
   4-3-picture-downloads-a: backlog
   4-4-download-controls-a: backlog
