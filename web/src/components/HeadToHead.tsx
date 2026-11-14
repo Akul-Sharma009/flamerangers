@@ -119,6 +119,74 @@ export function ScoresTable({ scores, rowClass }: { scores: HeadToHeadView["scor
   );
 }
 
+/** Count error and bias by year, grouped under the file's periods. Story 5.6 reuses it. */
+export function ByYear({ byYear }: { byYear: HeadToHeadView["byYear"] }) {
+  return (
+    <>
+      <h3>{byYear.title}</h3>
+      <p className="aside">{T.byYearScope}</p>
+      <div className="h2h-scroll" role="region" aria-label={byYear.title} tabIndex={0}>
+        <table className="h2h-table years">
+          <thead>
+            <tr>
+              <th scope="col">{T.yearHeader}</th>
+              {byYear.approaches.map((a) => <th scope="col" key={a.key}>{a.label}</th>)}
+            </tr>
+          </thead>
+          {byYear.groups.map((g) => (
+            <tbody key={g.period.display} data-period={g.period.display}>
+              <tr className="group"><th colSpan={byYear.approaches.length + 1} scope="rowgroup">{T.periodWord}: <Fig f={g.period} /></th></tr>
+              {g.rows.map((r) => (
+                <tr key={r.key} data-year={r.key}>
+                  <th scope="row">{r.label}</th>
+                  {byYear.approaches.map((a) => (
+                    <td key={a.key}>
+                      <Fig f={r.cells[`${a.key}.mae`]} />
+                      <span className="sub"><Fig f={r.cells[`${a.key}.bias`]} /></span>
+                    </td>
+                  ))}
+                </tr>
+              ))}
+            </tbody>
+          ))}
+        </table>
+      </div>
+      <p className="aside" data-note="periods">{byYear.note}</p>
+    </>
+  );
+}
+
+/** The pooled paired differences with their intervals and marks. Story 5.6 reuses it. */
+export function Pairs({ pairs }: { pairs: HeadToHeadView["pairs"] }) {
+  return (
+    <>
+      <h3>{T.differencesHeading}</h3>
+      <p className="aside">{T.differencesScope}</p>
+      <p className="aside legend">
+        <span className="mark beyond" aria-hidden="true">{T.beyondMark}</span> {T.legendBeyond}{" "}
+        <span className="mark within" aria-hidden="true">{T.withinMark}</span> {T.legendWithin}
+      </p>
+      <div className="h2h-scroll" role="region" aria-label={T.differencesHeading} tabIndex={0}>
+        <table className="h2h-table pairs">
+          <thead>
+            <tr>
+              <th scope="col">{T.pairHeader}</th>
+              {pairs.columns.map((c) => <th scope="col" key={c.key}>{c.label}</th>)}
+            </tr>
+          </thead>
+          <tbody>
+            <tr className="group"><th colSpan={pairs.columns.length + 1} scope="rowgroup">{T.leadPairs}</th></tr>
+            <PairRows rows={pairs.c1} columns={pairs.columns} />
+            <tr className="group"><th colSpan={pairs.columns.length + 1} scope="rowgroup">{T.otherPairs}</th></tr>
+            <PairRows rows={pairs.others} columns={pairs.columns} />
+          </tbody>
+        </table>
+      </div>
+      <p className="aside" data-note="intervals">{pairs.note}</p>
+    </>
+  );
+}
+
 /** The section for one choice. Pure, so the tests can render each choice. */
 export function HeadToHeadSection({ view, onChoose }: { view: HeadToHeadView; onChoose?: (next: Partial<Choice>) => void }) {
   const pick = onChoose ?? (() => undefined);
@@ -153,59 +221,9 @@ export function HeadToHeadSection({ view, onChoose }: { view: HeadToHeadView; on
       <ScoresTable scores={scores} rowClass={(key) => (key === "cmp" ? "comparator" : key === "a" || key === "b" ? "baseline" : undefined)} />
       <p className="aside">{T.dashNote}</p>
 
-      <h3>{view.byYear.title}</h3>
-      <p className="aside">{T.byYearScope}</p>
-      <div className="h2h-scroll" role="region" aria-label={view.byYear.title} tabIndex={0}>
-        <table className="h2h-table years">
-          <thead>
-            <tr>
-              <th scope="col">{T.yearHeader}</th>
-              {view.byYear.approaches.map((a) => <th scope="col" key={a.key}>{a.label}</th>)}
-            </tr>
-          </thead>
-          {view.byYear.groups.map((g) => (
-            <tbody key={g.period.display} data-period={g.period.display}>
-              <tr className="group"><th colSpan={view.byYear.approaches.length + 1} scope="rowgroup">{T.periodWord}: <Fig f={g.period} /></th></tr>
-              {g.rows.map((r) => (
-                <tr key={r.key} data-year={r.key}>
-                  <th scope="row">{r.label}</th>
-                  {view.byYear.approaches.map((a) => (
-                    <td key={a.key}>
-                      <Fig f={r.cells[`${a.key}.mae`]} />
-                      <span className="sub"><Fig f={r.cells[`${a.key}.bias`]} /></span>
-                    </td>
-                  ))}
-                </tr>
-              ))}
-            </tbody>
-          ))}
-        </table>
-      </div>
-      <p className="aside" data-note="periods">{view.byYear.note}</p>
+      <ByYear byYear={view.byYear} />
 
-      <h3>{T.differencesHeading}</h3>
-      <p className="aside">{T.differencesScope}</p>
-      <p className="aside legend">
-        <span className="mark beyond" aria-hidden="true">{T.beyondMark}</span> {T.legendBeyond}{" "}
-        <span className="mark within" aria-hidden="true">{T.withinMark}</span> {T.legendWithin}
-      </p>
-      <div className="h2h-scroll" role="region" aria-label={T.differencesHeading} tabIndex={0}>
-        <table className="h2h-table pairs">
-          <thead>
-            <tr>
-              <th scope="col">{T.pairHeader}</th>
-              {pairs.columns.map((c) => <th scope="col" key={c.key}>{c.label}</th>)}
-            </tr>
-          </thead>
-          <tbody>
-            <tr className="group"><th colSpan={pairs.columns.length + 1} scope="rowgroup">{T.leadPairs}</th></tr>
-            <PairRows rows={pairs.c1} columns={pairs.columns} />
-            <tr className="group"><th colSpan={pairs.columns.length + 1} scope="rowgroup">{T.otherPairs}</th></tr>
-            <PairRows rows={pairs.others} columns={pairs.columns} />
-          </tbody>
-        </table>
-      </div>
-      <p className="aside" data-note="intervals">{pairs.note}</p>
+      <Pairs pairs={pairs} />
 
       <h4>{T.runHeading}</h4>
       <dl className="h2h-blocks">

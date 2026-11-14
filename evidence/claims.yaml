@@ -315,3 +315,12 @@ claims:
     figures:
       - {name: "C1 bias in southern Africa, reported-only set", display: "16.8%", format: pct1_abs, sign: negative, source: {file: reported_only, pointer: "/approaches/C1/1/regions/southern_africa/bias"}}
       - {name: "C1 precision in southern Africa", display: "0.453", format: fix3, source: {file: final, pointer: "/approaches/C1/1/regions/southern_africa/flags/precision"}}
+
+  - id: tiers-not-checked-everywhere
+    used_for_pick: false
+    # Approved by the lead on 15 Nov, for Story 5.6's tiers note. tiers-selection-only
+    # stays for other pages.
+    text: >-
+      The two flag tiers were checked on selection years only, not in southern Africa or
+      Siberia, and were added after the final-set scores had been seen.
+    figures: []

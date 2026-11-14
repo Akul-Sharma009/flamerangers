@@ -8,7 +8,7 @@
 // only picks tables and cells by key and decides which of them to show (AD-8).
 import type { Claim, Evidence, EvidenceTable, Figure } from "./types";
 
-/** The two sets Story 5.4 shows. The reported-only set is left to Story 5.6. */
+/** The two sets Story 5.4 shows. Story 5.6 shows the reported-only set on its own. */
 export const SETS = ["final", "selection"] as const;
 export type SetKey = (typeof SETS)[number];
 
@@ -164,7 +164,7 @@ function titleRegion(title: string): string {
 export type Family = "approaches" | "terra";
 
 /** The scales a set has, in the build's order, from its pooled tables of one family. */
-export function scaleOptions(evidence: Evidence, set: SetKey, family: Family = "approaches"): Option[] {
+export function scaleOptions(evidence: Evidence, set: string, family: Family = "approaches"): Option[] {
   const prefix = `${set}.${family}.`;
   const suffix = `.${POOLED}`;
   return evidence.tables
@@ -173,7 +173,7 @@ export function scaleOptions(evidence: Evidence, set: SetKey, family: Family = "
 }
 
 /** The regions a set has at a scale, pooled first, from its tables of one family. */
-export function regionOptions(evidence: Evidence, set: SetKey, scale: string, family: Family = "approaches"): Option[] {
+export function regionOptions(evidence: Evidence, set: string, scale: string, family: Family = "approaches"): Option[] {
   const prefix = `${set}.${family}.${scale}.`;
   return evidence.tables
     .filter((t) => t.id.startsWith(prefix) && !t.id.slice(prefix.length).includes("."))
@@ -181,12 +181,12 @@ export function regionOptions(evidence: Evidence, set: SetKey, scale: string, fa
 }
 
 /** A choice the set holds: an unknown region or scale falls back to pooled and the default scale. */
-export function normalise(evidence: Evidence, choice: Choice, family: Family = "approaches"): Choice {
+export function normalise<C extends { set: string; region: string; scale: string }>(evidence: Evidence, choice: C, family: Family = "approaches"): C {
   const scales = scaleOptions(evidence, choice.set, family);
   const scale = scales.some((s) => s.key === choice.scale) ? choice.scale : DEFAULT_SCALE;
   const regions = regionOptions(evidence, choice.set, scale, family);
   const region = regions.some((r) => r.key === choice.region) ? choice.region : POOLED;
-  return { set: choice.set, scale, region };
+  return { ...choice, scale, region };
 }
 
 const sub = {
@@ -213,7 +213,8 @@ export function scoresOf(table: EvidenceTable, order: readonly string[] = ROW_OR
   return { title: table.title, columns, rows };
 }
 
-function pairsOf(table: EvidenceTable): HeadToHeadView["pairs"] {
+/** A set's paired differences, each pair once, C1's first. Story 5.6 reuses it for the reported-only run. */
+export function pairsOf(table: EvidenceTable): HeadToHeadView["pairs"] {
   const rank = (name: string) => PAIR_ORDER.indexOf(name);
   const kept = table.rows.filter((r) => {
     const [first, second] = r.key.split(" vs ");
@@ -233,7 +234,7 @@ function pairsOf(table: EvidenceTable): HeadToHeadView["pairs"] {
 }
 
 /** Each year's count error and bias, grouped by the file's period tag in the order the file gives. */
-function byYearOf(table: EvidenceTable, region: string, approaches: { key: string; label: string }[]): HeadToHeadView["byYear"] {
+export function byYearOf(table: EvidenceTable, region: string, approaches: { key: string; label: string }[]): HeadToHeadView["byYear"] {
   // Row keys are pointers like /southern_africa/2014; a region's rows start with its key.
   const rows = region === POOLED ? table.rows : table.rows.filter((r) => r.key.startsWith(`/${region}/`));
   const groups: YearGroup[] = [];

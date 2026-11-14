@@ -21,6 +21,7 @@ Updated: Sat 14 Nov 2026, late evening SGT (PRs 3 to 11 merged; the lead's revie
 | 5.3 The outcome in plain words | Done | Merged to `master`. See below. |
 | 5.4 Head-to-head table | Done | Reviewed by the lead and merged to master. See below. |
 | 5.5 Aqua only and the incumbent | Done | Merged 15 Nov. The claim `aqua-only-every-method-failed-precision` was approved and added; the section's copy was approved with it. See below. |
+| 5.6 What the scores can't show | Review | Built on `claude/5-6-scores-cant-show-d2b4b9`, not committed. The lead approved the copy and the tiers claim `tiers-not-checked-everywhere` on 15 Nov. NOAA-20 says "not yet run" until Story 2.10's file exists. See below. |
 | 3.3 Select an area | Done | Reviewed by the lead and merged to master. See below. |
 | 3.5 The burning activity calendar | Done | Merged 14 Nov. See below. |
 | 3.4 Select a date range | Done | Merged 14 Nov. Sentences for refused ranges and the reference-period note wait for contract 0.4.0 (see below). |
@@ -384,6 +385,26 @@ One year (2024) of FIRMS standard data, MODIS_SP (Aqua and Terra rows) and VIIRS
 | AC1 including that every method failed on precision | "AC1: on the final set it shows that every method failed on precision…", "AC1: each set's test is shown check by check…", "AC1: on the final set the candidates' results are the pick rule's…"; `test_5_5_ac1_every_non_inferiority_check_is_in_evidence_json_as_its_file_holds_it`, `..._on_the_final_set_every_method_failed_on_precision_alone`, `..._each_check_has_its_difference_against_c_with_interval`. Shown as data, with the claims `aqua-through-2021` and `aqua-only-every-method-failed-precision` |
 | AC1 explains why (c) is tested for non-inferiority | "AC1: it explains why (c) is tested for non-inferiority" |
 | AC2 GWIS reads "can't be scored" with the reason | "AC2: GWIS reads "can't be scored" with the reason"; `test_5_5_ac2_gwis_is_recorded_as_cant_be_scored` |
+
+## Story 5.6: what the scores can't show (branch `claude/5-6-scores-cant-show-d2b4b9`)
+
+- The evidence view has two new full-width sections under "Aqua only and the incumbent" (`web/src/components/ScoresLimits.tsx`, `ScoresLimits.css`; view model in `web/src/evidence/limits.ts`):
+  - **What the scores can't show:** the eight limits of test plan section 12, numbered, in its order. Their few numbers are figures from `evidence.json` (last scored year, the selection set's years, its 28 blocks, one pair of years per region; the final set's years per region are listed). Limit 3 prints the claim `noaa20-untested`.
+  - **The two flag tiers:** one typed sentence (the calendar shows strong and marginal flags), then the claim `tiers-not-checked-everywhere`: checked on selection years only, not in southern Africa or Siberia, added after the final-set scores had been seen.
+  - **NOAA-20 against Suomi NPP:** "The NOAA-20 comparison has not been run yet." (`notes.noaa20_check_not_run`) until a `noaa20_check_*.json` is listed in `evidence/scoring/MANIFEST.json`; then `notes.noaa20_check`, the file's label and every figure in it.
+  - **The reported-only run** (`9d5e7bf1d0d6`), labelled "Not used for the pick": the run's own fields, the three reported-only claims, its years, every approach's test results (against (a), (b) and (c)), and Story 5.4's score, by-year, paired-difference and block tables with its own region and scale choice.
+- `evidence/build.py`: a `year` format; per-set tables `{set}.years` and `{set}.about`; the NOAA-20 file is read when the manifest lists it, and the build fails if its label does not say "reported only" and "not a validation against Aqua". `evidence.json` rebuilt (123 tables, 17 claims). No change to the schema or the scoring files.
+- `claims.yaml`: the lead approved one claim on 15 Nov, added at the end: `tiers-not-checked-everywhere` (not used for the pick, no figures). `tiers-selection-only` stays for other pages.
+- `HeadToHead.tsx` exports its by-year and paired-difference tables as `ByYear` and `Pairs` (same markup); `headToHead.ts` exports `pairsOf` and `byYearOf` and accepts any set key in `scaleOptions`, `regionOptions` and `normalise`.
+- Checks: `uv run python evidence/build.py --check` passed; `uv run pytest evidence` 163 passed (15 of them Story 5.6, in `evidence/test_limits.py`); `uv run pytest` 361 passed, 10 skipped; `npm run test` 185 passed (11 of them Story 5.6); `npm run build`; wording check on the fresh build; import check; gitleaks `dir` found no leaks. Looked at in the built-in browser at 1280 × 800 and 375 × 812: no horizontal page scroll, the reported-only region choice works and is separate from the head-to-head one, no console errors. One fix from that look: the run's note line was cut off at 1280 px; it now wraps.
+- The lead approved the section's copy and the tiers claim on 15 Nov. After adding the claim: evidence check passed, `uv run pytest evidence` 164 passed, `npm run test` 185 passed, `npm run build`, wording check passed. The structure choices (the reported-only section's layout, how the NOAA-20 file is read) stay ASSUMED in `DECISIONS.md`.
+
+| Criterion | Test or evidence |
+| --- | --- |
+| AC1 all eight limits of test plan section 12 are in its text | `limits.test.tsx`: "AC1: all eight limits of test plan section 12 are present in its text, in its order" (a checklist kept apart from the copy), "AC1: the numbers in the limits are figures read from the scoring files"; `test_5_6_limit_*` in `evidence/test_limits.py` |
+| AC2 tiers: checked on selection years only, not in southern Africa or Siberia | "AC2: the anomaly tiers were checked on selection years only and not in southern Africa or Siberia" |
+| AC3 reported-only run labelled "not used for the pick"; 4A alone passed (b), C1 did not; southern Africa and Punjab | "AC3: the reported-only run is labelled not used for the pick…", "AC3: 4A alone passed the (b) test…", "AC3: the southern Africa and Punjab results are shown…", "AC3: an unknown region or scale falls back…"; `test_5_6_reported_only_*`; browser check |
+| AC4 NOAA-20: labelled once its file exists; "not yet run" until then, for that comparison only | "AC4: until Story 2.10's file exists…", "AC4: once the file exists…" (made-up file); `test_5_6_noaa20_*`. **Real figures wait for Story 2.10.** |
 
 ## Story 3.3: select an area
 
