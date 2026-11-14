@@ -1,0 +1,284 @@
+{
+ "run_id": "685423734cfe",
+ "library_versions_from_venv": {
+  "python": "3.12.15",
+  "numpy": "2.5.4",
+  "pandas": "3.1.1"
+ },
+ "python_executable": ".venv/bin/python (repo-relative; the local path is left out on purpose)",
+ "files": {
+  "c1_params.json": {
+   "sha256": "8bfbd1ec448a636817b9898fd588fbe6e60e784f0051db97e3f60c7a2939f28c",
+   "bytes": 60860
+  },
+  "c1_params.sha256": {
+   "sha256": "aa5488c18aea8d271f6628a36f6aa8cef44c9d82dde64361cc552d4593ca50ba",
+   "bytes": 81
+  },
+  "parity/1A_selection_main.npz": {
+   "sha256": "5eacaadbb9915b42dc2dd5edba122b0b371d108d62a62f43fb0c2bd75a21328e",
+   "bytes": 205924
+  },
+  "parity/4A_selection_main.npz": {
+   "sha256": "57a26006124f2bbce5249759c1f91478bb1f14f91d13e8402f8d54345c9759de",
+   "bytes": 138341
+  },
+  "parity/C1_selection_main.npz": {
+   "sha256": "49a855de700655bfd34f2d657db51d97cb16724d81b6b9809bb2a736b56aed45",
+   "bytes": 206541
+  },
+  "parity/README.txt": {
+   "sha256": "a7125a4ecf582a18a9941ce826fdc199c65028603e4507a8a66b78b4dd48cc2e",
+   "bytes": 6402
+  },
+  "parity/cells_0.25deg_amazon_forest.csv": {
+   "sha256": "dd3929ddda79ef8580a12a63c864233a29308cabb40184ff275811a5165414c1",
+   "bytes": 36163
+  },
+  "parity/cells_0.25deg_australia_grassland.csv": {
+   "sha256": "13f8bc79a8180bb12e4f189464d188b8d5c58b749b09f1678f25b0950db14f8f",
+   "bytes": 58866
+  },
+  "parity/cells_0.25deg_sumatra.csv": {
+   "sha256": "414cbe4f6eaab396d69c3ec563fac6e50696fbe2c090931876b4875f75f52e21",
+   "bytes": 30054
+  },
+  "parity/cells_1deg_amazon_forest.csv": {
+   "sha256": "8fe45726ede1836267fe1e4bc0f061d1f7a18bd6665899a0c001c60b490c56b8",
+   "bytes": 1795
+  },
+  "parity/cells_1deg_australia_grassland.csv": {
+   "sha256": "1ca6b9129894698eca2f469e0387ebb579b19e89480671d38e4a06b6c875211b",
+   "bytes": 3313
+  },
+  "parity/cells_1deg_sumatra.csv": {
+   "sha256": "91893b23f92d4cb0956af47d4ba66ad9d4ac42a3e14bea7734c43e67a8bc6d1d",
+   "bytes": 2866
+  },
+  "sumatra_aqua_tuning_counts.npz": {
+   "sha256": "06db164867339c09713dc4e293f50e09adc279aaf811b44f11580bd9956a3548",
+   "bytes": 336292
+  },
+  "sumatra_aqua_tuning_counts_1deg.csv": {
+   "sha256": "b3716ec290daca474e8e6eb967de9446f59ee81126425834ee9292a28fd33afb",
+   "bytes": 91766
+  },
+  "thresholds_1deg.csv": {
+   "sha256": "8766fb7f83371e1c8145782401ae42a7ac5e3eb5acf3a9f6f7d342bf41a0c27a",
+   "bytes": 110243
+  },
+  "thresholds_1deg.npz": {
+   "sha256": "2cab9c4a46ae5b111db7307c3783fab3bdac67409c66083b24d1df6f1c351639",
+   "bytes": 21238
+  },
+  "intermediate/README.txt": {
+   "sha256": "ef827dda2e89c18a6322a6270138b770cfe2d008e98d0dcf6627a671f4cb0e1e",
+   "bytes": 10064
+  },
+  "intermediate/footprints_sumatra_201509.csv": {
+   "sha256": "36f2425ce39c7ff240da1260474494aeaeebbfad8f7225f3caf51c59798f85b5",
+   "bytes": 13937525
+  },
+  "intermediate/rows_sumatra_201509.csv": {
+   "sha256": "666c336649a502aa87eba718d00b63cd72087801294a7a6b758dd3c2f578bb60",
+   "bytes": 23526951
+  }
+ },
+ "checks": {
+  "reload_exact_match": {
+   "pass": true,
+   "mismatches": [],
+   "nonfinite": []
+  },
+  "standalone_states_equal_C1_components": {
+   "4A": true,
+   "1A": true
+  },
+  "prediction_hashes": {
+   "C1": {
+    "pass": true,
+    "got": "49a855de700655bf",
+    "expected": "49a855de700655bf",
+    "copy_in_parity": "49a855de700655bf"
+   },
+   "4A": {
+    "pass": true,
+    "got": "57a26006124f2bbc",
+    "expected": "57a26006124f2bbc",
+    "copy_in_parity": "57a26006124f2bbc"
+   },
+   "1A": {
+    "pass": true,
+    "got": "5eacaadbb9915b42",
+    "expected": "5eacaadbb9915b42",
+    "copy_in_parity": "5eacaadbb9915b42"
+   }
+  },
+  "hash_function": "tests.shared.harness._sha: first 16 hex chars of SHA-256 of the file bytes",
+  "forbidden_paths_opened": [],
+  "no_heldout_aqua_years_opened": true,
+  "aqua_processed_years_opened": [
+   2003,
+   2004,
+   2005,
+   2006,
+   2007,
+   2008,
+   2009,
+   2010,
+   2011,
+   2014,
+   2016,
+   2017,
+   2020
+  ],
+  "sumatra_counts_years_ok": true,
+  "season_from_history_equals_state": {
+   "sumatra": true,
+   "australia_grassland": true,
+   "amazon_forest": true
+  }
+ },
+ "source_files_read": [
+  "data/manifest.json",
+  "data/open/processed/aqua/aqua_amazon_forest_2003.parquet",
+  "data/open/processed/aqua/aqua_amazon_forest_2004.parquet",
+  "data/open/processed/aqua/aqua_amazon_forest_2005.parquet",
+  "data/open/processed/aqua/aqua_amazon_forest_2006.parquet",
+  "data/open/processed/aqua/aqua_amazon_forest_2007.parquet",
+  "data/open/processed/aqua/aqua_amazon_forest_2008.parquet",
+  "data/open/processed/aqua/aqua_amazon_forest_2009.parquet",
+  "data/open/processed/aqua/aqua_amazon_forest_2010.parquet",
+  "data/open/processed/aqua/aqua_amazon_forest_2011.parquet",
+  "data/open/processed/aqua/aqua_australia_grassland_2003.parquet",
+  "data/open/processed/aqua/aqua_australia_grassland_2004.parquet",
+  "data/open/processed/aqua/aqua_australia_grassland_2005.parquet",
+  "data/open/processed/aqua/aqua_australia_grassland_2006.parquet",
+  "data/open/processed/aqua/aqua_australia_grassland_2007.parquet",
+  "data/open/processed/aqua/aqua_australia_grassland_2008.parquet",
+  "data/open/processed/aqua/aqua_australia_grassland_2009.parquet",
+  "data/open/processed/aqua/aqua_australia_grassland_2010.parquet",
+  "data/open/processed/aqua/aqua_australia_grassland_2011.parquet",
+  "data/open/processed/aqua/aqua_sumatra_2003.parquet",
+  "data/open/processed/aqua/aqua_sumatra_2004.parquet",
+  "data/open/processed/aqua/aqua_sumatra_2005.parquet",
+  "data/open/processed/aqua/aqua_sumatra_2006.parquet",
+  "data/open/processed/aqua/aqua_sumatra_2007.parquet",
+  "data/open/processed/aqua/aqua_sumatra_2008.parquet",
+  "data/open/processed/aqua/aqua_sumatra_2009.parquet",
+  "data/open/processed/aqua/aqua_sumatra_2010.parquet",
+  "data/open/processed/aqua/aqua_sumatra_2011.parquet",
+  "data/open/processed/aqua/aqua_sumatra_2014.parquet",
+  "data/open/processed/aqua/aqua_sumatra_2016.parquet",
+  "data/open/processed/aqua/aqua_sumatra_2017.parquet",
+  "data/open/processed/aqua/aqua_sumatra_2020.parquet",
+  "data/results/final_run.json",
+  "data/results/final_work/685423734cfe/1A/selection_main.npz",
+  "data/results/final_work/685423734cfe/1A/state_main.pkl",
+  "data/results/final_work/685423734cfe/4A/selection_main.npz",
+  "data/results/final_work/685423734cfe/4A/state_main.pkl",
+  "data/results/final_work/685423734cfe/C1/selection_main.npz",
+  "data/results/final_work/685423734cfe/C1/state_main.pkl",
+  "data/static/grid",
+  "data/static/grid/cells_amazon_forest_0.25.parquet",
+  "data/static/grid/cells_amazon_forest_1.parquet",
+  "data/static/grid/cells_australia_grassland_0.25.parquet",
+  "data/static/grid/cells_australia_grassland_1.parquet",
+  "data/static/grid/cells_sumatra_0.25.parquet",
+  "data/static/grid/cells_sumatra_1.parquet",
+  "data/static/grid/land_amazon_forest.wkb",
+  "data/static/grid/land_australia_grassland.wkb",
+  "data/static/grid/land_sumatra.wkb",
+  "tests/__init__.py",
+  "tests/candidates/1A/candidate.py",
+  "tests/candidates/4A/candidate.py",
+  "tests/candidates/C1/candidate.py",
+  "tests/shared/__init__.py",
+  "tests/shared/baselines.py",
+  "tests/shared/bootstrap.py",
+  "tests/shared/config.py",
+  "tests/shared/decide.py",
+  "tests/shared/extra_data.py",
+  "tests/shared/grid.py",
+  "tests/shared/harness.py",
+  "tests/shared/interface.py",
+  "tests/shared/locks.py",
+  "tests/shared/metrics.py",
+  "tests/shared/records.py",
+  "tests/shared/sandbox.py",
+  "tests/shared/worker.py"
+ ],
+ "heldout_input_files_listed_in_parity_readme": [
+  "heldout/inputs/raw/firms_country/viirs-snpp/viirs-snpp_2015_Australia.csv",
+  "heldout/inputs/raw/firms_country/viirs-snpp/viirs-snpp_2015_Brazil.csv",
+  "heldout/inputs/raw/firms_country/viirs-snpp/viirs-snpp_2015_Indonesia.csv",
+  "heldout/inputs/raw/firms_country/viirs-snpp/viirs-snpp_2018_Australia.csv",
+  "heldout/inputs/raw/firms_country/viirs-snpp/viirs-snpp_2018_Brazil.csv",
+  "heldout/inputs/raw/firms_country/viirs-snpp/viirs-snpp_2018_Indonesia.csv"
+ ],
+ "intermediate": {
+  "script": "exports/c1/export_intermediate.py",
+  "case": "sumatra_201509",
+  "checks": {
+   "case": "sumatra_201509",
+   "rows_in_case": 98486,
+   "rows_region_2015_2018": 324229,
+   "second_case_needed": false,
+   "footprints_in_case": 45970,
+   "season_flag": true,
+   "w_used": 0.7,
+   "max_abs_diff_vs_saved_parity": {
+    "4A_1deg": 1.1368683772161603e-13,
+    "1A_1deg": 4.092726157978177e-12,
+    "C1_1deg": 2.7284841053187847e-12,
+    "4A_025deg": 2.842170943040401e-14,
+    "1A_025deg": 7.389644451905042e-13,
+    "C1_025deg": 4.547473508864641e-13
+   },
+   "footprint_partition_matches_candidate": true,
+   "representative_matches_candidate": true,
+   "parquet_cell_columns_agree": true,
+   "nothing_dropped_at_predict": true,
+   "forbidden_paths_opened": [],
+   "heldout_files_opened_all_inputs": true,
+   "heldout_files_opened": [
+    "data/heldout/inputs/processed/snpp/snpp_sumatra_2015.parquet",
+    "data/heldout/inputs/processed/snpp/snpp_sumatra_2018.parquet"
+   ],
+   "aqua_processed_years_opened": [
+    2003,
+    2004,
+    2005,
+    2006,
+    2007,
+    2008,
+    2009,
+    2010,
+    2011
+   ],
+   "aqua_only_history_years": true,
+   "rows_all_snpp": true,
+   "no_aqua_columns": true,
+   "span_case": {
+    "footprints_in_case": 45970,
+    "multi_member": 20335,
+    "span_gt1_1deg_cell": 328,
+    "span_gt1_025deg_cell": 744,
+    "span_gt1_utc_month": 0,
+    "members_outside_case_month": 0
+   },
+   "span_all": {
+    "footprints_total": 166174,
+    "multi_member": 63568,
+    "span_gt1_1deg_cell": 682,
+    "span_gt1_025deg_cell": 2331,
+    "span_gt1_utc_month": 0
+   },
+   "absolute_paths_in_outputs": []
+  },
+  "extra_source_files_read": [
+   "data/heldout/inputs/processed/snpp/snpp_sumatra_2015.parquet",
+   "data/heldout/inputs/processed/snpp/snpp_sumatra_2018.parquet"
+  ]
+ }
+}

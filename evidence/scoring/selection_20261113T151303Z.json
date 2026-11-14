@@ -1,0 +1,6698 @@
+{
+ "label": "selection set (step 1)",
+ "years": [
+  2015,
+  2018
+ ],
+ "meta": {
+  "specs": {
+   "a": "shared:RawSplice",
+   "b": "shared:GlobalFactor",
+   "cmp": "shared:RegionMonthFactor",
+   "4A": "4A",
+   "1A": "1A",
+   "C1": "C1",
+   "C2": "C2",
+   "C3": "C3"
+  },
+  "set": "selection",
+  "sandboxed": true,
+  "prediction_hashes": {
+   "a": {
+    "main": "19e9d802706d71c3"
+   },
+   "b": {
+    "main": "ade22942059db3d0"
+   },
+   "cmp": {
+    "main": "25f86800084c9fae"
+   },
+   "4A": {
+    "main": "57a26006124f2bbc"
+   },
+   "1A": {
+    "main": "5eacaadbb9915b42"
+   },
+   "C1": {
+    "main": "49a855de700655bf"
+   },
+   "C2": {
+    "main": "9a1f1c069c499f37"
+   },
+   "C3": {
+    "main": "5db5182cb11dfb4e"
+   }
+  }
+ },
+ "blocks": {
+  "sumatra": 10,
+  "australia_grassland": 10,
+  "amazon_forest": 8,
+  "total": 28
+ },
+ "draws": 10000,
+ "seed": 20261114,
+ "code_hash": "1ae6e8e4f8007627",
+ "approaches": {
+  "a": {
+   "0.25": {
+    "regions": {
+     "sumatra": {
+      "mae": 14.923462986198244,
+      "bias": 7.00229533282326,
+      "cell_months": 19128,
+      "flags": {
+       "raised": 2320,
+       "true": 437,
+       "truth": 441,
+       "precision": 0.18836206896551724,
+       "recall": 0.9909297052154195
+      },
+      "spearman": 0.6052163330630302,
+      "topk_overlap": 0.65814696485623,
+      "topk_k": 3,
+      "ranking_units": 626,
+      "year_pair_share": 0.9021381578947368,
+      "year_pairs": 608,
+      "peak_month_error": 0.5354477611940298,
+      "season_length_diff": 0.6716417910447762,
+      "season_unit_years": 536
+     },
+     "australia_grassland": {
+      "mae": 16.544060140237324,
+      "bias": 8.492093184376895,
+      "cell_months": 29664,
+      "flags": {
+       "raised": 3522,
+       "true": 1248,
+       "truth": 1248,
+       "precision": 0.3543441226575809,
+       "recall": 1.0
+      },
+      "spearman": 0.84041629970174,
+      "topk_overlap": 0.8063651591289781,
+      "topk_k": 3,
+      "ranking_units": 995,
+      "year_pair_share": 0.9305413687436159,
+      "year_pairs": 979,
+      "peak_month_error": 0.3268892794376098,
+      "season_length_diff": 0.30140597539543057,
+      "season_unit_years": 1138
+     },
+     "amazon_forest": {
+      "mae": 8.833612351190476,
+      "bias": 5.37458873344205,
+      "cell_months": 21504,
+      "flags": {
+       "raised": 2072,
+       "true": 271,
+       "truth": 271,
+       "precision": 0.13079150579150578,
+       "recall": 1.0
+      },
+      "spearman": 0.6997214967357823,
+      "topk_overlap": 0.7203947368421053,
+      "topk_k": 3,
+      "ranking_units": 608,
+      "year_pair_share": 0.8704974271012007,
+      "year_pairs": 583,
+      "peak_month_error": 0.45803698435277385,
+      "season_length_diff": 0.561877667140825,
+      "season_unit_years": 703
+     }
+    },
+    "pooled": {
+     "flags": {
+      "raised": 7914,
+      "true": 1956,
+      "truth": 1960,
+      "precision": 0.24715693707354056,
+      "recall": 0.9979591836734694
+     },
+     "spearman": 0.7151180431668509,
+     "topk_overlap": 0.7283022869424377,
+     "year_pair_share": 0.901058984579851,
+     "peak_month_error": 0.44012467499480445,
+     "season_length_diff": 0.5116418111936772,
+     "abs_bias_median": 7.00229533282326
+    }
+   },
+   "1": {
+    "regions": {
+     "sumatra": {
+      "mae": 157.77777777777777,
+      "bias": 7.00229533282326,
+      "cell_months": 1800,
+      "flags": {
+       "raised": 602,
+       "true": 112,
+       "truth": 112,
+       "precision": 0.18604651162790697,
+       "recall": 1.0
+      },
+      "spearman": 0.7573485575125549,
+      "topk_overlap": 0.8102564102564103,
+      "topk_k": 3,
+      "ranking_units": 65,
+      "year_pair_share": 0.9365079365079365,
+      "year_pairs": 63,
+      "peak_month_error": 0.5643564356435643,
+      "season_length_diff": 0.6237623762376238,
+      "season_unit_years": 101
+     },
+     "australia_grassland": {
+      "mae": 252.26697530864197,
+      "bias": 8.492093184376895,
+      "cell_months": 1944,
+      "flags": {
+       "raised": 764,
+       "true": 274,
+       "truth": 274,
+       "precision": 0.3586387434554974,
+       "recall": 1.0
+      },
+      "spearman": 0.8811672111366857,
+      "topk_overlap": 0.8565400843881859,
+      "topk_k": 3,
+      "ranking_units": 79,
+      "year_pair_share": 0.9113924050632911,
+      "year_pairs": 79,
+      "peak_month_error": 0.3835616438356164,
+      "season_length_diff": 0.4246575342465753,
+      "season_unit_years": 146
+     },
+     "amazon_forest": {
+      "mae": 140.16220238095238,
+      "bias": 5.37458873344205,
+      "cell_months": 1344,
+      "flags": {
+       "raised": 470,
+       "true": 85,
+       "truth": 88,
+       "precision": 0.18085106382978725,
+       "recall": 0.9659090909090909
+      },
+      "spearman": 0.8471279412761599,
+      "topk_overlap": 0.8666666666666665,
+      "topk_k": 3,
+      "ranking_units": 55,
+      "year_pair_share": 0.9454545454545454,
+      "year_pairs": 55,
+      "peak_month_error": 0.25252525252525254,
+      "season_length_diff": 0.29292929292929293,
+      "season_unit_years": 99
+     }
+    },
+    "pooled": {
+     "flags": {
+      "raised": 1836,
+      "true": 471,
+      "truth": 474,
+      "precision": 0.2565359477124183,
+      "recall": 0.9936708860759493
+     },
+     "spearman": 0.828547903308467,
+     "topk_overlap": 0.8444877204370874,
+     "year_pair_share": 0.9311182956752577,
+     "peak_month_error": 0.40014777733481105,
+     "season_length_diff": 0.44711640113783063,
+     "abs_bias_median": 7.00229533282326
+    }
+   },
+   "region": {
+    "regions": {
+     "sumatra": {
+      "mae": 11821.333333333334,
+      "bias": 7.00229533282326,
+      "cell_months": 24,
+      "flags": {
+       "raised": 16,
+       "true": 3,
+       "truth": 3,
+       "precision": 0.1875,
+       "recall": 1.0
+      },
+      "spearman": 0.980208786428882,
+      "topk_overlap": 1.0,
+      "topk_k": 3,
+      "ranking_units": 1,
+      "year_pair_share": 1.0,
+      "year_pairs": 1,
+      "peak_month_error": 0.5,
+      "season_length_diff": 1.0,
+      "season_unit_years": 2
+     },
+     "australia_grassland": {
+      "mae": 20428.791666666668,
+      "bias": 8.492093184376895,
+      "cell_months": 24,
+      "flags": {
+       "raised": 23,
+       "true": 7,
+       "truth": 7,
+       "precision": 0.30434782608695654,
+       "recall": 1.0
+      },
+      "spearman": 0.9921739130434782,
+      "topk_overlap": 0.6666666666666666,
+      "topk_k": 3,
+      "ranking_units": 1,
+      "year_pair_share": 1.0,
+      "year_pairs": 1,
+      "peak_month_error": 0.0,
+      "season_length_diff": 0.0,
+      "season_unit_years": 2
+     },
+     "amazon_forest": {
+      "mae": 7829.75,
+      "bias": 5.37458873344205,
+      "cell_months": 24,
+      "flags": {
+       "raised": 16,
+       "true": 2,
+       "truth": 2,
+       "precision": 0.125,
+       "recall": 1.0
+      },
+      "spearman": 0.9521739130434783,
+      "topk_overlap": 1.0,
+      "topk_k": 3,
+      "ranking_units": 1,
+      "year_pair_share": 1.0,
+      "year_pairs": 1,
+      "peak_month_error": 0.0,
+      "season_length_diff": 0.5,
+      "season_unit_years": 2
+     }
+    },
+    "pooled": {
+     "flags": {
+      "raised": 55,
+      "true": 12,
+      "truth": 12,
+      "precision": 0.21818181818181817,
+      "recall": 1.0
+     },
+     "spearman": 0.9748522041719462,
+     "topk_overlap": 0.8888888888888888,
+     "year_pair_share": 1.0,
+     "peak_month_error": 0.16666666666666666,
+     "season_length_diff": 0.5,
+     "abs_bias_median": 7.00229533282326
+    }
+   },
+   "by_year_1deg": {
+    "2015": {
+     "period": "early",
+     "sumatra": {
+      "mae": 283.9555555555556,
+      "bias": 7.091544995281186
+     },
+     "australia_grassland": {
+      "mae": 274.4989711934156,
+      "bias": 8.656379802699897
+     },
+     "amazon_forest": {
+      "mae": 183.10119047619048,
+      "bias": 5.6585230939430256
+     }
+    },
+    "2018": {
+     "period": "late",
+     "sumatra": {
+      "mae": 31.6,
+      "bias": 6.286350478735248
+     },
+     "australia_grassland": {
+      "mae": 230.03497942386832,
+      "bias": 8.30402318065307
+     },
+     "amazon_forest": {
+      "mae": 97.22321428571429,
+      "bias": 4.910023380345426
+     }
+    }
+   }
+  },
+  "b": {
+   "0.25": {
+    "regions": {
+     "sumatra": {
+      "mae": 0.9073725609080062,
+      "bias": 0.0338075904851779,
+      "cell_months": 19128,
+      "flags": {
+       "raised": 374,
+       "true": 310,
+       "truth": 441,
+       "precision": 0.8288770053475936,
+       "recall": 0.7029478458049887
+      },
+      "spearman": 0.6052163330630302,
+      "topk_overlap": 0.65814696485623,
+      "topk_k": 3,
+      "ranking_units": 626,
+      "year_pair_share": 0.9021381578947368,
+      "year_pairs": 608,
+      "peak_month_error": 0.5354477611940298,
+      "season_length_diff": 0.6716417910447762,
+      "season_unit_years": 536
+     },
+     "australia_grassland": {
+      "mae": 0.8400373082298649,
+      "bias": 0.22627290989263812,
+      "cell_months": 29664,
+      "flags": {
+       "raised": 1389,
+       "true": 1111,
+       "truth": 1248,
+       "precision": 0.7998560115190785,
+       "recall": 0.8902243589743589
+      },
+      "spearman": 0.84041629970174,
+      "topk_overlap": 0.8063651591289781,
+      "topk_k": 3,
+      "ranking_units": 995,
+      "year_pair_share": 0.9305413687436159,
+      "year_pairs": 979,
+      "peak_month_error": 0.3268892794376098,
+      "season_length_diff": 0.30140597539543057,
+      "season_unit_years": 1138
+     },
+     "amazon_forest": {
+      "mae": 0.6639636145489796,
+      "bias": -0.17647400592391518,
+      "cell_months": 21504,
+      "flags": {
+       "raised": 179,
+       "true": 145,
+       "truth": 271,
+       "precision": 0.8100558659217877,
+       "recall": 0.5350553505535055
+      },
+      "spearman": 0.6997214967357823,
+      "topk_overlap": 0.7203947368421053,
+      "topk_k": 3,
+      "ranking_units": 608,
+      "year_pair_share": 0.87221269296741,
+      "year_pairs": 583,
+      "peak_month_error": 0.45803698435277385,
+      "season_length_diff": 0.561877667140825,
+      "season_unit_years": 703
+     }
+    },
+    "pooled": {
+     "flags": {
+      "raised": 1942,
+      "true": 1566,
+      "truth": 1960,
+      "precision": 0.8063851699279093,
+      "recall": 0.7989795918367347
+     },
+     "spearman": 0.7151180431668509,
+     "topk_overlap": 0.7283022869424377,
+     "year_pair_share": 0.9016307398685875,
+     "peak_month_error": 0.44012467499480445,
+     "season_length_diff": 0.5116418111936772,
+     "abs_bias_median": 0.17647400592391518
+    }
+   },
+   "1": {
+    "regions": {
+     "sumatra": {
+      "mae": 6.056989124512391,
+      "bias": 0.03380759048517772,
+      "cell_months": 1800,
+      "flags": {
+       "raised": 92,
+       "true": 77,
+       "truth": 112,
+       "precision": 0.8369565217391305,
+       "recall": 0.6875
+      },
+      "spearman": 0.7573485575125549,
+      "topk_overlap": 0.8102564102564103,
+      "topk_k": 3,
+      "ranking_units": 65,
+      "year_pair_share": 0.9365079365079365,
+      "year_pairs": 63,
+      "peak_month_error": 0.5643564356435643,
+      "season_length_diff": 0.6237623762376238,
+      "season_unit_years": 101
+     },
+     "australia_grassland": {
+      "mae": 8.916879681486868,
+      "bias": 0.22627290989263812,
+      "cell_months": 1944,
+      "flags": {
+       "raised": 311,
+       "true": 256,
+       "truth": 274,
+       "precision": 0.8231511254019293,
+       "recall": 0.9343065693430657
+      },
+      "spearman": 0.8811672111366857,
+      "topk_overlap": 0.8565400843881859,
+      "topk_k": 3,
+      "ranking_units": 79,
+      "year_pair_share": 0.9113924050632911,
+      "year_pairs": 79,
+      "peak_month_error": 0.3835616438356164,
+      "season_length_diff": 0.4246575342465753,
+      "season_unit_years": 146
+     },
+     "amazon_forest": {
+      "mae": 6.422665301267386,
+      "bias": -0.17647400592391518,
+      "cell_months": 1344,
+      "flags": {
+       "raised": 56,
+       "true": 49,
+       "truth": 88,
+       "precision": 0.875,
+       "recall": 0.5568181818181818
+      },
+      "spearman": 0.8471279412761599,
+      "topk_overlap": 0.8666666666666665,
+      "topk_k": 3,
+      "ranking_units": 55,
+      "year_pair_share": 0.9454545454545454,
+      "year_pairs": 55,
+      "peak_month_error": 0.25252525252525254,
+      "season_length_diff": 0.29292929292929293,
+      "season_unit_years": 99
+     }
+    },
+    "pooled": {
+     "flags": {
+      "raised": 459,
+      "true": 382,
+      "truth": 474,
+      "precision": 0.8322440087145969,
+      "recall": 0.8059071729957806
+     },
+     "spearman": 0.828547903308467,
+     "topk_overlap": 0.8444877204370874,
+     "year_pair_share": 0.9311182956752577,
+     "peak_month_error": 0.40014777733481105,
+     "season_length_diff": 0.44711640113783063,
+     "abs_bias_median": 0.17647400592391518
+    }
+   },
+   "region": {
+    "regions": {
+     "sumatra": {
+      "mae": 261.4418207421056,
+      "bias": 0.0338075904851779,
+      "cell_months": 24,
+      "flags": {
+       "raised": 3,
+       "true": 3,
+       "truth": 3,
+       "precision": 1.0,
+       "recall": 1.0
+      },
+      "spearman": 0.980208786428882,
+      "topk_overlap": 1.0,
+      "topk_k": 3,
+      "ranking_units": 1,
+      "year_pair_share": 1.0,
+      "year_pairs": 1,
+      "peak_month_error": 0.5,
+      "season_length_diff": 1.0,
+      "season_unit_years": 2
+     },
+     "australia_grassland": {
+      "mae": 565.7878295911688,
+      "bias": 0.22627290989263787,
+      "cell_months": 24,
+      "flags": {
+       "raised": 8,
+       "true": 7,
+       "truth": 7,
+       "precision": 0.875,
+       "recall": 1.0
+      },
+      "spearman": 0.9921739130434782,
+      "topk_overlap": 0.6666666666666666,
+      "topk_k": 3,
+      "ranking_units": 1,
+      "year_pair_share": 1.0,
+      "year_pairs": 1,
+      "peak_month_error": 0.0,
+      "season_length_diff": 0.0,
+      "season_unit_years": 2
+     },
+     "amazon_forest": {
+      "mae": 257.0123303774421,
+      "bias": -0.17647400592391518,
+      "cell_months": 24,
+      "flags": {
+       "raised": 0,
+       "true": 0,
+       "truth": 2,
+       "precision": NaN,
+       "recall": 0.0
+      },
+      "spearman": 0.9521739130434783,
+      "topk_overlap": 1.0,
+      "topk_k": 3,
+      "ranking_units": 1,
+      "year_pair_share": 1.0,
+      "year_pairs": 1,
+      "peak_month_error": 0.0,
+      "season_length_diff": 0.5,
+      "season_unit_years": 2
+     }
+    },
+    "pooled": {
+     "flags": {
+      "raised": 11,
+      "true": 10,
+      "truth": 12,
+      "precision": 0.9090909090909091,
+      "recall": 0.8333333333333334
+     },
+     "spearman": 0.9748522041719462,
+     "topk_overlap": 0.8888888888888888,
+     "year_pair_share": 1.0,
+     "peak_month_error": 0.16666666666666666,
+     "season_length_diff": 0.5,
+     "abs_bias_median": 0.17647400592391518
+    }
+   },
+   "by_year_1deg": {
+    "2015": {
+     "period": "early",
+     "sumatra": {
+      "mae": 10.087014438272123,
+      "bias": 0.045337654630497624
+     },
+     "australia_grassland": {
+      "mae": 9.75180955618286,
+      "bias": 0.24749691450301772
+     },
+     "amazon_forest": {
+      "mae": 7.145508211891889,
+      "bias": -0.13979284322282537
+     }
+    },
+    "2018": {
+     "period": "late",
+     "sumatra": {
+      "mae": 2.0269638107526613,
+      "bias": -0.0586845250568587
+     },
+     "australia_grassland": {
+      "mae": 8.081949806790874,
+      "bias": 0.20197635630322316
+     },
+     "amazon_forest": {
+      "mae": 5.6998223906428835,
+      "bias": -0.2364906846807933
+     }
+    }
+   }
+  },
+  "cmp": {
+   "0.25": {
+    "regions": {
+     "sumatra": {
+      "mae": 0.9630625069749277,
+      "bias": 0.13507929100596,
+      "cell_months": 19128,
+      "flags": {
+       "raised": 417,
+       "true": 327,
+       "truth": 441,
+       "precision": 0.7841726618705036,
+       "recall": 0.7414965986394558
+      },
+      "spearman": 0.6047561937966247,
+      "topk_overlap": 0.6554845580404686,
+      "topk_k": 3,
+      "ranking_units": 626,
+      "year_pair_share": 0.899671052631579,
+      "year_pairs": 608,
+      "peak_month_error": 0.5410447761194029,
+      "season_length_diff": 0.6902985074626866,
+      "season_unit_years": 536
+     },
+     "australia_grassland": {
+      "mae": 0.719822903039081,
+      "bias": 0.05334913833431785,
+      "cell_months": 29664,
+      "flags": {
+       "raised": 1241,
+       "true": 1047,
+       "truth": 1248,
+       "precision": 0.8436744560838034,
+       "recall": 0.8389423076923077
+      },
+      "spearman": 0.8403628651490005,
+      "topk_overlap": 0.8080402010050252,
+      "topk_k": 3,
+      "ranking_units": 995,
+      "year_pair_share": 0.9315628192032687,
+      "year_pairs": 979,
+      "peak_month_error": 0.36379613356766255,
+      "season_length_diff": 0.30052724077328646,
+      "season_unit_years": 1138
+     },
+     "amazon_forest": {
+      "mae": 0.6974839444487246,
+      "bias": -0.05900709607295396,
+      "cell_months": 21504,
+      "flags": {
+       "raised": 243,
+       "true": 168,
+       "truth": 271,
+       "precision": 0.691358024691358,
+       "recall": 0.6199261992619927
+      },
+      "spearman": 0.6916375734357771,
+      "topk_overlap": 0.7066885964912281,
+      "topk_k": 3,
+      "ranking_units": 608,
+      "year_pair_share": 0.8576329331046312,
+      "year_pairs": 583,
+      "peak_month_error": 0.46799431009957326,
+      "season_length_diff": 0.5718349928876245,
+      "season_unit_years": 703
+     }
+    },
+    "pooled": {
+     "flags": {
+      "raised": 1901,
+      "true": 1542,
+      "truth": 1960,
+      "precision": 0.8111520252498685,
+      "recall": 0.786734693877551
+     },
+     "spearman": 0.7122522107938009,
+     "topk_overlap": 0.7234044518455739,
+     "year_pair_share": 0.8962889349798262,
+     "peak_month_error": 0.45761173992887966,
+     "season_length_diff": 0.5208869137078659,
+     "abs_bias_median": 0.05900709607295396
+    }
+   },
+   "1": {
+    "regions": {
+     "sumatra": {
+      "mae": 6.616394489757133,
+      "bias": 0.13507929100596,
+      "cell_months": 1800,
+      "flags": {
+       "raised": 111,
+       "true": 85,
+       "truth": 112,
+       "precision": 0.7657657657657657,
+       "recall": 0.7589285714285714
+      },
+      "spearman": 0.7586207573080158,
+      "topk_overlap": 0.8102564102564103,
+      "topk_k": 3,
+      "ranking_units": 65,
+      "year_pair_share": 0.9206349206349206,
+      "year_pairs": 63,
+      "peak_month_error": 0.5643564356435643,
+      "season_length_diff": 0.5742574257425742,
+      "season_unit_years": 101
+     },
+     "australia_grassland": {
+      "mae": 6.609180160461956,
+      "bias": 0.05334913833431785,
+      "cell_months": 1944,
+      "flags": {
+       "raised": 283,
+       "true": 246,
+       "truth": 274,
+       "precision": 0.8692579505300353,
+       "recall": 0.8978102189781022
+      },
+      "spearman": 0.8813768225999795,
+      "topk_overlap": 0.8649789029535866,
+      "topk_k": 3,
+      "ranking_units": 79,
+      "year_pair_share": 0.9240506329113924,
+      "year_pairs": 79,
+      "peak_month_error": 0.4520547945205479,
+      "season_length_diff": 0.4520547945205479,
+      "season_unit_years": 146
+     },
+     "amazon_forest": {
+      "mae": 6.271856579768514,
+      "bias": -0.05900709607295375,
+      "cell_months": 1344,
+      "flags": {
+       "raised": 96,
+       "true": 64,
+       "truth": 88,
+       "precision": 0.6666666666666666,
+       "recall": 0.7272727272727273
+      },
+      "spearman": 0.8322230543372817,
+      "topk_overlap": 0.8666666666666665,
+      "topk_k": 3,
+      "ranking_units": 55,
+      "year_pair_share": 0.9454545454545454,
+      "year_pairs": 55,
+      "peak_month_error": 0.18181818181818182,
+      "season_length_diff": 0.2828282828282828,
+      "season_unit_years": 99
+     }
+    },
+    "pooled": {
+     "flags": {
+      "raised": 490,
+      "true": 395,
+      "truth": 474,
+      "precision": 0.8061224489795918,
+      "recall": 0.8333333333333334
+     },
+     "spearman": 0.8240735447484256,
+     "topk_overlap": 0.8473006599588878,
+     "year_pair_share": 0.9300466996669527,
+     "peak_month_error": 0.39940980399409803,
+     "season_length_diff": 0.436380167697135,
+     "abs_bias_median": 0.05900709607295375
+    }
+   },
+   "region": {
+    "regions": {
+     "sumatra": {
+      "mae": 270.0474226538193,
+      "bias": 0.13507929100596,
+      "cell_months": 24,
+      "flags": {
+       "raised": 3,
+       "true": 3,
+       "truth": 3,
+       "precision": 1.0,
+       "recall": 1.0
+      },
+      "spearman": 0.9823874987615719,
+      "topk_overlap": 1.0,
+      "topk_k": 3,
+      "ranking_units": 1,
+      "year_pair_share": 1.0,
+      "year_pairs": 1,
+      "peak_month_error": 0.0,
+      "season_length_diff": 0.5,
+      "season_unit_years": 2
+     },
+     "australia_grassland": {
+      "mae": 218.47312058931948,
+      "bias": 0.05334913833431785,
+      "cell_months": 24,
+      "flags": {
+       "raised": 7,
+       "true": 6,
+       "truth": 7,
+       "precision": 0.8571428571428571,
+       "recall": 0.8571428571428571
+      },
+      "spearman": 0.9886956521739131,
+      "topk_overlap": 0.6666666666666666,
+      "topk_k": 3,
+      "ranking_units": 1,
+      "year_pair_share": 1.0,
+      "year_pairs": 1,
+      "peak_month_error": 0.0,
+      "season_length_diff": 0.0,
+      "season_unit_years": 2
+     },
+     "amazon_forest": {
+      "mae": 193.33454732280916,
+      "bias": -0.05900709607295375,
+      "cell_months": 24,
+      "flags": {
+       "raised": 5,
+       "true": 2,
+       "truth": 2,
+       "precision": 0.4,
+       "recall": 1.0
+      },
+      "spearman": 0.9626086956521739,
+      "topk_overlap": 1.0,
+      "topk_k": 3,
+      "ranking_units": 1,
+      "year_pair_share": 1.0,
+      "year_pairs": 1,
+      "peak_month_error": 0.0,
+      "season_length_diff": 0.0,
+      "season_unit_years": 2
+     }
+    },
+    "pooled": {
+     "flags": {
+      "raised": 15,
+      "true": 11,
+      "truth": 12,
+      "precision": 0.7333333333333333,
+      "recall": 0.9166666666666666
+     },
+     "spearman": 0.9778972821958863,
+     "topk_overlap": 0.8888888888888888,
+     "year_pair_share": 1.0,
+     "peak_month_error": 0.0,
+     "season_length_diff": 0.16666666666666666,
+     "abs_bias_median": 0.05900709607295375
+    }
+   },
+   "by_year_1deg": {
+    "2015": {
+     "period": "early",
+     "sumatra": {
+      "mae": 11.072039619013431,
+      "bias": 0.14169266461185268
+     },
+     "australia_grassland": {
+      "mae": 7.122628488512611,
+      "bias": 0.07432931622164364
+     },
+     "amazon_forest": {
+      "mae": 7.231816202927486,
+      "bias": -0.035285843130265414
+     }
+    },
+    "2018": {
+     "period": "late",
+     "sumatra": {
+      "mae": 2.160749360500833,
+      "bias": 0.08202798895165442
+     },
+     "australia_grassland": {
+      "mae": 6.095731832411301,
+      "bias": 0.029331709686305964
+     },
+     "amazon_forest": {
+      "mae": 5.311896956609541,
+      "bias": -0.09781913780601664
+     }
+    }
+   }
+  },
+  "4A": {
+   "0.25": {
+    "regions": {
+     "sumatra": {
+      "mae": 0.7611539433287567,
+      "bias": -0.0005898950762842247,
+      "cell_months": 19128,
+      "flags": {
+       "raised": 392,
+       "true": 328,
+       "truth": 441,
+       "precision": 0.8367346938775511,
+       "recall": 0.7437641723356009
+      },
+      "spearman": 0.6068381470237164,
+      "topk_overlap": 0.6560170394036208,
+      "topk_k": 3,
+      "ranking_units": 626,
+      "year_pair_share": 0.9046052631578947,
+      "year_pairs": 608,
+      "peak_month_error": 0.5783582089552238,
+      "season_length_diff": 0.6809701492537313,
+      "season_unit_years": 536
+     },
+     "australia_grassland": {
+      "mae": 0.6461207990808213,
+      "bias": 0.009321228881529616,
+      "cell_months": 29664,
+      "flags": {
+       "raised": 1219,
+       "true": 1047,
+       "truth": 1248,
+       "precision": 0.8589007383100903,
+       "recall": 0.8389423076923077
+      },
+      "spearman": 0.8408493911482232,
+      "topk_overlap": 0.8103852596314907,
+      "topk_k": 3,
+      "ranking_units": 995,
+      "year_pair_share": 0.9325842696629213,
+      "year_pairs": 979,
+      "peak_month_error": 0.3268892794376098,
+      "season_length_diff": 0.29789103690685415,
+      "season_unit_years": 1138
+     },
+     "amazon_forest": {
+      "mae": 0.6210455910883117,
+      "bias": -0.05678059586006517,
+      "cell_months": 21504,
+      "flags": {
+       "raised": 224,
+       "true": 171,
+       "truth": 271,
+       "precision": 0.7633928571428571,
+       "recall": 0.6309963099630996
+      },
+      "spearman": 0.6990770329635573,
+      "topk_overlap": 0.712171052631579,
+      "topk_k": 3,
+      "ranking_units": 608,
+      "year_pair_share": 0.8765008576329331,
+      "year_pairs": 583,
+      "peak_month_error": 0.42816500711237554,
+      "season_length_diff": 0.5604551920341394,
+      "season_unit_years": 703
+     }
+    },
+    "pooled": {
+     "flags": {
+      "raised": 1835,
+      "true": 1546,
+      "truth": 1960,
+      "precision": 0.8425068119891008,
+      "recall": 0.7887755102040817
+     },
+     "spearman": 0.715588190378499,
+     "topk_overlap": 0.7261911172222302,
+     "year_pair_share": 0.904563463484583,
+     "peak_month_error": 0.4444708318350697,
+     "season_length_diff": 0.5131054593982416,
+     "abs_bias_median": 0.009321228881529616
+    }
+   },
+   "1": {
+    "regions": {
+     "sumatra": {
+      "mae": 4.1006755933114984,
+      "bias": -0.0005898950762842247,
+      "cell_months": 1800,
+      "flags": {
+       "raised": 113,
+       "true": 91,
+       "truth": 112,
+       "precision": 0.8053097345132744,
+       "recall": 0.8125
+      },
+      "spearman": 0.7600757259548057,
+      "topk_overlap": 0.8102564102564103,
+      "topk_k": 3,
+      "ranking_units": 65,
+      "year_pair_share": 0.9523809523809523,
+      "year_pairs": 63,
+      "peak_month_error": 0.5247524752475248,
+      "season_length_diff": 0.5247524752475248,
+      "season_unit_years": 101
+     },
+     "australia_grassland": {
+      "mae": 5.51553694297038,
+      "bias": 0.009321228881529616,
+      "cell_months": 1944,
+      "flags": {
+       "raised": 274,
+       "true": 245,
+       "truth": 274,
+       "precision": 0.8941605839416058,
+       "recall": 0.8941605839416058
+      },
+      "spearman": 0.8816157566255841,
+      "topk_overlap": 0.8734177215189876,
+      "topk_k": 3,
+      "ranking_units": 79,
+      "year_pair_share": 0.9493670886075949,
+      "year_pairs": 79,
+      "peak_month_error": 0.4178082191780822,
+      "season_length_diff": 0.363013698630137,
+      "season_unit_years": 146
+     },
+     "amazon_forest": {
+      "mae": 4.990167068154523,
+      "bias": -0.05678059586006517,
+      "cell_months": 1344,
+      "flags": {
+       "raised": 73,
+       "true": 62,
+       "truth": 88,
+       "precision": 0.8493150684931506,
+       "recall": 0.7045454545454546
+      },
+      "spearman": 0.8470877127055875,
+      "topk_overlap": 0.8727272727272726,
+      "topk_k": 3,
+      "ranking_units": 55,
+      "year_pair_share": 0.9636363636363636,
+      "year_pairs": 55,
+      "peak_month_error": 0.18181818181818182,
+      "season_length_diff": 0.31313131313131315,
+      "season_unit_years": 99
+     }
+    },
+    "pooled": {
+     "flags": {
+      "raised": 460,
+      "true": 398,
+      "truth": 474,
+      "precision": 0.8652173913043478,
+      "recall": 0.8396624472573839
+     },
+     "spearman": 0.8295930650953257,
+     "topk_overlap": 0.8521338015008902,
+     "year_pair_share": 0.9551281348749704,
+     "peak_month_error": 0.37479295874792956,
+     "season_length_diff": 0.40029916233632495,
+     "abs_bias_median": 0.009321228881529616
+    }
+   },
+   "region": {
+    "regions": {
+     "sumatra": {
+      "mae": 81.68333805958513,
+      "bias": -0.0005898950762842247,
+      "cell_months": 24,
+      "flags": {
+       "raised": 3,
+       "true": 3,
+       "truth": 3,
+       "precision": 1.0,
+       "recall": 1.0
+      },
+      "spearman": 0.9902152875963255,
+      "topk_overlap": 1.0,
+      "topk_k": 3,
+      "ranking_units": 1,
+      "year_pair_share": 1.0,
+      "year_pairs": 1,
+      "peak_month_error": 0.0,
+      "season_length_diff": 0.0,
+      "season_unit_years": 2
+     },
+     "australia_grassland": {
+      "mae": 143.32619515403647,
+      "bias": 0.009321228881529616,
+      "cell_months": 24,
+      "flags": {
+       "raised": 7,
+       "true": 7,
+       "truth": 7,
+       "precision": 1.0,
+       "recall": 1.0
+      },
+      "spearman": 0.991304347826087,
+      "topk_overlap": 0.6666666666666666,
+      "topk_k": 3,
+      "ranking_units": 1,
+      "year_pair_share": 1.0,
+      "year_pairs": 1,
+      "peak_month_error": 0.0,
+      "season_length_diff": 0.5,
+      "season_unit_years": 2
+     },
+     "amazon_forest": {
+      "mae": 146.93378996585594,
+      "bias": -0.05678059586006517,
+      "cell_months": 24,
+      "flags": {
+       "raised": 2,
+       "true": 1,
+       "truth": 2,
+       "precision": 0.5,
+       "recall": 0.5
+      },
+      "spearman": 0.9521739130434783,
+      "topk_overlap": 1.0,
+      "topk_k": 3,
+      "ranking_units": 1,
+      "year_pair_share": 1.0,
+      "year_pairs": 1,
+      "peak_month_error": 0.0,
+      "season_length_diff": 0.0,
+      "season_unit_years": 2
+     }
+    },
+    "pooled": {
+     "flags": {
+      "raised": 12,
+      "true": 11,
+      "truth": 12,
+      "precision": 0.9166666666666666,
+      "recall": 0.9166666666666666
+     },
+     "spearman": 0.9778978494886302,
+     "topk_overlap": 0.8888888888888888,
+     "year_pair_share": 1.0,
+     "peak_month_error": 0.0,
+     "season_length_diff": 0.16666666666666666,
+     "abs_bias_median": 0.009321228881529616
+    }
+   },
+   "by_year_1deg": {
+    "2015": {
+     "period": "early",
+     "sumatra": {
+      "mae": 6.076033806579561,
+      "bias": -0.009721068662424049
+     },
+     "australia_grassland": {
+      "mae": 5.839099140695213,
+      "bias": 0.016372125985931556
+     },
+     "amazon_forest": {
+      "mae": 6.017069850041702,
+      "bias": -0.03878019301616476
+     }
+    },
+    "2018": {
+     "period": "late",
+     "sumatra": {
+      "mae": 2.125317380043435,
+      "bias": 0.07265874879240075
+     },
+     "australia_grassland": {
+      "mae": 5.191974745245547,
+      "bias": 0.0012495900699375593
+     },
+     "amazon_forest": {
+      "mae": 3.9632642862673437,
+      "bias": -0.08623234480761605
+     }
+    }
+   }
+  },
+  "1A": {
+   "0.25": {
+    "regions": {
+     "sumatra": {
+      "mae": 0.771656768948442,
+      "bias": 0.0057722859624652935,
+      "cell_months": 19128,
+      "flags": {
+       "raised": 415,
+       "true": 340,
+       "truth": 441,
+       "precision": 0.8192771084337349,
+       "recall": 0.7709750566893424
+      },
+      "spearman": 0.6053300343049143,
+      "topk_overlap": 0.6624068157614483,
+      "topk_k": 3,
+      "ranking_units": 626,
+      "year_pair_share": 0.9021381578947368,
+      "year_pairs": 608,
+      "peak_month_error": 0.5205223880597015,
+      "season_length_diff": 0.6380597014925373,
+      "season_unit_years": 536
+     },
+     "australia_grassland": {
+      "mae": 0.6390221058114801,
+      "bias": 0.023616639071873707,
+      "cell_months": 29664,
+      "flags": {
+       "raised": 1265,
+       "true": 1068,
+       "truth": 1248,
+       "precision": 0.8442687747035573,
+       "recall": 0.8557692307692307
+      },
+      "spearman": 0.8406341338729284,
+      "topk_overlap": 0.8103852596314907,
+      "topk_k": 3,
+      "ranking_units": 995,
+      "year_pair_share": 0.9392236976506639,
+      "year_pairs": 979,
+      "peak_month_error": 0.3181019332161687,
+      "season_length_diff": 0.29525483304042177,
+      "season_unit_years": 1138
+     },
+     "amazon_forest": {
+      "mae": 0.6115907277078187,
+      "bias": -0.027563723328624924,
+      "cell_months": 21504,
+      "flags": {
+       "raised": 245,
+       "true": 181,
+       "truth": 271,
+       "precision": 0.7387755102040816,
+       "recall": 0.6678966789667896
+      },
+      "spearman": 0.7019387893801212,
+      "topk_overlap": 0.71875,
+      "topk_k": 3,
+      "ranking_units": 608,
+      "year_pair_share": 0.8610634648370498,
+      "year_pairs": 583,
+      "peak_month_error": 0.45092460881934565,
+      "season_length_diff": 0.5533428165007113,
+      "season_unit_years": 703
+     }
+    },
+    "pooled": {
+     "flags": {
+      "raised": 1925,
+      "true": 1589,
+      "truth": 1960,
+      "precision": 0.8254545454545454,
+      "recall": 0.8107142857142857
+     },
+     "spearman": 0.7159676525193213,
+     "topk_overlap": 0.7305140251309797,
+     "year_pair_share": 0.9008084401274835,
+     "peak_month_error": 0.429849643365072,
+     "season_length_diff": 0.49555245034455675,
+     "abs_bias_median": 0.023616639071873707
+    }
+   },
+   "1": {
+    "regions": {
+     "sumatra": {
+      "mae": 4.213965901648515,
+      "bias": 0.005772285962465653,
+      "cell_months": 1800,
+      "flags": {
+       "raised": 119,
+       "true": 92,
+       "truth": 112,
+       "precision": 0.773109243697479,
+       "recall": 0.8214285714285714
+      },
+      "spearman": 0.7573831521699567,
+      "topk_overlap": 0.8102564102564103,
+      "topk_k": 3,
+      "ranking_units": 65,
+      "year_pair_share": 0.9365079365079365,
+      "year_pairs": 63,
+      "peak_month_error": 0.5445544554455446,
+      "season_length_diff": 0.5247524752475248,
+      "season_unit_years": 101
+     },
+     "australia_grassland": {
+      "mae": 5.509307665417127,
+      "bias": 0.023616639071873707,
+      "cell_months": 1944,
+      "flags": {
+       "raised": 283,
+       "true": 250,
+       "truth": 274,
+       "precision": 0.8833922261484098,
+       "recall": 0.9124087591240876
+      },
+      "spearman": 0.881961112348783,
+      "topk_overlap": 0.8607594936708864,
+      "topk_k": 3,
+      "ranking_units": 79,
+      "year_pair_share": 0.9367088607594937,
+      "year_pairs": 79,
+      "peak_month_error": 0.3013698630136986,
+      "season_length_diff": 0.3767123287671233,
+      "season_unit_years": 146
+     },
+     "amazon_forest": {
+      "mae": 5.196388104354231,
+      "bias": -0.027563723328624716,
+      "cell_months": 1344,
+      "flags": {
+       "raised": 74,
+       "true": 64,
+       "truth": 88,
+       "precision": 0.8648648648648649,
+       "recall": 0.7272727272727273
+      },
+      "spearman": 0.8479931277675061,
+      "topk_overlap": 0.8787878787878787,
+      "topk_k": 3,
+      "ranking_units": 55,
+      "year_pair_share": 0.9454545454545454,
+      "year_pairs": 55,
+      "peak_month_error": 0.26262626262626265,
+      "season_length_diff": 0.32323232323232326,
+      "season_unit_years": 99
+     }
+    },
+    "pooled": {
+     "flags": {
+      "raised": 476,
+      "true": 406,
+      "truth": 474,
+      "precision": 0.8529411764705882,
+      "recall": 0.8565400843881856
+     },
+     "spearman": 0.8291124640954153,
+     "topk_overlap": 0.8499345942383917,
+     "year_pair_share": 0.9395571142406585,
+     "peak_month_error": 0.3695168603618353,
+     "season_length_diff": 0.40823237574899046,
+     "abs_bias_median": 0.023616639071873707
+    }
+   },
+   "region": {
+    "regions": {
+     "sumatra": {
+      "mae": 113.94333608441343,
+      "bias": 0.005772285962465653,
+      "cell_months": 24,
+      "flags": {
+       "raised": 3,
+       "true": 3,
+       "truth": 3,
+       "precision": 1.0,
+       "recall": 1.0
+      },
+      "spearman": 0.9745597099268183,
+      "topk_overlap": 1.0,
+      "topk_k": 3,
+      "ranking_units": 1,
+      "year_pair_share": 1.0,
+      "year_pairs": 1,
+      "peak_month_error": 0.0,
+      "season_length_diff": 1.5,
+      "season_unit_years": 2
+     },
+     "australia_grassland": {
+      "mae": 160.3335883221939,
+      "bias": 0.023616639071873707,
+      "cell_months": 24,
+      "flags": {
+       "raised": 7,
+       "true": 7,
+       "truth": 7,
+       "precision": 1.0,
+       "recall": 1.0
+      },
+      "spearman": 0.9878260869565217,
+      "topk_overlap": 0.6666666666666666,
+      "topk_k": 3,
+      "ranking_units": 1,
+      "year_pair_share": 1.0,
+      "year_pairs": 1,
+      "peak_month_error": 3.0,
+      "season_length_diff": 0.0,
+      "season_unit_years": 2
+     },
+     "amazon_forest": {
+      "mae": 179.1127366539677,
+      "bias": -0.027563723328625132,
+      "cell_months": 24,
+      "flags": {
+       "raised": 2,
+       "true": 1,
+       "truth": 2,
+       "precision": 0.5,
+       "recall": 0.5
+      },
+      "spearman": 0.9443478260869566,
+      "topk_overlap": 1.0,
+      "topk_k": 3,
+      "ranking_units": 1,
+      "year_pair_share": 1.0,
+      "year_pairs": 1,
+      "peak_month_error": 0.0,
+      "season_length_diff": 0.5,
+      "season_unit_years": 2
+     }
+    },
+    "pooled": {
+     "flags": {
+      "raised": 12,
+      "true": 11,
+      "truth": 12,
+      "precision": 0.9166666666666666,
+      "recall": 0.9166666666666666
+     },
+     "spearman": 0.9689112076567655,
+     "topk_overlap": 0.8888888888888888,
+     "year_pair_share": 1.0,
+     "peak_month_error": 1.0,
+     "season_length_diff": 0.6666666666666666,
+     "abs_bias_median": 0.023616639071873707
+    }
+   },
+   "by_year_1deg": {
+    "2015": {
+     "period": "early",
+     "sumatra": {
+      "mae": 6.219976387568462,
+      "bias": -0.0031989105324754276
+     },
+     "australia_grassland": {
+      "mae": 5.648249860324625,
+      "bias": 0.025624505076656715
+     },
+     "amazon_forest": {
+      "mae": 6.1862254481456675,
+      "bias": 0.012167509922854862
+     }
+    },
+    "2018": {
+     "period": "late",
+     "sumatra": {
+      "mae": 2.207955415728568,
+      "bias": 0.07773762217416462
+     },
+     "australia_grassland": {
+      "mae": 5.370365470509631,
+      "bias": 0.021318099051687477
+     },
+     "amazon_forest": {
+      "mae": 4.206550760562793,
+      "bias": -0.09257084107186353
+     }
+    }
+   }
+  },
+  "C1": {
+   "0.25": {
+    "regions": {
+     "sumatra": {
+      "mae": 0.7541399246838355,
+      "bias": -0.00014031359938399226,
+      "cell_months": 19128,
+      "flags": {
+       "raised": 405,
+       "true": 335,
+       "truth": 441,
+       "precision": 0.8271604938271605,
+       "recall": 0.7596371882086168
+      },
+      "spearman": 0.6073285059236576,
+      "topk_overlap": 0.6624068157614483,
+      "topk_k": 3,
+      "ranking_units": 626,
+      "year_pair_share": 0.9054276315789473,
+      "year_pairs": 608,
+      "peak_month_error": 0.5503731343283582,
+      "season_length_diff": 0.6660447761194029,
+      "season_unit_years": 536
+     },
+     "australia_grassland": {
+      "mae": 0.6276007809780141,
+      "bias": 0.014804287943043209,
+      "cell_months": 29664,
+      "flags": {
+       "raised": 1255,
+       "true": 1065,
+       "truth": 1248,
+       "precision": 0.848605577689243,
+       "recall": 0.8533653846153846
+      },
+      "spearman": 0.8414065940087411,
+      "topk_overlap": 0.812395309882747,
+      "topk_k": 3,
+      "ranking_units": 995,
+      "year_pair_share": 0.9356486210418795,
+      "year_pairs": 979,
+      "peak_month_error": 0.3224956063268893,
+      "season_length_diff": 0.29876977152899825,
+      "season_unit_years": 1138
+     },
+     "amazon_forest": {
+      "mae": 0.6039054985110981,
+      "bias": -0.04687945071229089,
+      "cell_months": 21504,
+      "flags": {
+       "raised": 224,
+       "true": 174,
+       "truth": 271,
+       "precision": 0.7767857142857143,
+       "recall": 0.6420664206642066
+      },
+      "spearman": 0.7011027324678522,
+      "topk_overlap": 0.71875,
+      "topk_k": 3,
+      "ranking_units": 608,
+      "year_pair_share": 0.8765008576329331,
+      "year_pairs": 583,
+      "peak_month_error": 0.4096728307254623,
+      "season_length_diff": 0.5576102418207681,
+      "season_unit_years": 703
+     }
+    },
+    "pooled": {
+     "flags": {
+      "raised": 1884,
+      "true": 1574,
+      "truth": 1960,
+      "precision": 0.8354564755838642,
+      "recall": 0.8030612244897959
+     },
+     "spearman": 0.7166126108000835,
+     "topk_overlap": 0.7311840418813985,
+     "year_pair_share": 0.9058590367512532,
+     "peak_month_error": 0.42751385712690326,
+     "season_length_diff": 0.5074749298230564,
+     "abs_bias_median": 0.014804287943043209
+    }
+   },
+   "1": {
+    "regions": {
+     "sumatra": {
+      "mae": 3.9893427548642144,
+      "bias": -0.00014031359938399226,
+      "cell_months": 1800,
+      "flags": {
+       "raised": 119,
+       "true": 94,
+       "truth": 112,
+       "precision": 0.7899159663865546,
+       "recall": 0.8392857142857143
+      },
+      "spearman": 0.7603641685728003,
+      "topk_overlap": 0.8153846153846153,
+      "topk_k": 3,
+      "ranking_units": 65,
+      "year_pair_share": 0.9365079365079365,
+      "year_pairs": 63,
+      "peak_month_error": 0.504950495049505,
+      "season_length_diff": 0.5346534653465347,
+      "season_unit_years": 101
+     },
+     "australia_grassland": {
+      "mae": 5.287385200464483,
+      "bias": 0.014804287943043334,
+      "cell_months": 1944,
+      "flags": {
+       "raised": 276,
+       "true": 247,
+       "truth": 274,
+       "precision": 0.894927536231884,
+       "recall": 0.9014598540145985
+      },
+      "spearman": 0.882160670782968,
+      "topk_overlap": 0.8734177215189876,
+      "topk_k": 3,
+      "ranking_units": 79,
+      "year_pair_share": 0.9493670886075949,
+      "year_pairs": 79,
+      "peak_month_error": 0.3219178082191781,
+      "season_length_diff": 0.3698630136986301,
+      "season_unit_years": 146
+     },
+     "amazon_forest": {
+      "mae": 4.826888083279518,
+      "bias": -0.04687945071229068,
+      "cell_months": 1344,
+      "flags": {
+       "raised": 72,
+       "true": 61,
+       "truth": 88,
+       "precision": 0.8472222222222222,
+       "recall": 0.6931818181818182
+      },
+      "spearman": 0.847829430739966,
+      "topk_overlap": 0.8727272727272726,
+      "topk_k": 3,
+      "ranking_units": 55,
+      "year_pair_share": 0.9454545454545454,
+      "year_pairs": 55,
+      "peak_month_error": 0.2222222222222222,
+      "season_length_diff": 0.29292929292929293,
+      "season_unit_years": 99
+     }
+    },
+    "pooled": {
+     "flags": {
+      "raised": 467,
+      "true": 402,
+      "truth": 474,
+      "precision": 0.860813704496788,
+      "recall": 0.8481012658227848
+     },
+     "spearman": 0.8301180900319114,
+     "topk_overlap": 0.8538432032102917,
+     "year_pair_share": 0.943776523523359,
+     "peak_month_error": 0.3496968418303017,
+     "season_length_diff": 0.3991485906581526,
+     "abs_bias_median": 0.014804287943043334
+    }
+   },
+   "region": {
+    "regions": {
+     "sumatra": {
+      "mae": 91.19894922138111,
+      "bias": -0.00014031359938417186,
+      "cell_months": 24,
+      "flags": {
+       "raised": 3,
+       "true": 3,
+       "truth": 3,
+       "precision": 1.0,
+       "recall": 1.0
+      },
+      "spearman": 0.9893455332813529,
+      "topk_overlap": 1.0,
+      "topk_k": 3,
+      "ranking_units": 1,
+      "year_pair_share": 1.0,
+      "year_pairs": 1,
+      "peak_month_error": 0.0,
+      "season_length_diff": 0.5,
+      "season_unit_years": 2
+     },
+     "australia_grassland": {
+      "mae": 122.98490659345312,
+      "bias": 0.014804287943043209,
+      "cell_months": 24,
+      "flags": {
+       "raised": 7,
+       "true": 7,
+       "truth": 7,
+       "precision": 1.0,
+       "recall": 1.0
+      },
+      "spearman": 0.9939130434782608,
+      "topk_overlap": 0.6666666666666666,
+      "topk_k": 3,
+      "ranking_units": 1,
+      "year_pair_share": 1.0,
+      "year_pairs": 1,
+      "peak_month_error": 0.0,
+      "season_length_diff": 0.0,
+      "season_unit_years": 2
+     },
+     "amazon_forest": {
+      "mae": 142.12602729250025,
+      "bias": -0.04687945071229068,
+      "cell_months": 24,
+      "flags": {
+       "raised": 2,
+       "true": 1,
+       "truth": 2,
+       "precision": 0.5,
+       "recall": 0.5
+      },
+      "spearman": 0.951304347826087,
+      "topk_overlap": 1.0,
+      "topk_k": 3,
+      "ranking_units": 1,
+      "year_pair_share": 1.0,
+      "year_pairs": 1,
+      "peak_month_error": 0.0,
+      "season_length_diff": 0.0,
+      "season_unit_years": 2
+     }
+    },
+    "pooled": {
+     "flags": {
+      "raised": 12,
+      "true": 11,
+      "truth": 12,
+      "precision": 0.9166666666666666,
+      "recall": 0.9166666666666666
+     },
+     "spearman": 0.9781876415285669,
+     "topk_overlap": 0.8888888888888888,
+     "year_pair_share": 1.0,
+     "peak_month_error": 0.0,
+     "season_length_diff": 0.16666666666666666,
+     "abs_bias_median": 0.014804287943043209
+    }
+   },
+   "by_year_1deg": {
+    "2015": {
+     "period": "early",
+     "sumatra": {
+      "mae": 5.859132191005282,
+      "bias": -0.008720115310226859
+     },
+     "australia_grassland": {
+      "mae": 5.577771568599443,
+      "bias": 0.022940877033461968
+     },
+     "amazon_forest": {
+      "mae": 5.706322523805282,
+      "bias": -0.017613050058356068
+     }
+    },
+    "2018": {
+     "period": "late",
+     "sumatra": {
+      "mae": 2.1195533187231477,
+      "bias": 0.06868532354931818
+     },
+     "australia_grassland": {
+      "mae": 4.996998832329521,
+      "bias": 0.005489784082931868
+     },
+     "amazon_forest": {
+      "mae": 3.947453642753755,
+      "bias": -0.09476430596430552
+     }
+    }
+   }
+  },
+  "C2": {
+   "0.25": {
+    "regions": {
+     "sumatra": {
+      "mae": 0.7544829751705266,
+      "bias": 0.0032274135469652705,
+      "cell_months": 19128,
+      "flags": {
+       "raised": 410,
+       "true": 339,
+       "truth": 441,
+       "precision": 0.8268292682926829,
+       "recall": 0.7687074829931972
+      },
+      "spearman": 0.6072735491468987,
+      "topk_overlap": 0.6634717784877529,
+      "topk_k": 3,
+      "ranking_units": 626,
+      "year_pair_share": 0.9037828947368421,
+      "year_pairs": 608,
+      "peak_month_error": 0.5335820895522388,
+      "season_length_diff": 0.664179104477612,
+      "season_unit_years": 536
+     },
+     "australia_grassland": {
+      "mae": 0.6290995566612373,
+      "bias": 0.01789847499573607,
+      "cell_months": 29664,
+      "flags": {
+       "raised": 1245,
+       "true": 1064,
+       "truth": 1248,
+       "precision": 0.8546184738955823,
+       "recall": 0.8525641025641025
+      },
+      "spearman": 0.8413674354970544,
+      "topk_overlap": 0.8103852596314907,
+      "topk_k": 3,
+      "ranking_units": 995,
+      "year_pair_share": 0.9376915219611849,
+      "year_pairs": 979,
+      "peak_month_error": 0.3260105448154657,
+      "season_length_diff": 0.29349736379613356,
+      "season_unit_years": 1138
+     },
+     "amazon_forest": {
+      "mae": 0.6055959065822537,
+      "bias": -0.03925047234120102,
+      "cell_months": 21504,
+      "flags": {
+       "raised": 240,
+       "true": 181,
+       "truth": 271,
+       "precision": 0.7541666666666667,
+       "recall": 0.6678966789667896
+      },
+      "spearman": 0.7020588362356633,
+      "topk_overlap": 0.7192982456140351,
+      "topk_k": 3,
+      "ranking_units": 608,
+      "year_pair_share": 0.8730703259005146,
+      "year_pairs": 583,
+      "peak_month_error": 0.4267425320056899,
+      "season_length_diff": 0.55049786628734,
+      "season_unit_years": 703
+     }
+    },
+    "pooled": {
+     "flags": {
+      "raised": 1895,
+      "true": 1584,
+      "truth": 1960,
+      "precision": 0.8358839050131927,
+      "recall": 0.8081632653061225
+     },
+     "spearman": 0.7168999402932056,
+     "topk_overlap": 0.7310517612444262,
+     "year_pair_share": 0.9048482475328473,
+     "peak_month_error": 0.42877838879113145,
+     "season_length_diff": 0.5027247781870284,
+     "abs_bias_median": 0.01789847499573607
+    }
+   },
+   "1": {
+    "regions": {
+     "sumatra": {
+      "mae": 3.9809187011788576,
+      "bias": 0.00322741354696545,
+      "cell_months": 1800,
+      "flags": {
+       "raised": 118,
+       "true": 92,
+       "truth": 112,
+       "precision": 0.7796610169491526,
+       "recall": 0.8214285714285714
+      },
+      "spearman": 0.7590702016310321,
+      "topk_overlap": 0.8102564102564103,
+      "topk_k": 3,
+      "ranking_units": 65,
+      "year_pair_share": 0.9365079365079365,
+      "year_pairs": 63,
+      "peak_month_error": 0.5346534653465347,
+      "season_length_diff": 0.5247524752475248,
+      "season_unit_years": 101
+     },
+     "australia_grassland": {
+      "mae": 5.3278478076213505,
+      "bias": 0.01789847499573607,
+      "cell_months": 1944,
+      "flags": {
+       "raised": 279,
+       "true": 249,
+       "truth": 274,
+       "precision": 0.8924731182795699,
+       "recall": 0.9087591240875912
+      },
+      "spearman": 0.8824597261835466,
+      "topk_overlap": 0.8691983122362872,
+      "topk_k": 3,
+      "ranking_units": 79,
+      "year_pair_share": 0.9367088607594937,
+      "year_pairs": 79,
+      "peak_month_error": 0.3219178082191781,
+      "season_length_diff": 0.3698630136986301,
+      "season_unit_years": 146
+     },
+     "amazon_forest": {
+      "mae": 4.933395015045252,
+      "bias": -0.03925047234120102,
+      "cell_months": 1344,
+      "flags": {
+       "raised": 72,
+       "true": 61,
+       "truth": 88,
+       "precision": 0.8472222222222222,
+       "recall": 0.6931818181818182
+      },
+      "spearman": 0.8472798909251738,
+      "topk_overlap": 0.8787878787878787,
+      "topk_k": 3,
+      "ranking_units": 55,
+      "year_pair_share": 0.9636363636363636,
+      "year_pairs": 55,
+      "peak_month_error": 0.23232323232323232,
+      "season_length_diff": 0.3333333333333333,
+      "season_unit_years": 99
+     }
+    },
+    "pooled": {
+     "flags": {
+      "raised": 469,
+      "true": 402,
+      "truth": 474,
+      "precision": 0.8571428571428571,
+      "recall": 0.8481012658227848
+     },
+     "spearman": 0.8296032729132508,
+     "topk_overlap": 0.8527475337601921,
+     "year_pair_share": 0.9456177203012647,
+     "peak_month_error": 0.362964835296315,
+     "season_length_diff": 0.4093162740931627,
+     "abs_bias_median": 0.01789847499573607
+    }
+   },
+   "region": {
+    "regions": {
+     "sumatra": {
+      "mae": 99.6935209394327,
+      "bias": 0.0032274135469656296,
+      "cell_months": 24,
+      "flags": {
+       "raised": 3,
+       "true": 3,
+       "truth": 3,
+       "precision": 1.0,
+       "recall": 1.0
+      },
+      "spearman": 0.9884757789663802,
+      "topk_overlap": 1.0,
+      "topk_k": 3,
+      "ranking_units": 1,
+      "year_pair_share": 1.0,
+      "year_pairs": 1,
+      "peak_month_error": 0.0,
+      "season_length_diff": 0.5,
+      "season_unit_years": 2
+     },
+     "australia_grassland": {
+      "mae": 129.43862251951296,
+      "bias": 0.01789847499573607,
+      "cell_months": 24,
+      "flags": {
+       "raised": 7,
+       "true": 7,
+       "truth": 7,
+       "precision": 1.0,
+       "recall": 1.0
+      },
+      "spearman": 0.991304347826087,
+      "topk_overlap": 0.6666666666666666,
+      "topk_k": 3,
+      "ranking_units": 1,
+      "year_pair_share": 1.0,
+      "year_pairs": 1,
+      "peak_month_error": 0.0,
+      "season_length_diff": 0.0,
+      "season_unit_years": 2
+     },
+     "amazon_forest": {
+      "mae": 158.14840005919845,
+      "bias": -0.03925047234120102,
+      "cell_months": 24,
+      "flags": {
+       "raised": 2,
+       "true": 1,
+       "truth": 2,
+       "precision": 0.5,
+       "recall": 0.5
+      },
+      "spearman": 0.9443478260869566,
+      "topk_overlap": 1.0,
+      "topk_k": 3,
+      "ranking_units": 1,
+      "year_pair_share": 1.0,
+      "year_pairs": 1,
+      "peak_month_error": 0.0,
+      "season_length_diff": 0.5,
+      "season_unit_years": 2
+     }
+    },
+    "pooled": {
+     "flags": {
+      "raised": 12,
+      "true": 11,
+      "truth": 12,
+      "precision": 0.9166666666666666,
+      "recall": 0.9166666666666666
+     },
+     "spearman": 0.9747093176264746,
+     "topk_overlap": 0.8888888888888888,
+     "year_pair_share": 1.0,
+     "peak_month_error": 0.0,
+     "season_length_diff": 0.3333333333333333,
+     "abs_bias_median": 0.01789847499573607
+    }
+   },
+   "by_year_1deg": {
+    "2015": {
+     "period": "early",
+     "sumatra": {
+      "mae": 5.810583129481152,
+      "bias": -0.005807773784454714
+     },
+     "australia_grassland": {
+      "mae": 5.568847470131422,
+      "bias": 0.021923553440366745
+     },
+     "amazon_forest": {
+      "mae": 5.876175193518033,
+      "bias": -0.008211571252752955
+     }
+    },
+    "2018": {
+     "period": "late",
+     "sumatra": {
+      "mae": 2.1512542728765633,
+      "bias": 0.07570607282145891
+     },
+     "australia_grassland": {
+      "mae": 5.086848145111279,
+      "bias": 0.013290695458987617
+     },
+     "amazon_forest": {
+      "mae": 3.99061483657247,
+      "bias": -0.09003544256616462
+     }
+    }
+   }
+  },
+  "C3": {
+   "0.25": {
+    "regions": {
+     "sumatra": {
+      "mae": 0.7541749411095419,
+      "bias": -0.00045842265132154,
+      "cell_months": 19128,
+      "flags": {
+       "raised": 404,
+       "true": 335,
+       "truth": 441,
+       "precision": 0.8292079207920792,
+       "recall": 0.7596371882086168
+      },
+      "spearman": 0.6073248205075762,
+      "topk_overlap": 0.661874334398296,
+      "topk_k": 3,
+      "ranking_units": 626,
+      "year_pair_share": 0.9021381578947368,
+      "year_pairs": 608,
+      "peak_month_error": 0.5615671641791045,
+      "season_length_diff": 0.6791044776119403,
+      "season_unit_years": 536
+     },
+     "australia_grassland": {
+      "mae": 0.6280729169294451,
+      "bias": 0.014089517433526003,
+      "cell_months": 29664,
+      "flags": {
+       "raised": 1249,
+       "true": 1064,
+       "truth": 1248,
+       "precision": 0.8518815052041633,
+       "recall": 0.8525641025641025
+      },
+      "spearman": 0.8412592766819095,
+      "topk_overlap": 0.8117252931323281,
+      "topk_k": 3,
+      "ranking_units": 995,
+      "year_pair_share": 0.9346271705822268,
+      "year_pairs": 979,
+      "peak_month_error": 0.3189806678383128,
+      "season_length_diff": 0.30052724077328646,
+      "season_unit_years": 1138
+     },
+     "amazon_forest": {
+      "mae": 0.6045374471581423,
+      "bias": -0.0483402943388629,
+      "cell_months": 21504,
+      "flags": {
+       "raised": 225,
+       "true": 175,
+       "truth": 271,
+       "precision": 0.7777777777777778,
+       "recall": 0.6457564575645757
+      },
+      "spearman": 0.7009688682364431,
+      "topk_overlap": 0.7198464912280701,
+      "topk_k": 3,
+      "ranking_units": 608,
+      "year_pair_share": 0.8799313893653516,
+      "year_pairs": 583,
+      "peak_month_error": 0.41251778093883357,
+      "season_length_diff": 0.55049786628734,
+      "season_unit_years": 703
+     }
+    },
+    "pooled": {
+     "flags": {
+      "raised": 1878,
+      "true": 1574,
+      "truth": 1960,
+      "precision": 0.838125665601704,
+      "recall": 0.8030612244897959
+     },
+     "spearman": 0.7165176551419763,
+     "topk_overlap": 0.7311487062528981,
+     "year_pair_share": 0.9055655726141051,
+     "peak_month_error": 0.43102187098541694,
+     "season_length_diff": 0.5100431948908556,
+     "abs_bias_median": 0.014089517433526003
+    }
+   },
+   "1": {
+    "regions": {
+     "sumatra": {
+      "mae": 3.9898402357939995,
+      "bias": -0.00045842265132154,
+      "cell_months": 1800,
+      "flags": {
+       "raised": 118,
+       "true": 94,
+       "truth": 112,
+       "precision": 0.7966101694915254,
+       "recall": 0.8392857142857143
+      },
+      "spearman": 0.7606654482878472,
+      "topk_overlap": 0.8153846153846153,
+      "topk_k": 3,
+      "ranking_units": 65,
+      "year_pair_share": 0.9365079365079365,
+      "year_pairs": 63,
+      "peak_month_error": 0.504950495049505,
+      "season_length_diff": 0.5247524752475248,
+      "season_unit_years": 101
+     },
+     "australia_grassland": {
+      "mae": 5.29642645541421,
+      "bias": 0.01408951743352613,
+      "cell_months": 1944,
+      "flags": {
+       "raised": 276,
+       "true": 246,
+       "truth": 274,
+       "precision": 0.8913043478260869,
+       "recall": 0.8978102189781022
+      },
+      "spearman": 0.881974342598073,
+      "topk_overlap": 0.8734177215189876,
+      "topk_k": 3,
+      "ranking_units": 79,
+      "year_pair_share": 0.9493670886075949,
+      "year_pairs": 79,
+      "peak_month_error": 0.3013698630136986,
+      "season_length_diff": 0.363013698630137,
+      "season_unit_years": 146
+     },
+     "amazon_forest": {
+      "mae": 4.821467842948321,
+      "bias": -0.0483402943388629,
+      "cell_months": 1344,
+      "flags": {
+       "raised": 72,
+       "true": 61,
+       "truth": 88,
+       "precision": 0.8472222222222222,
+       "recall": 0.6931818181818182
+      },
+      "spearman": 0.8475410885984473,
+      "topk_overlap": 0.8727272727272726,
+      "topk_k": 3,
+      "ranking_units": 55,
+      "year_pair_share": 0.9454545454545454,
+      "year_pairs": 55,
+      "peak_month_error": 0.2222222222222222,
+      "season_length_diff": 0.29292929292929293,
+      "season_unit_years": 99
+     }
+    },
+    "pooled": {
+     "flags": {
+      "raised": 466,
+      "true": 401,
+      "truth": 474,
+      "precision": 0.8605150214592274,
+      "recall": 0.8459915611814346
+     },
+     "spearman": 0.8300602931614559,
+     "topk_overlap": 0.8538432032102917,
+     "year_pair_share": 0.943776523523359,
+     "peak_month_error": 0.3428475267618086,
+     "season_length_diff": 0.39356515560231825,
+     "abs_bias_median": 0.01408951743352613
+    }
+   },
+   "region": {
+    "regions": {
+     "sumatra": {
+      "mae": 89.82792986569599,
+      "bias": -0.00045842265132154,
+      "cell_months": 24,
+      "flags": {
+       "raised": 3,
+       "true": 3,
+       "truth": 3,
+       "precision": 1.0,
+       "recall": 1.0
+      },
+      "spearman": 0.9893455332813529,
+      "topk_overlap": 1.0,
+      "topk_k": 3,
+      "ranking_units": 1,
+      "year_pair_share": 1.0,
+      "year_pairs": 1,
+      "peak_month_error": 0.0,
+      "season_length_diff": 0.5,
+      "season_unit_years": 2
+     },
+     "australia_grassland": {
+      "mae": 122.35792659599015,
+      "bias": 0.014089517433526003,
+      "cell_months": 24,
+      "flags": {
+       "raised": 7,
+       "true": 7,
+       "truth": 7,
+       "precision": 1.0,
+       "recall": 1.0
+      },
+      "spearman": 0.9930434782608696,
+      "topk_overlap": 0.6666666666666666,
+      "topk_k": 3,
+      "ranking_units": 1,
+      "year_pair_share": 1.0,
+      "year_pairs": 1,
+      "peak_month_error": 0.0,
+      "season_length_diff": 0.0,
+      "season_unit_years": 2
+     },
+     "amazon_forest": {
+      "mae": 139.50548521815435,
+      "bias": -0.0483402943388629,
+      "cell_months": 24,
+      "flags": {
+       "raised": 2,
+       "true": 1,
+       "truth": 2,
+       "precision": 0.5,
+       "recall": 0.5
+      },
+      "spearman": 0.951304347826087,
+      "topk_overlap": 1.0,
+      "topk_k": 3,
+      "ranking_units": 1,
+      "year_pair_share": 1.0,
+      "year_pairs": 1,
+      "peak_month_error": 0.0,
+      "season_length_diff": 0.0,
+      "season_unit_years": 2
+     }
+    },
+    "pooled": {
+     "flags": {
+      "raised": 12,
+      "true": 11,
+      "truth": 12,
+      "precision": 0.9166666666666666,
+      "recall": 0.9166666666666666
+     },
+     "spearman": 0.977897786456103,
+     "topk_overlap": 0.8888888888888888,
+     "year_pair_share": 1.0,
+     "peak_month_error": 0.0,
+     "season_length_diff": 0.16666666666666666,
+     "abs_bias_median": 0.014089517433526003
+    }
+   },
+   "by_year_1deg": {
+    "2015": {
+     "period": "early",
+     "sumatra": {
+      "mae": 5.866429015291499,
+      "bias": -0.00904622321672422
+     },
+     "australia_grassland": {
+      "mae": 5.594926968368977,
+      "bias": 0.022478258078925572
+     },
+     "amazon_forest": {
+      "mae": 5.709029600017578,
+      "bias": -0.020160435205307026
+     }
+    },
+    "2018": {
+     "period": "late",
+     "sumatra": {
+      "mae": 2.113251456296501,
+      "bias": 0.06843137988022997
+     },
+     "australia_grassland": {
+      "mae": 4.997925942459443,
+      "bias": 0.004486358633844385
+     },
+     "amazon_forest": {
+      "mae": 3.933906085879065,
+      "bias": -0.09444738115109316
+     }
+    }
+   }
+  }
+ },
+ "terra_referee": {
+  "a": {
+   "0.25": {
+    "regions": {
+     "sumatra": {
+      "cell_months": 19128,
+      "flags": {
+       "raised": 2320,
+       "true": 380,
+       "truth": 384,
+       "precision": 0.16379310344827586,
+       "recall": 0.9895833333333334
+      },
+      "spearman": 0.5120251400609724,
+      "topk_overlap": 0.6129227053140097,
+      "topk_k": 3,
+      "ranking_units": 552,
+      "year_pair_share": 0.893796992481203,
+      "year_pairs": 532,
+      "peak_month_error": 0.5283018867924528,
+      "season_length_diff": 0.7735849056603774,
+      "season_unit_years": 371
+     },
+     "australia_grassland": {
+      "cell_months": 29664,
+      "flags": {
+       "raised": 3522,
+       "true": 1188,
+       "truth": 1194,
+       "precision": 0.3373083475298126,
+       "recall": 0.9949748743718593
+      },
+      "spearman": 0.801937676017746,
+      "topk_overlap": 0.7796387520525451,
+      "topk_k": 3,
+      "ranking_units": 1015,
+      "year_pair_share": 0.8885542168674698,
+      "year_pairs": 996,
+      "peak_month_error": 0.41651865008880995,
+      "season_length_diff": 0.3703374777975133,
+      "season_unit_years": 1126
+     },
+     "amazon_forest": {
+      "cell_months": 21504,
+      "flags": {
+       "raised": 2072,
+       "true": 253,
+       "truth": 257,
+       "precision": 0.12210424710424711,
+       "recall": 0.9844357976653697
+      },
+      "spearman": 0.6411955201628546,
+      "topk_overlap": 0.6642642642642642,
+      "topk_k": 3,
+      "ranking_units": 555,
+      "year_pair_share": 0.8660550458715597,
+      "year_pairs": 545,
+      "peak_month_error": 0.6241830065359477,
+      "season_length_diff": 0.6977124183006536,
+      "season_unit_years": 612
+     }
+    },
+    "pooled": {
+     "flags": {
+      "raised": 7914,
+      "true": 1821,
+      "truth": 1835,
+      "precision": 0.23009855951478392,
+      "recall": 0.9923705722070845
+     },
+     "spearman": 0.6517194454138577,
+     "topk_overlap": 0.6856085738769396,
+     "year_pair_share": 0.8828020850734108,
+     "peak_month_error": 0.5230011811390701,
+     "season_length_diff": 0.6138782672528481
+    }
+   },
+   "1": {
+    "regions": {
+     "sumatra": {
+      "cell_months": 1800,
+      "flags": {
+       "raised": 602,
+       "true": 115,
+       "truth": 115,
+       "precision": 0.19102990033222592,
+       "recall": 1.0
+      },
+      "spearman": 0.6754369039160385,
+      "topk_overlap": 0.7096774193548386,
+      "topk_k": 3,
+      "ranking_units": 62,
+      "year_pair_share": 0.9262295081967213,
+      "year_pairs": 61,
+      "peak_month_error": 0.7816091954022989,
+      "season_length_diff": 0.8390804597701149,
+      "season_unit_years": 87
+     },
+     "australia_grassland": {
+      "cell_months": 1944,
+      "flags": {
+       "raised": 764,
+       "true": 271,
+       "truth": 271,
+       "precision": 0.35471204188481675,
+       "recall": 1.0
+      },
+      "spearman": 0.875539489793507,
+      "topk_overlap": 0.8438818565400844,
+      "topk_k": 3,
+      "ranking_units": 79,
+      "year_pair_share": 0.9102564102564102,
+      "year_pairs": 78,
+      "peak_month_error": 0.6598639455782312,
+      "season_length_diff": 0.5170068027210885,
+      "season_unit_years": 147
+     },
+     "amazon_forest": {
+      "cell_months": 1344,
+      "flags": {
+       "raised": 470,
+       "true": 102,
+       "truth": 115,
+       "precision": 0.2170212765957447,
+       "recall": 0.8869565217391304
+      },
+      "spearman": 0.7824751097204771,
+      "topk_overlap": 0.7901234567901234,
+      "topk_k": 3,
+      "ranking_units": 54,
+      "year_pair_share": 0.9444444444444444,
+      "year_pairs": 54,
+      "peak_month_error": 0.2604166666666667,
+      "season_length_diff": 0.4375,
+      "season_unit_years": 96
+     }
+    },
+    "pooled": {
+     "flags": {
+      "raised": 1836,
+      "true": 488,
+      "truth": 501,
+      "precision": 0.2657952069716776,
+      "recall": 0.9740518962075848
+     },
+     "spearman": 0.7778171678100075,
+     "topk_overlap": 0.781227577561682,
+     "year_pair_share": 0.9269767876325252,
+     "peak_month_error": 0.5672966025490657,
+     "season_length_diff": 0.5978624208304012
+    }
+   },
+   "region": {
+    "regions": {
+     "sumatra": {
+      "cell_months": 24,
+      "flags": {
+       "raised": 16,
+       "true": 4,
+       "truth": 4,
+       "precision": 0.25,
+       "recall": 1.0
+      },
+      "spearman": 0.9728202012968731,
+      "topk_overlap": 1.0,
+      "topk_k": 3,
+      "ranking_units": 1,
+      "year_pair_share": 1.0,
+      "year_pairs": 1,
+      "peak_month_error": 0.5,
+      "season_length_diff": 0.5,
+      "season_unit_years": 2
+     },
+     "australia_grassland": {
+      "cell_months": 24,
+      "flags": {
+       "raised": 23,
+       "true": 8,
+       "truth": 8,
+       "precision": 0.34782608695652173,
+       "recall": 1.0
+      },
+      "spearman": 0.9669565217391304,
+      "topk_overlap": 0.6666666666666666,
+      "topk_k": 3,
+      "ranking_units": 1,
+      "year_pair_share": 1.0,
+      "year_pairs": 1,
+      "peak_month_error": 5.5,
+      "season_length_diff": 0.0,
+      "season_unit_years": 2
+     },
+     "amazon_forest": {
+      "cell_months": 24,
+      "flags": {
+       "raised": 16,
+       "true": 4,
+       "truth": 4,
+       "precision": 0.25,
+       "recall": 1.0
+      },
+      "spearman": 0.9408695652173913,
+      "topk_overlap": 1.0,
+      "topk_k": 3,
+      "ranking_units": 1,
+      "year_pair_share": 1.0,
+      "year_pairs": 1,
+      "peak_month_error": 0.0,
+      "season_length_diff": 0.5,
+      "season_unit_years": 2
+     }
+    },
+    "pooled": {
+     "flags": {
+      "raised": 55,
+      "true": 16,
+      "truth": 16,
+      "precision": 0.2909090909090909,
+      "recall": 1.0
+     },
+     "spearman": 0.9602154294177984,
+     "topk_overlap": 0.8888888888888888,
+     "year_pair_share": 1.0,
+     "peak_month_error": 2.0,
+     "season_length_diff": 0.3333333333333333
+    }
+   }
+  },
+  "b": {
+   "0.25": {
+    "regions": {
+     "sumatra": {
+      "cell_months": 19128,
+      "flags": {
+       "raised": 374,
+       "true": 279,
+       "truth": 384,
+       "precision": 0.7459893048128342,
+       "recall": 0.7265625
+      },
+      "spearman": 0.5120251400609724,
+      "topk_overlap": 0.6129227053140097,
+      "topk_k": 3,
+      "ranking_units": 552,
+      "year_pair_share": 0.893796992481203,
+      "year_pairs": 532,
+      "peak_month_error": 0.5283018867924528,
+      "season_length_diff": 0.7735849056603774,
+      "season_unit_years": 371
+     },
+     "australia_grassland": {
+      "cell_months": 29664,
+      "flags": {
+       "raised": 1389,
+       "true": 1037,
+       "truth": 1194,
+       "precision": 0.7465802735781137,
+       "recall": 0.8685092127303182
+      },
+      "spearman": 0.801937676017746,
+      "topk_overlap": 0.7796387520525451,
+      "topk_k": 3,
+      "ranking_units": 1015,
+      "year_pair_share": 0.8885542168674698,
+      "year_pairs": 996,
+      "peak_month_error": 0.41651865008880995,
+      "season_length_diff": 0.3703374777975133,
+      "season_unit_years": 1126
+     },
+     "amazon_forest": {
+      "cell_months": 21504,
+      "flags": {
+       "raised": 179,
+       "true": 133,
+       "truth": 257,
+       "precision": 0.7430167597765364,
+       "recall": 0.5175097276264592
+      },
+      "spearman": 0.6411955201628546,
+      "topk_overlap": 0.6642642642642642,
+      "topk_k": 3,
+      "ranking_units": 555,
+      "year_pair_share": 0.8669724770642202,
+      "year_pairs": 545,
+      "peak_month_error": 0.6241830065359477,
+      "season_length_diff": 0.6977124183006536,
+      "season_unit_years": 612
+     }
+    },
+    "pooled": {
+     "flags": {
+      "raised": 1942,
+      "true": 1449,
+      "truth": 1835,
+      "precision": 0.7461380020597322,
+      "recall": 0.7896457765667575
+     },
+     "spearman": 0.6517194454138577,
+     "topk_overlap": 0.6856085738769396,
+     "year_pair_share": 0.8831078954709644,
+     "peak_month_error": 0.5230011811390701,
+     "season_length_diff": 0.6138782672528481
+    }
+   },
+   "1": {
+    "regions": {
+     "sumatra": {
+      "cell_months": 1800,
+      "flags": {
+       "raised": 92,
+       "true": 63,
+       "truth": 115,
+       "precision": 0.6847826086956522,
+       "recall": 0.5478260869565217
+      },
+      "spearman": 0.6754369039160385,
+      "topk_overlap": 0.7096774193548386,
+      "topk_k": 3,
+      "ranking_units": 62,
+      "year_pair_share": 0.9262295081967213,
+      "year_pairs": 61,
+      "peak_month_error": 0.7816091954022989,
+      "season_length_diff": 0.8390804597701149,
+      "season_unit_years": 87
+     },
+     "australia_grassland": {
+      "cell_months": 1944,
+      "flags": {
+       "raised": 311,
+       "true": 242,
+       "truth": 271,
+       "precision": 0.7781350482315113,
+       "recall": 0.8929889298892989
+      },
+      "spearman": 0.875539489793507,
+      "topk_overlap": 0.8438818565400844,
+      "topk_k": 3,
+      "ranking_units": 79,
+      "year_pair_share": 0.9102564102564102,
+      "year_pairs": 78,
+      "peak_month_error": 0.6598639455782312,
+      "season_length_diff": 0.5170068027210885,
+      "season_unit_years": 147
+     },
+     "amazon_forest": {
+      "cell_months": 1344,
+      "flags": {
+       "raised": 56,
+       "true": 44,
+       "truth": 115,
+       "precision": 0.7857142857142857,
+       "recall": 0.3826086956521739
+      },
+      "spearman": 0.7824751097204771,
+      "topk_overlap": 0.7901234567901234,
+      "topk_k": 3,
+      "ranking_units": 54,
+      "year_pair_share": 0.9444444444444444,
+      "year_pairs": 54,
+      "peak_month_error": 0.2604166666666667,
+      "season_length_diff": 0.4375,
+      "season_unit_years": 96
+     }
+    },
+    "pooled": {
+     "flags": {
+      "raised": 459,
+      "true": 349,
+      "truth": 501,
+      "precision": 0.7603485838779956,
+      "recall": 0.6966067864271457
+     },
+     "spearman": 0.7778171678100075,
+     "topk_overlap": 0.781227577561682,
+     "year_pair_share": 0.9269767876325252,
+     "peak_month_error": 0.5672966025490657,
+     "season_length_diff": 0.5978624208304012
+    }
+   },
+   "region": {
+    "regions": {
+     "sumatra": {
+      "cell_months": 24,
+      "flags": {
+       "raised": 3,
+       "true": 3,
+       "truth": 4,
+       "precision": 1.0,
+       "recall": 0.75
+      },
+      "spearman": 0.9728202012968731,
+      "topk_overlap": 1.0,
+      "topk_k": 3,
+      "ranking_units": 1,
+      "year_pair_share": 1.0,
+      "year_pairs": 1,
+      "peak_month_error": 0.5,
+      "season_length_diff": 0.5,
+      "season_unit_years": 2
+     },
+     "australia_grassland": {
+      "cell_months": 24,
+      "flags": {
+       "raised": 8,
+       "true": 7,
+       "truth": 8,
+       "precision": 0.875,
+       "recall": 0.875
+      },
+      "spearman": 0.9669565217391304,
+      "topk_overlap": 0.6666666666666666,
+      "topk_k": 3,
+      "ranking_units": 1,
+      "year_pair_share": 1.0,
+      "year_pairs": 1,
+      "peak_month_error": 5.5,
+      "season_length_diff": 0.0,
+      "season_unit_years": 2
+     },
+     "amazon_forest": {
+      "cell_months": 24,
+      "flags": {
+       "raised": 0,
+       "true": 0,
+       "truth": 4,
+       "precision": NaN,
+       "recall": 0.0
+      },
+      "spearman": 0.9408695652173913,
+      "topk_overlap": 1.0,
+      "topk_k": 3,
+      "ranking_units": 1,
+      "year_pair_share": 1.0,
+      "year_pairs": 1,
+      "peak_month_error": 0.0,
+      "season_length_diff": 0.5,
+      "season_unit_years": 2
+     }
+    },
+    "pooled": {
+     "flags": {
+      "raised": 11,
+      "true": 10,
+      "truth": 16,
+      "precision": 0.9090909090909091,
+      "recall": 0.625
+     },
+     "spearman": 0.9602154294177984,
+     "topk_overlap": 0.8888888888888888,
+     "year_pair_share": 1.0,
+     "peak_month_error": 2.0,
+     "season_length_diff": 0.3333333333333333
+    }
+   }
+  },
+  "cmp": {
+   "0.25": {
+    "regions": {
+     "sumatra": {
+      "cell_months": 19128,
+      "flags": {
+       "raised": 417,
+       "true": 291,
+       "truth": 384,
+       "precision": 0.697841726618705,
+       "recall": 0.7578125
+      },
+      "spearman": 0.5089961249811715,
+      "topk_overlap": 0.5996376811594203,
+      "topk_k": 3,
+      "ranking_units": 552,
+      "year_pair_share": 0.8966165413533834,
+      "year_pairs": 532,
+      "peak_month_error": 0.5660377358490566,
+      "season_length_diff": 0.7897574123989218,
+      "season_unit_years": 371
+     },
+     "australia_grassland": {
+      "cell_months": 29664,
+      "flags": {
+       "raised": 1241,
+       "true": 974,
+       "truth": 1194,
+       "precision": 0.7848509266720387,
+       "recall": 0.8157453936348409
+      },
+      "spearman": 0.8017647433841357,
+      "topk_overlap": 0.7783251231527093,
+      "topk_k": 3,
+      "ranking_units": 1015,
+      "year_pair_share": 0.8875502008032129,
+      "year_pairs": 996,
+      "peak_month_error": 0.436056838365897,
+      "season_length_diff": 0.36767317939609234,
+      "season_unit_years": 1126
+     },
+     "amazon_forest": {
+      "cell_months": 21504,
+      "flags": {
+       "raised": 243,
+       "true": 152,
+       "truth": 257,
+       "precision": 0.6255144032921811,
+       "recall": 0.5914396887159533
+      },
+      "spearman": 0.6326443621959975,
+      "topk_overlap": 0.6636636636636636,
+      "topk_k": 3,
+      "ranking_units": 555,
+      "year_pair_share": 0.8568807339449541,
+      "year_pairs": 545,
+      "peak_month_error": 0.6388888888888888,
+      "season_length_diff": 0.6862745098039216,
+      "season_unit_years": 612
+     }
+    },
+    "pooled": {
+     "flags": {
+      "raised": 1901,
+      "true": 1417,
+      "truth": 1835,
+      "precision": 0.7453971593897949,
+      "recall": 0.7722070844686648
+     },
+     "spearman": 0.647801743520435,
+     "topk_overlap": 0.680542155991931,
+     "year_pair_share": 0.8803491587005169,
+     "peak_month_error": 0.5469944877012808,
+     "season_length_diff": 0.6145683671996452
+    }
+   },
+   "1": {
+    "regions": {
+     "sumatra": {
+      "cell_months": 1800,
+      "flags": {
+       "raised": 111,
+       "true": 71,
+       "truth": 115,
+       "precision": 0.6396396396396397,
+       "recall": 0.6173913043478261
+      },
+      "spearman": 0.6728665700773534,
+      "topk_overlap": 0.7204301075268816,
+      "topk_k": 3,
+      "ranking_units": 62,
+      "year_pair_share": 0.9754098360655737,
+      "year_pairs": 61,
+      "peak_month_error": 0.7701149425287356,
+      "season_length_diff": 0.8620689655172413,
+      "season_unit_years": 87
+     },
+     "australia_grassland": {
+      "cell_months": 1944,
+      "flags": {
+       "raised": 283,
+       "true": 231,
+       "truth": 271,
+       "precision": 0.8162544169611308,
+       "recall": 0.8523985239852399
+      },
+      "spearman": 0.8741063092514948,
+      "topk_overlap": 0.839662447257384,
+      "topk_k": 3,
+      "ranking_units": 79,
+      "year_pair_share": 0.8974358974358975,
+      "year_pairs": 78,
+      "peak_month_error": 0.6598639455782312,
+      "season_length_diff": 0.5238095238095238,
+      "season_unit_years": 147
+     },
+     "amazon_forest": {
+      "cell_months": 1344,
+      "flags": {
+       "raised": 96,
+       "true": 63,
+       "truth": 115,
+       "precision": 0.65625,
+       "recall": 0.5478260869565217
+      },
+      "spearman": 0.7672598365773309,
+      "topk_overlap": 0.7839506172839505,
+      "topk_k": 3,
+      "ranking_units": 54,
+      "year_pair_share": 0.9444444444444444,
+      "year_pairs": 54,
+      "peak_month_error": 0.25,
+      "season_length_diff": 0.4270833333333333,
+      "season_unit_years": 96
+     }
+    },
+    "pooled": {
+     "flags": {
+      "raised": 490,
+      "true": 365,
+      "truth": 501,
+      "precision": 0.7448979591836735,
+      "recall": 0.7285429141716567
+     },
+     "spearman": 0.7714109053020598,
+     "topk_overlap": 0.7813477240227388,
+     "year_pair_share": 0.9390967259819719,
+     "peak_month_error": 0.5599929627023222,
+     "season_length_diff": 0.6043206075533661
+    }
+   },
+   "region": {
+    "regions": {
+     "sumatra": {
+      "cell_months": 24,
+      "flags": {
+       "raised": 3,
+       "true": 3,
+       "truth": 4,
+       "precision": 1.0,
+       "recall": 0.75
+      },
+      "spearman": 0.9791304347826087,
+      "topk_overlap": 1.0,
+      "topk_k": 3,
+      "ranking_units": 1,
+      "year_pair_share": 1.0,
+      "year_pairs": 1,
+      "peak_month_error": 0.0,
+      "season_length_diff": 0.0,
+      "season_unit_years": 2
+     },
+     "australia_grassland": {
+      "cell_months": 24,
+      "flags": {
+       "raised": 7,
+       "true": 7,
+       "truth": 8,
+       "precision": 1.0,
+       "recall": 0.875
+      },
+      "spearman": 0.96,
+      "topk_overlap": 0.6666666666666666,
+      "topk_k": 3,
+      "ranking_units": 1,
+      "year_pair_share": 1.0,
+      "year_pairs": 1,
+      "peak_month_error": 5.5,
+      "season_length_diff": 0.0,
+      "season_unit_years": 2
+     },
+     "amazon_forest": {
+      "cell_months": 24,
+      "flags": {
+       "raised": 5,
+       "true": 4,
+       "truth": 4,
+       "precision": 0.8,
+       "recall": 1.0
+      },
+      "spearman": 0.9495652173913044,
+      "topk_overlap": 1.0,
+      "topk_k": 3,
+      "ranking_units": 1,
+      "year_pair_share": 1.0,
+      "year_pairs": 1,
+      "peak_month_error": 0.0,
+      "season_length_diff": 0.0,
+      "season_unit_years": 2
+     }
+    },
+    "pooled": {
+     "flags": {
+      "raised": 15,
+      "true": 14,
+      "truth": 16,
+      "precision": 0.9333333333333333,
+      "recall": 0.875
+     },
+     "spearman": 0.9628985507246376,
+     "topk_overlap": 0.8888888888888888,
+     "year_pair_share": 1.0,
+     "peak_month_error": 1.8333333333333333,
+     "season_length_diff": 0.0
+    }
+   }
+  },
+  "4A": {
+   "0.25": {
+    "regions": {
+     "sumatra": {
+      "cell_months": 19128,
+      "flags": {
+       "raised": 392,
+       "true": 265,
+       "truth": 384,
+       "precision": 0.6760204081632653,
+       "recall": 0.6901041666666666
+      },
+      "spearman": 0.5047721155262856,
+      "topk_overlap": 0.5911835748792271,
+      "topk_k": 3,
+      "ranking_units": 552,
+      "year_pair_share": 0.8909774436090225,
+      "year_pairs": 532,
+      "peak_month_error": 0.568733153638814,
+      "season_length_diff": 0.7897574123989218,
+      "season_unit_years": 371
+     },
+     "australia_grassland": {
+      "cell_months": 29664,
+      "flags": {
+       "raised": 1219,
+       "true": 944,
+       "truth": 1194,
+       "precision": 0.7744052502050861,
+       "recall": 0.7906197654941374
+      },
+      "spearman": 0.8004437687405218,
+      "topk_overlap": 0.7770114942528734,
+      "topk_k": 3,
+      "ranking_units": 1015,
+      "year_pair_share": 0.8835341365461847,
+      "year_pairs": 996,
+      "peak_month_error": 0.43960923623445824,
+      "season_length_diff": 0.3632326820603908,
+      "season_unit_years": 1126
+     },
+     "amazon_forest": {
+      "cell_months": 21504,
+      "flags": {
+       "raised": 224,
+       "true": 139,
+       "truth": 257,
+       "precision": 0.6205357142857143,
+       "recall": 0.5408560311284046
+      },
+      "spearman": 0.6309099054039448,
+      "topk_overlap": 0.6432432432432431,
+      "topk_k": 3,
+      "ranking_units": 555,
+      "year_pair_share": 0.8403669724770643,
+      "year_pairs": 545,
+      "peak_month_error": 0.6633986928104575,
+      "season_length_diff": 0.75,
+      "season_unit_years": 612
+     }
+    },
+    "pooled": {
+     "flags": {
+      "raised": 1835,
+      "true": 1348,
+      "truth": 1835,
+      "precision": 0.7346049046321526,
+      "recall": 0.7346049046321526
+     },
+     "spearman": 0.645375263223584,
+     "topk_overlap": 0.6704794374584478,
+     "year_pair_share": 0.8716261842107572,
+     "peak_month_error": 0.5572470275612432,
+     "season_length_diff": 0.6343300314864375
+    }
+   },
+   "1": {
+    "regions": {
+     "sumatra": {
+      "cell_months": 1800,
+      "flags": {
+       "raised": 113,
+       "true": 65,
+       "truth": 115,
+       "precision": 0.5752212389380531,
+       "recall": 0.5652173913043478
+      },
+      "spearman": 0.6719844552243993,
+      "topk_overlap": 0.7258064516129031,
+      "topk_k": 3,
+      "ranking_units": 62,
+      "year_pair_share": 0.9426229508196722,
+      "year_pairs": 61,
+      "peak_month_error": 0.7816091954022989,
+      "season_length_diff": 0.9080459770114943,
+      "season_unit_years": 87
+     },
+     "australia_grassland": {
+      "cell_months": 1944,
+      "flags": {
+       "raised": 274,
+       "true": 224,
+       "truth": 271,
+       "precision": 0.8175182481751825,
+       "recall": 0.8265682656826568
+      },
+      "spearman": 0.8716591585457376,
+      "topk_overlap": 0.8565400843881857,
+      "topk_k": 3,
+      "ranking_units": 79,
+      "year_pair_share": 0.8717948717948718,
+      "year_pairs": 78,
+      "peak_month_error": 0.6258503401360545,
+      "season_length_diff": 0.5034013605442177,
+      "season_unit_years": 147
+     },
+     "amazon_forest": {
+      "cell_months": 1344,
+      "flags": {
+       "raised": 73,
+       "true": 54,
+       "truth": 115,
+       "precision": 0.7397260273972602,
+       "recall": 0.46956521739130436
+      },
+      "spearman": 0.7768093063582845,
+      "topk_overlap": 0.7592592592592593,
+      "topk_k": 3,
+      "ranking_units": 54,
+      "year_pair_share": 0.9259259259259259,
+      "year_pairs": 54,
+      "peak_month_error": 0.3125,
+      "season_length_diff": 0.4375,
+      "season_unit_years": 96
+     }
+    },
+    "pooled": {
+     "flags": {
+      "raised": 460,
+      "true": 343,
+      "truth": 501,
+      "precision": 0.7456521739130435,
+      "recall": 0.6846307385229541
+     },
+     "spearman": 0.7734843067094738,
+     "topk_overlap": 0.7805352650867827,
+     "year_pair_share": 0.9134479161801566,
+     "peak_month_error": 0.5733198451794511,
+     "season_length_diff": 0.6163157791852373
+    }
+   },
+   "region": {
+    "regions": {
+     "sumatra": {
+      "cell_months": 24,
+      "flags": {
+       "raised": 3,
+       "true": 3,
+       "truth": 4,
+       "precision": 1.0,
+       "recall": 0.75
+      },
+      "spearman": 0.9843478260869565,
+      "topk_overlap": 1.0,
+      "topk_k": 3,
+      "ranking_units": 1,
+      "year_pair_share": 1.0,
+      "year_pairs": 1,
+      "peak_month_error": 0.0,
+      "season_length_diff": 0.5,
+      "season_unit_years": 2
+     },
+     "australia_grassland": {
+      "cell_months": 24,
+      "flags": {
+       "raised": 7,
+       "true": 6,
+       "truth": 8,
+       "precision": 0.8571428571428571,
+       "recall": 0.75
+      },
+      "spearman": 0.9686956521739131,
+      "topk_overlap": 0.6666666666666666,
+      "topk_k": 3,
+      "ranking_units": 1,
+      "year_pair_share": 1.0,
+      "year_pairs": 1,
+      "peak_month_error": 5.5,
+      "season_length_diff": 0.5,
+      "season_unit_years": 2
+     },
+     "amazon_forest": {
+      "cell_months": 24,
+      "flags": {
+       "raised": 2,
+       "true": 2,
+       "truth": 4,
+       "precision": 1.0,
+       "recall": 0.5
+      },
+      "spearman": 0.9452173913043478,
+      "topk_overlap": 1.0,
+      "topk_k": 3,
+      "ranking_units": 1,
+      "year_pair_share": 1.0,
+      "year_pairs": 1,
+      "peak_month_error": 0.0,
+      "season_length_diff": 0.0,
+      "season_unit_years": 2
+     }
+    },
+    "pooled": {
+     "flags": {
+      "raised": 12,
+      "true": 11,
+      "truth": 16,
+      "precision": 0.9166666666666666,
+      "recall": 0.6875
+     },
+     "spearman": 0.9660869565217393,
+     "topk_overlap": 0.8888888888888888,
+     "year_pair_share": 1.0,
+     "peak_month_error": 1.8333333333333333,
+     "season_length_diff": 0.3333333333333333
+    }
+   }
+  },
+  "1A": {
+   "0.25": {
+    "regions": {
+     "sumatra": {
+      "cell_months": 19128,
+      "flags": {
+       "raised": 415,
+       "true": 277,
+       "truth": 384,
+       "precision": 0.6674698795180722,
+       "recall": 0.7213541666666666
+      },
+      "spearman": 0.507671933987887,
+      "topk_overlap": 0.6014492753623188,
+      "topk_k": 3,
+      "ranking_units": 552,
+      "year_pair_share": 0.8825187969924813,
+      "year_pairs": 532,
+      "peak_month_error": 0.5390835579514824,
+      "season_length_diff": 0.7574123989218329,
+      "season_unit_years": 371
+     },
+     "australia_grassland": {
+      "cell_months": 29664,
+      "flags": {
+       "raised": 1265,
+       "true": 982,
+       "truth": 1194,
+       "precision": 0.7762845849802371,
+       "recall": 0.8224455611390284
+      },
+      "spearman": 0.8020312103913999,
+      "topk_overlap": 0.7779967159277502,
+      "topk_k": 3,
+      "ranking_units": 1015,
+      "year_pair_share": 0.891566265060241,
+      "year_pairs": 996,
+      "peak_month_error": 0.4289520426287744,
+      "season_length_diff": 0.38809946714031973,
+      "season_unit_years": 1126
+     },
+     "amazon_forest": {
+      "cell_months": 21504,
+      "flags": {
+       "raised": 245,
+       "true": 145,
+       "truth": 257,
+       "precision": 0.5918367346938775,
+       "recall": 0.5642023346303502
+      },
+      "spearman": 0.6386642623712868,
+      "topk_overlap": 0.6528528528528529,
+      "topk_k": 3,
+      "ranking_units": 555,
+      "year_pair_share": 0.8541284403669724,
+      "year_pairs": 545,
+      "peak_month_error": 0.6503267973856209,
+      "season_length_diff": 0.696078431372549,
+      "season_unit_years": 612
+     }
+    },
+    "pooled": {
+     "flags": {
+      "raised": 1925,
+      "true": 1404,
+      "truth": 1835,
+      "precision": 0.7293506493506493,
+      "recall": 0.7651226158038147
+     },
+     "spearman": 0.6494558022501913,
+     "topk_overlap": 0.6774329480476408,
+     "year_pair_share": 0.8760711674732317,
+     "peak_month_error": 0.5394541326552926,
+     "season_length_diff": 0.6138634324782338
+    }
+   },
+   "1": {
+    "regions": {
+     "sumatra": {
+      "cell_months": 1800,
+      "flags": {
+       "raised": 119,
+       "true": 72,
+       "truth": 115,
+       "precision": 0.6050420168067226,
+       "recall": 0.6260869565217392
+      },
+      "spearman": 0.6739413142678257,
+      "topk_overlap": 0.7150537634408601,
+      "topk_k": 3,
+      "ranking_units": 62,
+      "year_pair_share": 0.9262295081967213,
+      "year_pairs": 61,
+      "peak_month_error": 0.6896551724137931,
+      "season_length_diff": 0.8275862068965517,
+      "season_unit_years": 87
+     },
+     "australia_grassland": {
+      "cell_months": 1944,
+      "flags": {
+       "raised": 283,
+       "true": 226,
+       "truth": 271,
+       "precision": 0.7985865724381626,
+       "recall": 0.8339483394833949
+      },
+      "spearman": 0.8728271760191395,
+      "topk_overlap": 0.8438818565400844,
+      "topk_k": 3,
+      "ranking_units": 79,
+      "year_pair_share": 0.8846153846153846,
+      "year_pairs": 78,
+      "peak_month_error": 0.5782312925170068,
+      "season_length_diff": 0.4965986394557823,
+      "season_unit_years": 147
+     },
+     "amazon_forest": {
+      "cell_months": 1344,
+      "flags": {
+       "raised": 74,
+       "true": 55,
+       "truth": 115,
+       "precision": 0.7432432432432432,
+       "recall": 0.4782608695652174
+      },
+      "spearman": 0.779285067366086,
+      "topk_overlap": 0.7530864197530863,
+      "topk_k": 3,
+      "ranking_units": 54,
+      "year_pair_share": 0.9074074074074074,
+      "year_pairs": 54,
+      "peak_month_error": 0.2916666666666667,
+      "season_length_diff": 0.4583333333333333,
+      "season_unit_years": 96
+     }
+    },
+    "pooled": {
+     "flags": {
+      "raised": 476,
+      "true": 353,
+      "truth": 501,
+      "precision": 0.7415966386554622,
+      "recall": 0.7045908183632734
+     },
+     "spearman": 0.7753511858843504,
+     "topk_overlap": 0.770674013244677,
+     "year_pair_share": 0.9060841000731711,
+     "peak_month_error": 0.5198510438658223,
+     "season_length_diff": 0.5941727265618891
+    }
+   },
+   "region": {
+    "regions": {
+     "sumatra": {
+      "cell_months": 24,
+      "flags": {
+       "raised": 3,
+       "true": 3,
+       "truth": 4,
+       "precision": 1.0,
+       "recall": 0.75
+      },
+      "spearman": 0.9652173913043478,
+      "topk_overlap": 1.0,
+      "topk_k": 3,
+      "ranking_units": 1,
+      "year_pair_share": 1.0,
+      "year_pairs": 1,
+      "peak_month_error": 0.0,
+      "season_length_diff": 1.0,
+      "season_unit_years": 2
+     },
+     "australia_grassland": {
+      "cell_months": 24,
+      "flags": {
+       "raised": 7,
+       "true": 6,
+       "truth": 8,
+       "precision": 0.8571428571428571,
+       "recall": 0.75
+      },
+      "spearman": 0.9782608695652174,
+      "topk_overlap": 0.6666666666666666,
+      "topk_k": 3,
+      "ranking_units": 1,
+      "year_pair_share": 1.0,
+      "year_pairs": 1,
+      "peak_month_error": 2.5,
+      "season_length_diff": 0.0,
+      "season_unit_years": 2
+     },
+     "amazon_forest": {
+      "cell_months": 24,
+      "flags": {
+       "raised": 2,
+       "true": 2,
+       "truth": 4,
+       "precision": 1.0,
+       "recall": 0.5
+      },
+      "spearman": 0.9347826086956522,
+      "topk_overlap": 1.0,
+      "topk_k": 3,
+      "ranking_units": 1,
+      "year_pair_share": 1.0,
+      "year_pairs": 1,
+      "peak_month_error": 0.0,
+      "season_length_diff": 0.5,
+      "season_unit_years": 2
+     }
+    },
+    "pooled": {
+     "flags": {
+      "raised": 12,
+      "true": 11,
+      "truth": 16,
+      "precision": 0.9166666666666666,
+      "recall": 0.6875
+     },
+     "spearman": 0.9594202898550726,
+     "topk_overlap": 0.8888888888888888,
+     "year_pair_share": 1.0,
+     "peak_month_error": 0.8333333333333334,
+     "season_length_diff": 0.5
+    }
+   }
+  },
+  "C1": {
+   "0.25": {
+    "regions": {
+     "sumatra": {
+      "cell_months": 19128,
+      "flags": {
+       "raised": 405,
+       "true": 273,
+       "truth": 384,
+       "precision": 0.674074074074074,
+       "recall": 0.7109375
+      },
+      "spearman": 0.5071339829839691,
+      "topk_overlap": 0.5978260869565217,
+      "topk_k": 3,
+      "ranking_units": 552,
+      "year_pair_share": 0.8919172932330827,
+      "year_pairs": 532,
+      "peak_month_error": 0.5768194070080862,
+      "season_length_diff": 0.7870619946091644,
+      "season_unit_years": 371
+     },
+     "australia_grassland": {
+      "cell_months": 29664,
+      "flags": {
+       "raised": 1255,
+       "true": 972,
+       "truth": 1194,
+       "precision": 0.7745019920318725,
+       "recall": 0.8140703517587939
+      },
+      "spearman": 0.800856704740975,
+      "topk_overlap": 0.7753694581280786,
+      "topk_k": 3,
+      "ranking_units": 1015,
+      "year_pair_share": 0.892570281124498,
+      "year_pairs": 996,
+      "peak_month_error": 0.43783303730017764,
+      "season_length_diff": 0.3747779751332149,
+      "season_unit_years": 1126
+     },
+     "amazon_forest": {
+      "cell_months": 21504,
+      "flags": {
+       "raised": 224,
+       "true": 141,
+       "truth": 257,
+       "precision": 0.6294642857142857,
+       "recall": 0.5486381322957199
+      },
+      "spearman": 0.6355376995717418,
+      "topk_overlap": 0.6552552552552552,
+      "topk_k": 3,
+      "ranking_units": 555,
+      "year_pair_share": 0.8486238532110092,
+      "year_pairs": 545,
+      "peak_month_error": 0.6503267973856209,
+      "season_length_diff": 0.7189542483660131,
+      "season_unit_years": 612
+     }
+    },
+    "pooled": {
+     "flags": {
+      "raised": 1884,
+      "true": 1386,
+      "truth": 1835,
+      "precision": 0.7356687898089171,
+      "recall": 0.7553133514986377
+     },
+     "spearman": 0.647842795765562,
+     "topk_overlap": 0.6761502667799518,
+     "year_pair_share": 0.87770380918953,
+     "peak_month_error": 0.5549930805646283,
+     "season_length_diff": 0.6269314060361308
+    }
+   },
+   "1": {
+    "regions": {
+     "sumatra": {
+      "cell_months": 1800,
+      "flags": {
+       "raised": 119,
+       "true": 70,
+       "truth": 115,
+       "precision": 0.5882352941176471,
+       "recall": 0.6086956521739131
+      },
+      "spearman": 0.6703814842707313,
+      "topk_overlap": 0.7258064516129031,
+      "topk_k": 3,
+      "ranking_units": 62,
+      "year_pair_share": 0.9262295081967213,
+      "year_pairs": 61,
+      "peak_month_error": 0.735632183908046,
+      "season_length_diff": 0.8390804597701149,
+      "season_unit_years": 87
+     },
+     "australia_grassland": {
+      "cell_months": 1944,
+      "flags": {
+       "raised": 276,
+       "true": 224,
+       "truth": 271,
+       "precision": 0.8115942028985508,
+       "recall": 0.8265682656826568
+      },
+      "spearman": 0.8728887546892952,
+      "topk_overlap": 0.8607594936708862,
+      "topk_k": 3,
+      "ranking_units": 79,
+      "year_pair_share": 0.8717948717948718,
+      "year_pairs": 78,
+      "peak_month_error": 0.5578231292517006,
+      "season_length_diff": 0.5034013605442177,
+      "season_unit_years": 147
+     },
+     "amazon_forest": {
+      "cell_months": 1344,
+      "flags": {
+       "raised": 72,
+       "true": 53,
+       "truth": 115,
+       "precision": 0.7361111111111112,
+       "recall": 0.4608695652173913
+      },
+      "spearman": 0.7800442606535553,
+      "topk_overlap": 0.7592592592592593,
+      "topk_k": 3,
+      "ranking_units": 54,
+      "year_pair_share": 0.9074074074074074,
+      "year_pairs": 54,
+      "peak_month_error": 0.3125,
+      "season_length_diff": 0.4375,
+      "season_unit_years": 96
+     }
+    },
+    "pooled": {
+     "flags": {
+      "raised": 467,
+      "true": 347,
+      "truth": 501,
+      "precision": 0.7430406852248393,
+      "recall": 0.6926147704590818
+     },
+     "spearman": 0.7744381665378607,
+     "topk_overlap": 0.7819417348476829,
+     "year_pair_share": 0.9018105957996668,
+     "peak_month_error": 0.5353184377199155,
+     "season_length_diff": 0.5933272734381109
+    }
+   },
+   "region": {
+    "regions": {
+     "sumatra": {
+      "cell_months": 24,
+      "flags": {
+       "raised": 3,
+       "true": 3,
+       "truth": 4,
+       "precision": 1.0,
+       "recall": 0.75
+      },
+      "spearman": 0.9843478260869565,
+      "topk_overlap": 1.0,
+      "topk_k": 3,
+      "ranking_units": 1,
+      "year_pair_share": 1.0,
+      "year_pairs": 1,
+      "peak_month_error": 0.0,
+      "season_length_diff": 0.0,
+      "season_unit_years": 2
+     },
+     "australia_grassland": {
+      "cell_months": 24,
+      "flags": {
+       "raised": 7,
+       "true": 6,
+       "truth": 8,
+       "precision": 0.8571428571428571,
+       "recall": 0.75
+      },
+      "spearman": 0.9756521739130435,
+      "topk_overlap": 0.6666666666666666,
+      "topk_k": 3,
+      "ranking_units": 1,
+      "year_pair_share": 1.0,
+      "year_pairs": 1,
+      "peak_month_error": 5.5,
+      "season_length_diff": 0.0,
+      "season_unit_years": 2
+     },
+     "amazon_forest": {
+      "cell_months": 24,
+      "flags": {
+       "raised": 2,
+       "true": 2,
+       "truth": 4,
+       "precision": 1.0,
+       "recall": 0.5
+      },
+      "spearman": 0.94,
+      "topk_overlap": 1.0,
+      "topk_k": 3,
+      "ranking_units": 1,
+      "year_pair_share": 1.0,
+      "year_pairs": 1,
+      "peak_month_error": 0.0,
+      "season_length_diff": 0.0,
+      "season_unit_years": 2
+     }
+    },
+    "pooled": {
+     "flags": {
+      "raised": 12,
+      "true": 11,
+      "truth": 16,
+      "precision": 0.9166666666666666,
+      "recall": 0.6875
+     },
+     "spearman": 0.9666666666666667,
+     "topk_overlap": 0.8888888888888888,
+     "year_pair_share": 1.0,
+     "peak_month_error": 1.8333333333333333,
+     "season_length_diff": 0.0
+    }
+   }
+  },
+  "C2": {
+   "0.25": {
+    "regions": {
+     "sumatra": {
+      "cell_months": 19128,
+      "flags": {
+       "raised": 410,
+       "true": 274,
+       "truth": 384,
+       "precision": 0.6682926829268293,
+       "recall": 0.7135416666666666
+      },
+      "spearman": 0.5069974013867221,
+      "topk_overlap": 0.6002415458937199,
+      "topk_k": 3,
+      "ranking_units": 552,
+      "year_pair_share": 0.8919172932330827,
+      "year_pairs": 532,
+      "peak_month_error": 0.5768194070080862,
+      "season_length_diff": 0.77088948787062,
+      "season_unit_years": 371
+     },
+     "australia_grassland": {
+      "cell_months": 29664,
+      "flags": {
+       "raised": 1245,
+       "true": 967,
+       "truth": 1194,
+       "precision": 0.7767068273092369,
+       "recall": 0.8098827470686767
+      },
+      "spearman": 0.8008567168410113,
+      "topk_overlap": 0.7756978653530376,
+      "topk_k": 3,
+      "ranking_units": 1015,
+      "year_pair_share": 0.8895582329317269,
+      "year_pairs": 996,
+      "peak_month_error": 0.4511545293072824,
+      "season_length_diff": 0.38632326820603907,
+      "season_unit_years": 1126
+     },
+     "amazon_forest": {
+      "cell_months": 21504,
+      "flags": {
+       "raised": 240,
+       "true": 143,
+       "truth": 257,
+       "precision": 0.5958333333333333,
+       "recall": 0.556420233463035
+      },
+      "spearman": 0.6369927868601497,
+      "topk_overlap": 0.6558558558558558,
+      "topk_k": 3,
+      "ranking_units": 555,
+      "year_pair_share": 0.846788990825688,
+      "year_pairs": 545,
+      "peak_month_error": 0.6503267973856209,
+      "season_length_diff": 0.6879084967320261,
+      "season_unit_years": 612
+     }
+    },
+    "pooled": {
+     "flags": {
+      "raised": 1895,
+      "true": 1384,
+      "truth": 1835,
+      "precision": 0.7303430079155673,
+      "recall": 0.7542234332425068
+     },
+     "spearman": 0.648282301695961,
+     "topk_overlap": 0.6772650890342046,
+     "year_pair_share": 0.8760881723301658,
+     "peak_month_error": 0.5594335779003298,
+     "season_length_diff": 0.6150404176028951
+    }
+   },
+   "1": {
+    "regions": {
+     "sumatra": {
+      "cell_months": 1800,
+      "flags": {
+       "raised": 118,
+       "true": 71,
+       "truth": 115,
+       "precision": 0.6016949152542372,
+       "recall": 0.6173913043478261
+      },
+      "spearman": 0.6717267242605991,
+      "topk_overlap": 0.7150537634408601,
+      "topk_k": 3,
+      "ranking_units": 62,
+      "year_pair_share": 0.9262295081967213,
+      "year_pairs": 61,
+      "peak_month_error": 0.7011494252873564,
+      "season_length_diff": 0.8275862068965517,
+      "season_unit_years": 87
+     },
+     "australia_grassland": {
+      "cell_months": 1944,
+      "flags": {
+       "raised": 279,
+       "true": 225,
+       "truth": 271,
+       "precision": 0.8064516129032258,
+       "recall": 0.8302583025830258
+      },
+      "spearman": 0.8729392544298911,
+      "topk_overlap": 0.8607594936708862,
+      "topk_k": 3,
+      "ranking_units": 79,
+      "year_pair_share": 0.8846153846153846,
+      "year_pairs": 78,
+      "peak_month_error": 0.5578231292517006,
+      "season_length_diff": 0.5170068027210885,
+      "season_unit_years": 147
+     },
+     "amazon_forest": {
+      "cell_months": 1344,
+      "flags": {
+       "raised": 72,
+       "true": 54,
+       "truth": 115,
+       "precision": 0.75,
+       "recall": 0.46956521739130436
+      },
+      "spearman": 0.7794184033012391,
+      "topk_overlap": 0.7530864197530863,
+      "topk_k": 3,
+      "ranking_units": 54,
+      "year_pair_share": 0.9259259259259259,
+      "year_pairs": 54,
+      "peak_month_error": 0.3229166666666667,
+      "season_length_diff": 0.4166666666666667,
+      "season_unit_years": 96
+     }
+    },
+    "pooled": {
+     "flags": {
+      "raised": 469,
+      "true": 350,
+      "truth": 501,
+      "precision": 0.746268656716418,
+      "recall": 0.6986027944111777
+     },
+     "spearman": 0.7746947939972432,
+     "topk_overlap": 0.7762998922882774,
+     "year_pair_share": 0.912256939579344,
+     "peak_month_error": 0.5272964070685745,
+     "season_length_diff": 0.5870865587614357
+    }
+   },
+   "region": {
+    "regions": {
+     "sumatra": {
+      "cell_months": 24,
+      "flags": {
+       "raised": 3,
+       "true": 3,
+       "truth": 4,
+       "precision": 1.0,
+       "recall": 0.75
+      },
+      "spearman": 0.9773913043478261,
+      "topk_overlap": 1.0,
+      "topk_k": 3,
+      "ranking_units": 1,
+      "year_pair_share": 1.0,
+      "year_pairs": 1,
+      "peak_month_error": 0.0,
+      "season_length_diff": 0.0,
+      "season_unit_years": 2
+     },
+     "australia_grassland": {
+      "cell_months": 24,
+      "flags": {
+       "raised": 7,
+       "true": 6,
+       "truth": 8,
+       "precision": 0.8571428571428571,
+       "recall": 0.75
+      },
+      "spearman": 0.9678260869565217,
+      "topk_overlap": 0.6666666666666666,
+      "topk_k": 3,
+      "ranking_units": 1,
+      "year_pair_share": 1.0,
+      "year_pairs": 1,
+      "peak_month_error": 5.5,
+      "season_length_diff": 0.0,
+      "season_unit_years": 2
+     },
+     "amazon_forest": {
+      "cell_months": 24,
+      "flags": {
+       "raised": 2,
+       "true": 2,
+       "truth": 4,
+       "precision": 1.0,
+       "recall": 0.5
+      },
+      "spearman": 0.9347826086956522,
+      "topk_overlap": 1.0,
+      "topk_k": 3,
+      "ranking_units": 1,
+      "year_pair_share": 1.0,
+      "year_pairs": 1,
+      "peak_month_error": 0.0,
+      "season_length_diff": 0.5,
+      "season_unit_years": 2
+     }
+    },
+    "pooled": {
+     "flags": {
+      "raised": 12,
+      "true": 11,
+      "truth": 16,
+      "precision": 0.9166666666666666,
+      "recall": 0.6875
+     },
+     "spearman": 0.96,
+     "topk_overlap": 0.8888888888888888,
+     "year_pair_share": 1.0,
+     "peak_month_error": 1.8333333333333333,
+     "season_length_diff": 0.16666666666666666
+    }
+   }
+  },
+  "C3": {
+   "0.25": {
+    "regions": {
+     "sumatra": {
+      "cell_months": 19128,
+      "flags": {
+       "raised": 404,
+       "true": 272,
+       "truth": 384,
+       "precision": 0.6732673267326733,
+       "recall": 0.7083333333333334
+      },
+      "spearman": 0.5066009314331363,
+      "topk_overlap": 0.5960144927536232,
+      "topk_k": 3,
+      "ranking_units": 552,
+      "year_pair_share": 0.8919172932330827,
+      "year_pairs": 532,
+      "peak_month_error": 0.5768194070080862,
+      "season_length_diff": 0.7951482479784366,
+      "season_unit_years": 371
+     },
+     "australia_grassland": {
+      "cell_months": 29664,
+      "flags": {
+       "raised": 1249,
+       "true": 966,
+       "truth": 1194,
+       "precision": 0.7734187349879904,
+       "recall": 0.8090452261306532
+      },
+      "spearman": 0.80076471787553,
+      "topk_overlap": 0.7756978653530375,
+      "topk_k": 3,
+      "ranking_units": 1015,
+      "year_pair_share": 0.892570281124498,
+      "year_pairs": 996,
+      "peak_month_error": 0.4413854351687389,
+      "season_length_diff": 0.3747779751332149,
+      "season_unit_years": 1126
+     },
+     "amazon_forest": {
+      "cell_months": 21504,
+      "flags": {
+       "raised": 225,
+       "true": 141,
+       "truth": 257,
+       "precision": 0.6266666666666667,
+       "recall": 0.5486381322957199
+      },
+      "spearman": 0.6350787102920139,
+      "topk_overlap": 0.6546546546546548,
+      "topk_k": 3,
+      "ranking_units": 555,
+      "year_pair_share": 0.8504587155963302,
+      "year_pairs": 545,
+      "peak_month_error": 0.6486928104575164,
+      "season_length_diff": 0.7107843137254902,
+      "season_unit_years": 612
+     }
+    },
+    "pooled": {
+     "flags": {
+      "raised": 1878,
+      "true": 1379,
+      "truth": 1835,
+      "precision": 0.7342917997870074,
+      "recall": 0.7514986376021798
+     },
+     "spearman": 0.6474814532002268,
+     "topk_overlap": 0.6754556709204386,
+     "year_pair_share": 0.878315429984637,
+     "peak_month_error": 0.5556325508781138,
+     "season_length_diff": 0.6269035122790473
+    }
+   },
+   "1": {
+    "regions": {
+     "sumatra": {
+      "cell_months": 1800,
+      "flags": {
+       "raised": 118,
+       "true": 70,
+       "truth": 115,
+       "precision": 0.5932203389830508,
+       "recall": 0.6086956521739131
+      },
+      "spearman": 0.6707481105985847,
+      "topk_overlap": 0.7258064516129031,
+      "topk_k": 3,
+      "ranking_units": 62,
+      "year_pair_share": 0.9262295081967213,
+      "year_pairs": 61,
+      "peak_month_error": 0.735632183908046,
+      "season_length_diff": 0.8620689655172413,
+      "season_unit_years": 87
+     },
+     "australia_grassland": {
+      "cell_months": 1944,
+      "flags": {
+       "raised": 276,
+       "true": 223,
+       "truth": 271,
+       "precision": 0.8079710144927537,
+       "recall": 0.8228782287822878
+      },
+      "spearman": 0.8729517951093456,
+      "topk_overlap": 0.8607594936708862,
+      "topk_k": 3,
+      "ranking_units": 79,
+      "year_pair_share": 0.8717948717948718,
+      "year_pairs": 78,
+      "peak_month_error": 0.5782312925170068,
+      "season_length_diff": 0.5102040816326531,
+      "season_unit_years": 147
+     },
+     "amazon_forest": {
+      "cell_months": 1344,
+      "flags": {
+       "raised": 72,
+       "true": 53,
+       "truth": 115,
+       "precision": 0.7361111111111112,
+       "recall": 0.4608695652173913
+      },
+      "spearman": 0.7798580693604038,
+      "topk_overlap": 0.7592592592592593,
+      "topk_k": 3,
+      "ranking_units": 54,
+      "year_pair_share": 0.9074074074074074,
+      "year_pairs": 54,
+      "peak_month_error": 0.3125,
+      "season_length_diff": 0.4375,
+      "season_unit_years": 96
+     }
+    },
+    "pooled": {
+     "flags": {
+      "raised": 466,
+      "true": 346,
+      "truth": 501,
+      "precision": 0.7424892703862661,
+      "recall": 0.6906187624750499
+     },
+     "spearman": 0.7745193250227781,
+     "topk_overlap": 0.7819417348476829,
+     "year_pair_share": 0.9018105957996668,
+     "peak_month_error": 0.5421211588083509,
+     "season_length_diff": 0.6032576823832981
+    }
+   },
+   "region": {
+    "regions": {
+     "sumatra": {
+      "cell_months": 24,
+      "flags": {
+       "raised": 3,
+       "true": 3,
+       "truth": 4,
+       "precision": 1.0,
+       "recall": 0.75
+      },
+      "spearman": 0.9843478260869565,
+      "topk_overlap": 1.0,
+      "topk_k": 3,
+      "ranking_units": 1,
+      "year_pair_share": 1.0,
+      "year_pairs": 1,
+      "peak_month_error": 0.0,
+      "season_length_diff": 0.0,
+      "season_unit_years": 2
+     },
+     "australia_grassland": {
+      "cell_months": 24,
+      "flags": {
+       "raised": 7,
+       "true": 6,
+       "truth": 8,
+       "precision": 0.8571428571428571,
+       "recall": 0.75
+      },
+      "spearman": 0.971304347826087,
+      "topk_overlap": 0.6666666666666666,
+      "topk_k": 3,
+      "ranking_units": 1,
+      "year_pair_share": 1.0,
+      "year_pairs": 1,
+      "peak_month_error": 5.5,
+      "season_length_diff": 0.0,
+      "season_unit_years": 2
+     },
+     "amazon_forest": {
+      "cell_months": 24,
+      "flags": {
+       "raised": 2,
+       "true": 2,
+       "truth": 4,
+       "precision": 1.0,
+       "recall": 0.5
+      },
+      "spearman": 0.94,
+      "topk_overlap": 1.0,
+      "topk_k": 3,
+      "ranking_units": 1,
+      "year_pair_share": 1.0,
+      "year_pairs": 1,
+      "peak_month_error": 0.0,
+      "season_length_diff": 0.0,
+      "season_unit_years": 2
+     }
+    },
+    "pooled": {
+     "flags": {
+      "raised": 12,
+      "true": 11,
+      "truth": 16,
+      "precision": 0.9166666666666666,
+      "recall": 0.6875
+     },
+     "spearman": 0.9652173913043477,
+     "topk_overlap": 0.8888888888888888,
+     "year_pair_share": 1.0,
+     "peak_month_error": 1.8333333333333333,
+     "season_length_diff": 0.0
+    }
+   }
+  },
+  "c": {
+   "0.25": {
+    "regions": {
+     "sumatra": {
+      "cell_months": 19128,
+      "flags": {
+       "raised": 441,
+       "true": 276,
+       "truth": 384,
+       "precision": 0.6258503401360545,
+       "recall": 0.71875
+      },
+      "spearman": 0.5091590849463599,
+      "topk_overlap": 0.6038647342995169,
+      "topk_k": 3,
+      "ranking_units": 552,
+      "year_pair_share": 0.8806390977443609,
+      "year_pairs": 532,
+      "peak_month_error": 0.5606469002695418,
+      "season_length_diff": 0.7816711590296496,
+      "season_unit_years": 371
+     },
+     "australia_grassland": {
+      "cell_months": 29664,
+      "flags": {
+       "raised": 1248,
+       "true": 917,
+       "truth": 1194,
+       "precision": 0.7347756410256411,
+       "recall": 0.7680067001675042
+      },
+      "spearman": 0.7632802756224164,
+      "topk_overlap": 0.7615763546798029,
+      "topk_k": 3,
+      "ranking_units": 1015,
+      "year_pair_share": 0.856425702811245,
+      "year_pairs": 996,
+      "peak_month_error": 0.5133214920071048,
+      "season_length_diff": 0.4342806394316163,
+      "season_unit_years": 1126
+     },
+     "amazon_forest": {
+      "cell_months": 21504,
+      "flags": {
+       "raised": 271,
+       "true": 148,
+       "truth": 257,
+       "precision": 0.5461254612546126,
+       "recall": 0.5758754863813229
+      },
+      "spearman": 0.6347697366689752,
+      "topk_overlap": 0.6468468468468469,
+      "topk_k": 3,
+      "ranking_units": 555,
+      "year_pair_share": 0.8220183486238533,
+      "year_pairs": 545,
+      "peak_month_error": 0.6813725490196079,
+      "season_length_diff": 0.7336601307189542,
+      "season_unit_years": 612
+     }
+    },
+    "pooled": {
+     "flags": {
+      "raised": 1960,
+      "true": 1341,
+      "truth": 1835,
+      "precision": 0.6841836734693878,
+      "recall": 0.7307901907356948
+     },
+     "spearman": 0.6357363657459172,
+     "topk_overlap": 0.6707626452753889,
+     "year_pair_share": 0.8530277163931531,
+     "peak_month_error": 0.5851136470987515,
+     "season_length_diff": 0.6498706430600735
+    }
+   },
+   "1": {
+    "regions": {
+     "sumatra": {
+      "cell_months": 1800,
+      "flags": {
+       "raised": 112,
+       "true": 70,
+       "truth": 115,
+       "precision": 0.625,
+       "recall": 0.6086956521739131
+      },
+      "spearman": 0.6572785115740577,
+      "topk_overlap": 0.7365591397849461,
+      "topk_k": 3,
+      "ranking_units": 62,
+      "year_pair_share": 0.9016393442622951,
+      "year_pairs": 61,
+      "peak_month_error": 0.7011494252873564,
+      "season_length_diff": 0.6896551724137931,
+      "season_unit_years": 87
+     },
+     "australia_grassland": {
+      "cell_months": 1944,
+      "flags": {
+       "raised": 274,
+       "true": 223,
+       "truth": 271,
+       "precision": 0.8138686131386861,
+       "recall": 0.8228782287822878
+      },
+      "spearman": 0.8479883507524123,
+      "topk_overlap": 0.8270042194092825,
+      "topk_k": 3,
+      "ranking_units": 79,
+      "year_pair_share": 0.8397435897435898,
+      "year_pairs": 78,
+      "peak_month_error": 0.5850340136054422,
+      "season_length_diff": 0.564625850340136,
+      "season_unit_years": 147
+     },
+     "amazon_forest": {
+      "cell_months": 1344,
+      "flags": {
+       "raised": 88,
+       "true": 63,
+       "truth": 115,
+       "precision": 0.7159090909090909,
+       "recall": 0.5478260869565217
+      },
+      "spearman": 0.8161540290819759,
+      "topk_overlap": 0.802469135802469,
+      "topk_k": 3,
+      "ranking_units": 54,
+      "year_pair_share": 0.9166666666666666,
+      "year_pairs": 54,
+      "peak_month_error": 0.3125,
+      "season_length_diff": 0.5104166666666666,
+      "season_unit_years": 96
+     }
+    },
+    "pooled": {
+     "flags": {
+      "raised": 474,
+      "true": 356,
+      "truth": 501,
+      "precision": 0.7510548523206751,
+      "recall": 0.7105788423153693
+     },
+     "spearman": 0.7738069638028153,
+     "topk_overlap": 0.7886774983322326,
+     "year_pair_share": 0.8860165335575171,
+     "peak_month_error": 0.5328944796309328,
+     "season_length_diff": 0.5882325631401986
+    }
+   },
+   "region": {
+    "regions": {
+     "sumatra": {
+      "cell_months": 24,
+      "flags": {
+       "raised": 3,
+       "true": 3,
+       "truth": 4,
+       "precision": 1.0,
+       "recall": 0.75
+      },
+      "spearman": 0.9728202012968731,
+      "topk_overlap": 1.0,
+      "topk_k": 3,
+      "ranking_units": 1,
+      "year_pair_share": 1.0,
+      "year_pairs": 1,
+      "peak_month_error": 0.0,
+      "season_length_diff": 0.5,
+      "season_unit_years": 2
+     },
+     "australia_grassland": {
+      "cell_months": 24,
+      "flags": {
+       "raised": 7,
+       "true": 6,
+       "truth": 8,
+       "precision": 0.8571428571428571,
+       "recall": 0.75
+      },
+      "spearman": 0.9626086956521739,
+      "topk_overlap": 0.3333333333333333,
+      "topk_k": 3,
+      "ranking_units": 1,
+      "year_pair_share": 1.0,
+      "year_pairs": 1,
+      "peak_month_error": 5.5,
+      "season_length_diff": 0.0,
+      "season_unit_years": 2
+     },
+     "amazon_forest": {
+      "cell_months": 24,
+      "flags": {
+       "raised": 2,
+       "true": 2,
+       "truth": 4,
+       "precision": 1.0,
+       "recall": 0.5
+      },
+      "spearman": 0.9539130434782609,
+      "topk_overlap": 1.0,
+      "topk_k": 3,
+      "ranking_units": 1,
+      "year_pair_share": 1.0,
+      "year_pairs": 1,
+      "peak_month_error": 0.0,
+      "season_length_diff": 0.0,
+      "season_unit_years": 2
+     }
+    },
+    "pooled": {
+     "flags": {
+      "raised": 12,
+      "true": 11,
+      "truth": 16,
+      "precision": 0.9166666666666666,
+      "recall": 0.6875
+     },
+     "spearman": 0.963113980142436,
+     "topk_overlap": 0.7777777777777777,
+     "year_pair_share": 1.0,
+     "peak_month_error": 1.8333333333333333,
+     "season_length_diff": 0.16666666666666666
+    }
+   }
+  }
+ },
+ "comparisons": {
+  "b vs a": {
+   "error": {
+    "diff": 0.9616106323094284,
+    "lo": 0.950608078466945,
+    "hi": 0.9654181793129061,
+    "beyond_noise": true,
+    "better": "A",
+    "undefined_draws": 0
+   },
+   "abs_bias": {
+    "diff": 6.968487742338082,
+    "lo": 5.8226888039908475,
+    "hi": 7.50346447935636,
+    "beyond_noise": true,
+    "better": "A",
+    "undefined_draws": 0
+   },
+   "precision": {
+    "diff": 0.5757080610021786,
+    "lo": 0.5398053864572274,
+    "hi": 0.6159929493608012,
+    "beyond_noise": true,
+    "better": "A",
+    "undefined_draws": 0
+   },
+   "spearman": {
+    "diff": 0.0,
+    "lo": 0.0,
+    "hi": 0.0,
+    "beyond_noise": false,
+    "better": null,
+    "undefined_draws": 0
+   },
+   "peak_month": {
+    "diff": 0.0,
+    "lo": 0.0,
+    "hi": 0.0,
+    "beyond_noise": false,
+    "better": null,
+    "undefined_draws": 0
+   },
+   "season_length": {
+    "diff": 0.0,
+    "lo": 0.0,
+    "hi": 0.0,
+    "beyond_noise": false,
+    "better": null,
+    "undefined_draws": 0
+   }
+  },
+  "cmp vs a": {
+   "error": {
+    "diff": 0.9580651053466097,
+    "lo": 0.9515526560580598,
+    "hi": 0.9653383928272161,
+    "beyond_noise": true,
+    "better": "A",
+    "undefined_draws": 0
+   },
+   "abs_bias": {
+    "diff": 6.8672160418173,
+    "lo": 5.898152372221893,
+    "hi": 7.438324517403891,
+    "beyond_noise": true,
+    "better": "A",
+    "undefined_draws": 0
+   },
+   "precision": {
+    "diff": 0.5495865012671736,
+    "lo": 0.5091487459723824,
+    "hi": 0.5887701111068209,
+    "beyond_noise": true,
+    "better": "A",
+    "undefined_draws": 0
+   },
+   "spearman": {
+    "diff": 0.003045078023940125,
+    "lo": -0.012173913043478257,
+    "hi": 0.013916023370805834,
+    "beyond_noise": false,
+    "better": null,
+    "undefined_draws": 0
+   },
+   "peak_month": {
+    "diff": 0.16666666666666666,
+    "lo": -1.0,
+    "hi": 0.16666666666666666,
+    "beyond_noise": false,
+    "better": null,
+    "undefined_draws": 0
+   },
+   "season_length": {
+    "diff": 0.3333333333333333,
+    "lo": -0.3333333333333333,
+    "hi": 0.5,
+    "beyond_noise": false,
+    "better": null,
+    "undefined_draws": 0
+   }
+  },
+  "cmp vs b": {
+   "error": {
+    "diff": 0.023480706906697013,
+    "lo": -0.06972680179760848,
+    "hi": 0.1101679046818973,
+    "beyond_noise": false,
+    "better": null,
+    "undefined_draws": 0
+   },
+   "abs_bias": {
+    "diff": 0.11746690985096134,
+    "lo": 0.08683605422108015,
+    "hi": 0.15225575127231467,
+    "beyond_noise": true,
+    "better": "A",
+    "undefined_draws": 0
+   },
+   "precision": {
+    "diff": -0.026121559735005073,
+    "lo": -0.058993404051624065,
+    "hi": -0.002269749879972989,
+    "beyond_noise": true,
+    "better": "B",
+    "undefined_draws": 0
+   },
+   "spearman": {
+    "diff": 0.003045078023940125,
+    "lo": -0.012173913043478257,
+    "hi": 0.013916023370805834,
+    "beyond_noise": false,
+    "better": null,
+    "undefined_draws": 0
+   },
+   "peak_month": {
+    "diff": 0.16666666666666666,
+    "lo": -1.0,
+    "hi": 0.16666666666666666,
+    "beyond_noise": false,
+    "better": null,
+    "undefined_draws": 0
+   },
+   "season_length": {
+    "diff": 0.3333333333333333,
+    "lo": -0.3333333333333333,
+    "hi": 0.5,
+    "beyond_noise": false,
+    "better": null,
+    "undefined_draws": 0
+   }
+  },
+  "4A vs a": {
+   "error": {
+    "diff": 0.9740098025776032,
+    "lo": 0.9629764474666782,
+    "hi": 0.9785701050733572,
+    "beyond_noise": true,
+    "better": "A",
+    "undefined_draws": 0
+   },
+   "abs_bias": {
+    "diff": 7.001705437746976,
+    "lo": 5.883132936857342,
+    "hi": 7.560423583116302,
+    "beyond_noise": true,
+    "better": "A",
+    "undefined_draws": 0
+   },
+   "precision": {
+    "diff": 0.6086814435919295,
+    "lo": 0.56281473869632,
+    "hi": 0.6513237596100065,
+    "beyond_noise": true,
+    "better": "A",
+    "undefined_draws": 0
+   },
+   "spearman": {
+    "diff": 0.0030456453166840904,
+    "lo": -0.003478260869565227,
+    "hi": 0.015364340608886601,
+    "beyond_noise": false,
+    "better": null,
+    "undefined_draws": 0
+   },
+   "peak_month": {
+    "diff": 0.16666666666666666,
+    "lo": -0.8333333333333334,
+    "hi": 1.0,
+    "beyond_noise": false,
+    "better": null,
+    "undefined_draws": 0
+   },
+   "season_length": {
+    "diff": 0.3333333333333333,
+    "lo": -0.16666666666666666,
+    "hi": 0.5,
+    "beyond_noise": false,
+    "better": null,
+    "undefined_draws": 0
+   }
+  },
+  "4A vs b": {
+   "error": {
+    "diff": 0.32298448799978374,
+    "lo": 0.17020592249703875,
+    "hi": 0.40480749199409133,
+    "beyond_noise": true,
+    "better": "A",
+    "undefined_draws": 0
+   },
+   "abs_bias": {
+    "diff": 0.11969341006385012,
+    "lo": 0.08417625676585204,
+    "hi": 0.15022028895227435,
+    "beyond_noise": true,
+    "better": "A",
+    "undefined_draws": 0
+   },
+   "precision": {
+    "diff": 0.03297338258975091,
+    "lo": 0.00430040724072005,
+    "hi": 0.05629073096188437,
+    "beyond_noise": true,
+    "better": "A",
+    "undefined_draws": 0
+   },
+   "spearman": {
+    "diff": 0.0030456453166840904,
+    "lo": -0.003478260869565227,
+    "hi": 0.015364340608886601,
+    "beyond_noise": false,
+    "better": null,
+    "undefined_draws": 0
+   },
+   "peak_month": {
+    "diff": 0.16666666666666666,
+    "lo": -0.8333333333333334,
+    "hi": 1.0,
+    "beyond_noise": false,
+    "better": null,
+    "undefined_draws": 0
+   },
+   "season_length": {
+    "diff": 0.3333333333333333,
+    "lo": -0.16666666666666666,
+    "hi": 0.5,
+    "beyond_noise": false,
+    "better": null,
+    "undefined_draws": 0
+   }
+  },
+  "4A vs cmp": {
+   "error": {
+    "diff": 0.2043556792654364,
+    "lo": 0.14467640376318563,
+    "hi": 0.2654449040629609,
+    "beyond_noise": true,
+    "better": "A",
+    "undefined_draws": 0
+   },
+   "abs_bias": {
+    "diff": 0.044027909452788234,
+    "lo": -0.004826673308098578,
+    "hi": 0.07009917064763053,
+    "beyond_noise": false,
+    "better": null,
+    "undefined_draws": 0
+   },
+   "precision": {
+    "diff": 0.059094942324755984,
+    "lo": 0.03791098549902859,
+    "hi": 0.08406053122939923,
+    "beyond_noise": true,
+    "better": "A",
+    "undefined_draws": 0
+   },
+   "spearman": {
+    "diff": 5.672927439655714e-07,
+    "lo": -0.007826086956521762,
+    "hi": 0.017971594392002972,
+    "beyond_noise": false,
+    "better": null,
+    "undefined_draws": 0
+   },
+   "peak_month": {
+    "diff": 0.0,
+    "lo": -0.8333333333333334,
+    "hi": 1.0,
+    "beyond_noise": false,
+    "better": null,
+    "undefined_draws": 0
+   },
+   "season_length": {
+    "diff": 0.0,
+    "lo": -0.3333333333333333,
+    "hi": 0.3333333333333333,
+    "beyond_noise": false,
+    "better": null,
+    "undefined_draws": 0
+   }
+  },
+  "4A vs 1A": {
+   "error": {
+    "diff": 0.02688448624909323,
+    "lo": -0.01640013763271787,
+    "hi": 0.07437309287709647,
+    "beyond_noise": false,
+    "better": null,
+    "undefined_draws": 0
+   },
+   "abs_bias": {
+    "diff": 0.005182390886181428,
+    "lo": -0.03481333972324412,
+    "hi": 0.017933207967986132,
+    "beyond_noise": false,
+    "better": null,
+    "undefined_draws": 0
+   },
+   "precision": {
+    "diff": 0.012276214833759624,
+    "lo": -0.012060764722123817,
+    "hi": 0.032644896217710384,
+    "beyond_noise": false,
+    "better": null,
+    "undefined_draws": 0
+   },
+   "spearman": {
+    "diff": 0.008986641831864742,
+    "lo": -0.0020289855072463947,
+    "hi": 0.014493763719435258,
+    "beyond_noise": false,
+    "better": null,
+    "undefined_draws": 0
+   },
+   "peak_month": {
+    "diff": 1.0,
+    "lo": -1.0,
+    "hi": 1.1666666666666667,
+    "beyond_noise": false,
+    "better": null,
+    "undefined_draws": 0
+   },
+   "season_length": {
+    "diff": 0.5,
+    "lo": -0.16666666666666666,
+    "hi": 0.5,
+    "beyond_noise": false,
+    "better": null,
+    "undefined_draws": 0
+   }
+  },
+  "4A vs C1": {
+   "error": {
+    "diff": -0.033826967200795144,
+    "lo": -0.053421766736944334,
+    "hi": -0.012970871975928357,
+    "beyond_noise": true,
+    "better": "B",
+    "undefined_draws": 0
+   },
+   "abs_bias": {
+    "diff": -0.00044958147690005287,
+    "lo": -0.01660184865993692,
+    "hi": 0.007097072560234549,
+    "beyond_noise": false,
+    "better": null,
+    "undefined_draws": 0
+   },
+   "precision": {
+    "diff": 0.00440368680755987,
+    "lo": -0.015464011002546036,
+    "hi": 0.02228206602681262,
+    "beyond_noise": false,
+    "better": null,
+    "undefined_draws": 0
+   },
+   "spearman": {
+    "diff": -0.0002897920399366205,
+    "lo": -0.003768115942028971,
+    "hi": 0.004927536231884022,
+    "beyond_noise": false,
+    "better": null,
+    "undefined_draws": 0
+   },
+   "peak_month": {
+    "diff": 0.0,
+    "lo": -0.8333333333333334,
+    "hi": 1.0,
+    "beyond_noise": false,
+    "better": null,
+    "undefined_draws": 0
+   },
+   "season_length": {
+    "diff": 0.0,
+    "lo": -0.16666666666666666,
+    "hi": 0.3333333333333333,
+    "beyond_noise": false,
+    "better": null,
+    "undefined_draws": 0
+   }
+  },
+  "4A vs C2": {
+   "error": {
+    "diff": -0.030082727410930765,
+    "lo": -0.04589549108335232,
+    "hi": -0.0005913641752284211,
+    "beyond_noise": true,
+    "better": "B",
+    "undefined_draws": 0
+   },
+   "abs_bias": {
+    "diff": 0.002637518470681405,
+    "lo": -0.022820525511205926,
+    "hi": 0.009726425669795476,
+    "beyond_noise": false,
+    "better": null,
+    "undefined_draws": 0
+   },
+   "precision": {
+    "diff": 0.008074534161490732,
+    "lo": -0.013496941649594087,
+    "hi": 0.02782598439120819,
+    "beyond_noise": false,
+    "better": null,
+    "undefined_draws": 0
+   },
+   "spearman": {
+    "diff": 0.0031885318621556933,
+    "lo": -0.0033333033928829507,
+    "hi": 0.008695652173913068,
+    "beyond_noise": false,
+    "better": null,
+    "undefined_draws": 0
+   },
+   "peak_month": {
+    "diff": 0.0,
+    "lo": -0.8333333333333334,
+    "hi": 1.0,
+    "beyond_noise": false,
+    "better": null,
+    "undefined_draws": 0
+   },
+   "season_length": {
+    "diff": 0.16666666666666666,
+    "lo": -0.16666666666666666,
+    "hi": 0.3333333333333333,
+    "beyond_noise": false,
+    "better": null,
+    "undefined_draws": 0
+   }
+  },
+  "4A vs C3": {
+   "error": {
+    "diff": -0.03498918393761219,
+    "lo": -0.051973620360185886,
+    "hi": -0.015109300324837161,
+    "beyond_noise": true,
+    "better": "B",
+    "undefined_draws": 0
+   },
+   "abs_bias": {
+    "diff": -0.00013147242496268472,
+    "lo": -0.01471545859817722,
+    "hi": 0.006490395754740804,
+    "beyond_noise": false,
+    "better": null,
+    "undefined_draws": 0
+   },
+   "precision": {
+    "diff": 0.004702369845120402,
+    "lo": -0.013019505692726138,
+    "hi": 0.020166140624176748,
+    "beyond_noise": false,
+    "better": null,
+    "undefined_draws": 0
+   },
+   "spearman": {
+    "diff": 6.303252712373346e-08,
+    "lo": -0.003478765133896016,
+    "hi": 0.004348330347173375,
+    "beyond_noise": false,
+    "better": null,
+    "undefined_draws": 0
+   },
+   "peak_month": {
+    "diff": 0.0,
+    "lo": -0.8333333333333334,
+    "hi": 1.0,
+    "beyond_noise": false,
+    "better": null,
+    "undefined_draws": 0
+   },
+   "season_length": {
+    "diff": 0.0,
+    "lo": -0.16666666666666666,
+    "hi": 0.3333333333333333,
+    "beyond_noise": false,
+    "better": null,
+    "undefined_draws": 0
+   }
+  },
+  "1A vs a": {
+   "error": {
+    "diff": 0.9732917654120868,
+    "lo": 0.9607930224057366,
+    "hi": 0.9784837143722187,
+    "beyond_noise": true,
+    "better": "A",
+    "undefined_draws": 0
+   },
+   "abs_bias": {
+    "diff": 6.996523046860794,
+    "lo": 5.879439101835568,
+    "hi": 7.598619905696763,
+    "beyond_noise": true,
+    "better": "A",
+    "undefined_draws": 0
+   },
+   "precision": {
+    "diff": 0.5964052287581699,
+    "lo": 0.5607210199483832,
+    "hi": 0.6345248025255473,
+    "beyond_noise": true,
+    "better": "A",
+    "undefined_draws": 0
+   },
+   "spearman": {
+    "diff": -0.005940996515180652,
+    "lo": -0.006666666666666636,
+    "hi": 0.00608695652173911,
+    "beyond_noise": false,
+    "better": null,
+    "undefined_draws": 0
+   },
+   "peak_month": {
+    "diff": -0.8333333333333334,
+    "lo": -1.5,
+    "hi": 1.0,
+    "beyond_noise": false,
+    "better": null,
+    "undefined_draws": 0
+   },
+   "season_length": {
+    "diff": -0.16666666666666666,
+    "lo": -0.3333333333333333,
+    "hi": 0.3333333333333333,
+    "beyond_noise": false,
+    "better": null,
+    "undefined_draws": 0
+   }
+  },
+  "1A vs b": {
+   "error": {
+    "diff": 0.30428042464287,
+    "lo": 0.13826825715030622,
+    "hi": 0.3935335343982228,
+    "beyond_noise": true,
+    "better": "A",
+    "undefined_draws": 0
+   },
+   "abs_bias": {
+    "diff": 0.14891028259529016,
+    "lo": 0.09393339650556522,
+    "hi": 0.16195572458403462,
+    "beyond_noise": true,
+    "better": "A",
+    "undefined_draws": 0
+   },
+   "precision": {
+    "diff": 0.020697167755991286,
+    "lo": 0.0018258593662240144,
+    "hi": 0.038981341540134155,
+    "beyond_noise": true,
+    "better": "A",
+    "undefined_draws": 0
+   },
+   "spearman": {
+    "diff": -0.005940996515180652,
+    "lo": -0.006666666666666636,
+    "hi": 0.00608695652173911,
+    "beyond_noise": false,
+    "better": null,
+    "undefined_draws": 0
+   },
+   "peak_month": {
+    "diff": -0.8333333333333334,
+    "lo": -1.5,
+    "hi": 1.0,
+    "beyond_noise": false,
+    "better": null,
+    "undefined_draws": 0
+   },
+   "season_length": {
+    "diff": -0.16666666666666666,
+    "lo": -0.3333333333333333,
+    "hi": 0.3333333333333333,
+    "beyond_noise": false,
+    "better": null,
+    "undefined_draws": 0
+   }
+  },
+  "1A vs cmp": {
+   "error": {
+    "diff": 0.17147529790197735,
+    "lo": 0.11912337654717196,
+    "hi": 0.22733302903056746,
+    "beyond_noise": true,
+    "better": "A",
+    "undefined_draws": 0
+   },
+   "abs_bias": {
+    "diff": 0.031443372744328825,
+    "lo": 0.006073490829979336,
+    "hi": 0.06841375116857942,
+    "beyond_noise": true,
+    "better": "A",
+    "undefined_draws": 0
+   },
+   "precision": {
+    "diff": 0.04681872749099636,
+    "lo": 0.02328189497526635,
+    "hi": 0.07801115253877344,
+    "beyond_noise": true,
+    "better": "A",
+    "undefined_draws": 0
+   },
+   "spearman": {
+    "diff": -0.008986074539120778,
+    "lo": -0.014637853123829977,
+    "hi": 0.013189149580921286,
+    "beyond_noise": false,
+    "better": null,
+    "undefined_draws": 0
+   },
+   "peak_month": {
+    "diff": -1.0,
+    "lo": -1.5,
+    "hi": 1.1666666666666667,
+    "beyond_noise": false,
+    "better": null,
+    "undefined_draws": 0
+   },
+   "season_length": {
+    "diff": -0.5,
+    "lo": -0.5,
+    "hi": 0.3333333333333333,
+    "beyond_noise": false,
+    "better": null,
+    "undefined_draws": 0
+   }
+  },
+  "1A vs 4A": {
+   "error": {
+    "diff": -0.027627230137834413,
+    "lo": -0.08034888824638355,
+    "hi": 0.016135512997139136,
+    "beyond_noise": false,
+    "better": null,
+    "undefined_draws": 0
+   },
+   "abs_bias": {
+    "diff": -0.005182390886181428,
+    "lo": -0.01793320796798614,
+    "hi": 0.034813339723244116,
+    "beyond_noise": false,
+    "better": null,
+    "undefined_draws": 0
+   },
+   "precision": {
+    "diff": -0.012276214833759624,
+    "lo": -0.0326448962177104,
+    "hi": 0.012060764722123817,
+    "beyond_noise": false,
+    "better": null,
+    "undefined_draws": 0
+   },
+   "spearman": {
+    "diff": -0.008986641831864742,
+    "lo": -0.014493763719435258,
+    "hi": 0.0020289855072463947,
+    "beyond_noise": false,
+    "better": null,
+    "undefined_draws": 0
+   },
+   "peak_month": {
+    "diff": -1.0,
+    "lo": -1.1666666666666667,
+    "hi": 1.0,
+    "beyond_noise": false,
+    "better": null,
+    "undefined_draws": 0
+   },
+   "season_length": {
+    "diff": -0.5,
+    "lo": -0.5,
+    "hi": 0.16666666666666666,
+    "beyond_noise": false,
+    "better": null,
+    "undefined_draws": 0
+   }
+  },
+  "1A vs C1": {
+   "error": {
+    "diff": -0.056305802882045564,
+    "lo": -0.09989513784898583,
+    "hi": -0.02599067206917232,
+    "beyond_noise": true,
+    "better": "B",
+    "undefined_draws": 0
+   },
+   "abs_bias": {
+    "diff": -0.0056319723630814805,
+    "lo": -0.01465083594694064,
+    "hi": 0.01968225012339823,
+    "beyond_noise": false,
+    "better": null,
+    "undefined_draws": 0
+   },
+   "precision": {
+    "diff": -0.007872528026199754,
+    "lo": -0.021690631625873452,
+    "hi": 0.005262187564484709,
+    "beyond_noise": false,
+    "better": null,
+    "undefined_draws": 0
+   },
+   "spearman": {
+    "diff": -0.009276433871801363,
+    "lo": -0.012609516123654279,
+    "hi": 0.0011594218656683002,
+    "beyond_noise": false,
+    "better": null,
+    "undefined_draws": 0
+   },
+   "peak_month": {
+    "diff": -1.0,
+    "lo": -1.0,
+    "hi": 0.3333333333333333,
+    "beyond_noise": false,
+    "better": null,
+    "undefined_draws": 0
+   },
+   "season_length": {
+    "diff": -0.5,
+    "lo": -0.3333333333333333,
+    "hi": 0.16666666666666666,
+    "beyond_noise": false,
+    "better": null,
+    "undefined_draws": 0
+   }
+  },
+  "1A vs C2": {
+   "error": {
+    "diff": -0.05330874347319359,
+    "lo": -0.08485929972955474,
+    "hi": -0.018745521524187295,
+    "beyond_noise": true,
+    "better": "B",
+    "undefined_draws": 0
+   },
+   "abs_bias": {
+    "diff": -0.002544872415500023,
+    "lo": -0.01127650997998059,
+    "hi": 0.013684494723613286,
+    "beyond_noise": false,
+    "better": null,
+    "undefined_draws": 0
+   },
+   "precision": {
+    "diff": -0.004201680672268893,
+    "lo": -0.01865149333385669,
+    "hi": 0.008153338420467617,
+    "beyond_noise": false,
+    "better": null,
+    "undefined_draws": 0
+   },
+   "spearman": {
+    "diff": -0.005798109969709049,
+    "lo": -0.00927536231884052,
+    "hi": 0.0011598000608308604,
+    "beyond_noise": false,
+    "better": null,
+    "undefined_draws": 0
+   },
+   "peak_month": {
+    "diff": -1.0,
+    "lo": -1.0,
+    "hi": 0.16666666666666666,
+    "beyond_noise": false,
+    "better": null,
+    "undefined_draws": 0
+   },
+   "season_length": {
+    "diff": -0.3333333333333333,
+    "lo": -0.3333333333333333,
+    "hi": 0.16666666666666666,
+    "beyond_noise": false,
+    "better": null,
+    "undefined_draws": 0
+   }
+  },
+  "1A vs C3": {
+   "error": {
+    "diff": -0.056174095354450504,
+    "lo": -0.10211403047436196,
+    "hi": -0.02437132027189591,
+    "beyond_noise": true,
+    "better": "B",
+    "undefined_draws": 0
+   },
+   "abs_bias": {
+    "diff": -0.0053138633111441125,
+    "lo": -0.0151595690143659,
+    "hi": 0.021436580820707766,
+    "beyond_noise": false,
+    "better": null,
+    "undefined_draws": 0
+   },
+   "precision": {
+    "diff": -0.007573844988639222,
+    "lo": -0.022048412427807654,
+    "hi": 0.005725719132077626,
+    "beyond_noise": false,
+    "better": null,
+    "undefined_draws": 0
+   },
+   "spearman": {
+    "diff": -0.008986578799337619,
+    "lo": -0.013043858031845372,
+    "hi": 0.0014488357104422912,
+    "beyond_noise": false,
+    "better": null,
+    "undefined_draws": 0
+   },
+   "peak_month": {
+    "diff": -1.0,
+    "lo": -1.0,
+    "hi": 0.3333333333333333,
+    "beyond_noise": false,
+    "better": null,
+    "undefined_draws": 0
+   },
+   "season_length": {
+    "diff": -0.5,
+    "lo": -0.5,
+    "hi": 0.16666666666666666,
+    "beyond_noise": false,
+    "better": null,
+    "undefined_draws": 0
+   }
+  },
+  "C1 vs a": {
+   "error": {
+    "diff": 0.9747154332438184,
+    "lo": 0.9637775994504857,
+    "hi": 0.9794309674360321,
+    "beyond_noise": true,
+    "better": "A",
+    "undefined_draws": 0
+   },
+   "abs_bias": {
+    "diff": 7.002155019223876,
+    "lo": 5.882897729478339,
+    "hi": 7.582176774355082,
+    "beyond_noise": true,
+    "better": "A",
+    "undefined_draws": 0
+   },
+   "precision": {
+    "diff": 0.6042777567843697,
+    "lo": 0.5668661628893428,
+    "hi": 0.6415297260465638,
+    "beyond_noise": true,
+    "better": "A",
+    "undefined_draws": 0
+   },
+   "spearman": {
+    "diff": 0.003335437356620711,
+    "lo": -0.0034781994128513165,
+    "hi": 0.014062871594291534,
+    "beyond_noise": false,
+    "better": null,
+    "undefined_draws": 0
+   },
+   "peak_month": {
+    "diff": 0.16666666666666666,
+    "lo": -1.5,
+    "hi": 1.0,
+    "beyond_noise": false,
+    "better": null,
+    "undefined_draws": 0
+   },
+   "season_length": {
+    "diff": 0.3333333333333333,
+    "lo": -0.16666666666666666,
+    "hi": 0.5,
+    "beyond_noise": false,
+    "better": null,
+    "undefined_draws": 0
+   }
+  },
+  "C1 vs b": {
+   "error": {
+    "diff": 0.3413653759556039,
+    "lo": 0.19919598055143806,
+    "hi": 0.4261930027377934,
+    "beyond_noise": true,
+    "better": "A",
+    "undefined_draws": 0
+   },
+   "abs_bias": {
+    "diff": 0.1295945552116246,
+    "lo": 0.0995586274769367,
+    "hi": 0.14909977223134233,
+    "beyond_noise": true,
+    "better": "A",
+    "undefined_draws": 0
+   },
+   "precision": {
+    "diff": 0.02856969578219104,
+    "lo": 0.007364813962986737,
+    "hi": 0.0504089240959541,
+    "beyond_noise": true,
+    "better": "A",
+    "undefined_draws": 0
+   },
+   "spearman": {
+    "diff": 0.003335437356620711,
+    "lo": -0.0034781994128513165,
+    "hi": 0.014062871594291534,
+    "beyond_noise": false,
+    "better": null,
+    "undefined_draws": 0
+   },
+   "peak_month": {
+    "diff": 0.16666666666666666,
+    "lo": -1.5,
+    "hi": 1.0,
+    "beyond_noise": false,
+    "better": null,
+    "undefined_draws": 0
+   },
+   "season_length": {
+    "diff": 0.3333333333333333,
+    "lo": -0.16666666666666666,
+    "hi": 0.5,
+    "beyond_noise": false,
+    "better": null,
+    "undefined_draws": 0
+   }
+  },
+  "C1 vs cmp": {
+   "error": {
+    "diff": 0.2303892759841023,
+    "lo": 0.17894272466000224,
+    "hi": 0.2713858432037938,
+    "beyond_noise": true,
+    "better": "A",
+    "undefined_draws": 0
+   },
+   "abs_bias": {
+    "diff": 0.03854485039127464,
+    "lo": -0.0025924714108821784,
+    "hi": 0.06050427934472216,
+    "beyond_noise": false,
+    "better": null,
+    "undefined_draws": 0
+   },
+   "precision": {
+    "diff": 0.05469125551719611,
+    "lo": 0.03387535906776713,
+    "hi": 0.08169567162488674,
+    "beyond_noise": true,
+    "better": "A",
+    "undefined_draws": 0
+   },
+   "spearman": {
+    "diff": 0.00029035933268058606,
+    "lo": -0.008695652173913068,
+    "hi": 0.017681687317704347,
+    "beyond_noise": false,
+    "better": null,
+    "undefined_draws": 0
+   },
+   "peak_month": {
+    "diff": 0.0,
+    "lo": -1.1666666666666667,
+    "hi": 1.1666666666666667,
+    "beyond_noise": false,
+    "better": null,
+    "undefined_draws": 0
+   },
+   "season_length": {
+    "diff": 0.0,
+    "lo": -0.3333333333333333,
+    "hi": 0.3333333333333333,
+    "beyond_noise": false,
+    "better": null,
+    "undefined_draws": 0
+   }
+  },
+  "C1 vs 4A": {
+   "error": {
+    "diff": 0.0327201439641156,
+    "lo": 0.012804782776346255,
+    "hi": 0.05071260953949926,
+    "beyond_noise": true,
+    "better": "A",
+    "undefined_draws": 0
+   },
+   "abs_bias": {
+    "diff": 0.00044958147690005287,
+    "lo": -0.007097072560234552,
+    "hi": 0.016601848659936917,
+    "beyond_noise": false,
+    "better": null,
+    "undefined_draws": 0
+   },
+   "precision": {
+    "diff": -0.00440368680755987,
+    "lo": -0.022282066026812628,
+    "hi": 0.015464011002546034,
+    "beyond_noise": false,
+    "better": null,
+    "undefined_draws": 0
+   },
+   "spearman": {
+    "diff": 0.0002897920399366205,
+    "lo": -0.004927536231884022,
+    "hi": 0.003768115942028971,
+    "beyond_noise": false,
+    "better": null,
+    "undefined_draws": 0
+   },
+   "peak_month": {
+    "diff": 0.0,
+    "lo": -1.0,
+    "hi": 0.8333333333333334,
+    "beyond_noise": false,
+    "better": null,
+    "undefined_draws": 0
+   },
+   "season_length": {
+    "diff": 0.0,
+    "lo": -0.3333333333333333,
+    "hi": 0.16666666666666666,
+    "beyond_noise": false,
+    "better": null,
+    "undefined_draws": 0
+   }
+  },
+  "C1 vs 1A": {
+   "error": {
+    "diff": 0.05330445286622465,
+    "lo": 0.025332269360564534,
+    "hi": 0.09082241970617477,
+    "beyond_noise": true,
+    "better": "A",
+    "undefined_draws": 0
+   },
+   "abs_bias": {
+    "diff": 0.0056319723630814805,
+    "lo": -0.01968225012339823,
+    "hi": 0.014650835946940622,
+    "beyond_noise": false,
+    "better": null,
+    "undefined_draws": 0
+   },
+   "precision": {
+    "diff": 0.007872528026199754,
+    "lo": -0.005262187564484718,
+    "hi": 0.02169063162587345,
+    "beyond_noise": false,
+    "better": null,
+    "undefined_draws": 0
+   },
+   "spearman": {
+    "diff": 0.009276433871801363,
+    "lo": -0.0011594218656683002,
+    "hi": 0.012609516123654279,
+    "beyond_noise": false,
+    "better": null,
+    "undefined_draws": 0
+   },
+   "peak_month": {
+    "diff": 1.0,
+    "lo": -0.3333333333333333,
+    "hi": 1.0,
+    "beyond_noise": false,
+    "better": null,
+    "undefined_draws": 0
+   },
+   "season_length": {
+    "diff": 0.5,
+    "lo": -0.16666666666666666,
+    "hi": 0.3333333333333333,
+    "beyond_noise": false,
+    "better": null,
+    "undefined_draws": 0
+   }
+  },
+  "C1 vs C2": {
+   "error": {
+    "diff": 0.007594550110644138,
+    "lo": 0.0007230966385477433,
+    "hi": 0.018299470352314426,
+    "beyond_noise": true,
+    "better": "A",
+    "undefined_draws": 0
+   },
+   "abs_bias": {
+    "diff": 0.0030870999475814576,
+    "lo": -0.007188446589090709,
+    "hi": 0.004818276862886275,
+    "beyond_noise": false,
+    "better": null,
+    "undefined_draws": 0
+   },
+   "precision": {
+    "diff": 0.0036708473539308617,
+    "lo": -0.003878422458412131,
+    "hi": 0.01070852474228028,
+    "beyond_noise": false,
+    "better": null,
+    "undefined_draws": 0
+   },
+   "spearman": {
+    "diff": 0.003478323902092314,
+    "lo": -0.0020290485397735183,
+    "hi": 0.006087468661021876,
+    "beyond_noise": false,
+    "better": null,
+    "undefined_draws": 0
+   },
+   "peak_month": {
+    "diff": 0.0,
+    "lo": -0.6666666666666666,
+    "hi": 0.0,
+    "beyond_noise": false,
+    "better": null,
+    "undefined_draws": 0
+   },
+   "season_length": {
+    "diff": 0.16666666666666666,
+    "lo": -0.16666666666666666,
+    "hi": 0.16666666666666666,
+    "beyond_noise": false,
+    "better": null,
+    "undefined_draws": 0
+   }
+  },
+  "C1 vs C3": {
+   "error": {
+    "diff": 0.00012468692989819896,
+    "lo": -0.0023643031310089492,
+    "hi": 0.001928221520035911,
+    "beyond_noise": false,
+    "better": null,
+    "undefined_draws": 0
+   },
+   "abs_bias": {
+    "diff": 0.00031810905193736816,
+    "lo": -0.001081868993309088,
+    "hi": 0.0019190735122434207,
+    "beyond_noise": false,
+    "better": null,
+    "undefined_draws": 0
+   },
+   "precision": {
+    "diff": 0.00029868303756053205,
+    "lo": -0.004881563701383584,
+    "hi": 0.005221068901179057,
+    "beyond_noise": false,
+    "better": null,
+    "undefined_draws": 0
+   },
+   "spearman": {
+    "diff": 0.00028985507246374426,
+    "lo": -0.0020289855072463947,
+    "hi": 0.001159420289855088,
+    "beyond_noise": false,
+    "better": null,
+    "undefined_draws": 0
+   },
+   "peak_month": {
+    "diff": 0.0,
+    "lo": 0.0,
+    "hi": 0.0,
+    "beyond_noise": false,
+    "better": null,
+    "undefined_draws": 0
+   },
+   "season_length": {
+    "diff": 0.0,
+    "lo": -0.16666666666666666,
+    "hi": 0.0,
+    "beyond_noise": false,
+    "better": null,
+    "undefined_draws": 0
+   }
+  },
+  "C2 vs a": {
+   "error": {
+    "diff": 0.9747688251333735,
+    "lo": 0.9631071315877291,
+    "hi": 0.9793478958629739,
+    "beyond_noise": true,
+    "better": "A",
+    "undefined_draws": 0
+   },
+   "abs_bias": {
+    "diff": 6.999067919276294,
+    "lo": 5.881356076499503,
+    "hi": 7.5840999996206095,
+    "beyond_noise": true,
+    "better": "A",
+    "undefined_draws": 0
+   },
+   "precision": {
+    "diff": 0.6006069094304388,
+    "lo": 0.5626337563561947,
+    "hi": 0.6396077244555568,
+    "beyond_noise": true,
+    "better": "A",
+    "undefined_draws": 0
+   },
+   "spearman": {
+    "diff": -0.00014288654547160254,
+    "lo": -0.0037691953853690213,
+    "hi": 0.01101449275362317,
+    "beyond_noise": false,
+    "better": null,
+    "undefined_draws": 0
+   },
+   "peak_month": {
+    "diff": 0.16666666666666666,
+    "lo": -1.1666666666666667,
+    "hi": 1.0,
+    "beyond_noise": false,
+    "better": null,
+    "undefined_draws": 0
+   },
+   "season_length": {
+    "diff": 0.16666666666666666,
+    "lo": -0.16666666666666666,
+    "hi": 0.3333333333333333,
+    "beyond_noise": false,
+    "better": null,
+    "undefined_draws": 0
+   }
+  },
+  "C2 vs b": {
+   "error": {
+    "diff": 0.3427561748347475,
+    "lo": 0.18326062099030033,
+    "hi": 0.4245786256580805,
+    "beyond_noise": true,
+    "better": "A",
+    "undefined_draws": 0
+   },
+   "abs_bias": {
+    "diff": 0.13722353358271427,
+    "lo": 0.10674680068498953,
+    "hi": 0.1556233455209067,
+    "beyond_noise": true,
+    "better": "A",
+    "undefined_draws": 0
+   },
+   "precision": {
+    "diff": 0.02489884842826018,
+    "lo": 0.002945917469631724,
+    "hi": 0.048187886067377596,
+    "beyond_noise": true,
+    "better": "A",
+    "undefined_draws": 0
+   },
+   "spearman": {
+    "diff": -0.00014288654547160254,
+    "lo": -0.0037691953853690213,
+    "hi": 0.01101449275362317,
+    "beyond_noise": false,
+    "better": null,
+    "undefined_draws": 0
+   },
+   "peak_month": {
+    "diff": 0.16666666666666666,
+    "lo": -1.1666666666666667,
+    "hi": 1.0,
+    "beyond_noise": false,
+    "better": null,
+    "undefined_draws": 0
+   },
+   "season_length": {
+    "diff": 0.16666666666666666,
+    "lo": -0.16666666666666666,
+    "hi": 0.3333333333333333,
+    "beyond_noise": false,
+    "better": null,
+    "undefined_draws": 0
+   }
+  },
+  "C2 vs cmp": {
+   "error": {
+    "diff": 0.2134075528832745,
+    "lo": 0.1657917536213157,
+    "hi": 0.25978595185361486,
+    "beyond_noise": true,
+    "better": "A",
+    "undefined_draws": 0
+   },
+   "abs_bias": {
+    "diff": 0.03545066333858178,
+    "lo": 0.002938981271477782,
+    "hi": 0.06201697053065469,
+    "beyond_noise": true,
+    "better": "A",
+    "undefined_draws": 0
+   },
+   "precision": {
+    "diff": 0.05102040816326525,
+    "lo": 0.02738161784709366,
+    "hi": 0.08195314286820958,
+    "beyond_noise": true,
+    "better": "A",
+    "undefined_draws": 0
+   },
+   "spearman": {
+    "diff": -0.0031879645694117276,
+    "lo": -0.010443104829143493,
+    "hi": 0.01623188405797101,
+    "beyond_noise": false,
+    "better": null,
+    "undefined_draws": 0
+   },
+   "peak_month": {
+    "diff": 0.0,
+    "lo": -1.1666666666666667,
+    "hi": 1.1666666666666667,
+    "beyond_noise": false,
+    "better": null,
+    "undefined_draws": 0
+   },
+   "season_length": {
+    "diff": -0.16666666666666666,
+    "lo": -0.3333333333333333,
+    "hi": 0.3333333333333333,
+    "beyond_noise": false,
+    "better": null,
+    "undefined_draws": 0
+   }
+  },
+  "C2 vs 4A": {
+   "error": {
+    "diff": 0.029204185848783704,
+    "lo": 0.0005910146632024469,
+    "hi": 0.04388152685868268,
+    "beyond_noise": true,
+    "better": "A",
+    "undefined_draws": 0
+   },
+   "abs_bias": {
+    "diff": -0.002637518470681405,
+    "lo": -0.009726425669795487,
+    "hi": 0.022820525511205916,
+    "beyond_noise": false,
+    "better": null,
+    "undefined_draws": 0
+   },
+   "precision": {
+    "diff": -0.008074534161490732,
+    "lo": -0.02782598439120819,
+    "hi": 0.013496941649594071,
+    "beyond_noise": false,
+    "better": null,
+    "undefined_draws": 0
+   },
+   "spearman": {
+    "diff": -0.0031885318621556933,
+    "lo": -0.008695652173913068,
+    "hi": 0.0033333033928829507,
+    "beyond_noise": false,
+    "better": null,
+    "undefined_draws": 0
+   },
+   "peak_month": {
+    "diff": 0.0,
+    "lo": -1.0,
+    "hi": 0.8333333333333334,
+    "beyond_noise": false,
+    "better": null,
+    "undefined_draws": 0
+   },
+   "season_length": {
+    "diff": -0.16666666666666666,
+    "lo": -0.3333333333333333,
+    "hi": 0.16666666666666666,
+    "beyond_noise": false,
+    "better": null,
+    "undefined_draws": 0
+   }
+  },
+  "C2 vs 1A": {
+   "error": {
+    "diff": 0.05061074808646582,
+    "lo": 0.018400592797333023,
+    "hi": 0.07822147971471005,
+    "beyond_noise": true,
+    "better": "A",
+    "undefined_draws": 0
+   },
+   "abs_bias": {
+    "diff": 0.002544872415500023,
+    "lo": -0.01368449472361329,
+    "hi": 0.011276509979980568,
+    "beyond_noise": false,
+    "better": null,
+    "undefined_draws": 0
+   },
+   "precision": {
+    "diff": 0.004201680672268893,
+    "lo": -0.00815333842046762,
+    "hi": 0.01865149333385669,
+    "beyond_noise": false,
+    "better": null,
+    "undefined_draws": 0
+   },
+   "spearman": {
+    "diff": 0.005798109969709049,
+    "lo": -0.0011598000608308604,
+    "hi": 0.00927536231884052,
+    "beyond_noise": false,
+    "better": null,
+    "undefined_draws": 0
+   },
+   "peak_month": {
+    "diff": 1.0,
+    "lo": -0.16666666666666666,
+    "hi": 1.0,
+    "beyond_noise": false,
+    "better": null,
+    "undefined_draws": 0
+   },
+   "season_length": {
+    "diff": 0.3333333333333333,
+    "lo": -0.16666666666666666,
+    "hi": 0.3333333333333333,
+    "beyond_noise": false,
+    "better": null,
+    "undefined_draws": 0
+   }
+  },
+  "C2 vs C1": {
+   "error": {
+    "diff": -0.007652668686463748,
+    "lo": -0.018640583151428015,
+    "hi": -0.0007236198858454956,
+    "beyond_noise": true,
+    "better": "B",
+    "undefined_draws": 0
+   },
+   "abs_bias": {
+    "diff": -0.0030870999475814576,
+    "lo": -0.004818276862886279,
+    "hi": 0.007188446589090709,
+    "beyond_noise": false,
+    "better": null,
+    "undefined_draws": 0
+   },
+   "precision": {
+    "diff": -0.0036708473539308617,
+    "lo": -0.010708524742280285,
+    "hi": 0.0038784224584121297,
+    "beyond_noise": false,
+    "better": null,
+    "undefined_draws": 0
+   },
+   "spearman": {
+    "diff": -0.003478323902092314,
+    "lo": -0.006087468661021876,
+    "hi": 0.0020290485397735183,
+    "beyond_noise": false,
+    "better": null,
+    "undefined_draws": 0
+   },
+   "peak_month": {
+    "diff": 0.0,
+    "lo": 0.0,
+    "hi": 0.6666666666666666,
+    "beyond_noise": false,
+    "better": null,
+    "undefined_draws": 0
+   },
+   "season_length": {
+    "diff": -0.16666666666666666,
+    "lo": -0.16666666666666666,
+    "hi": 0.16666666666666666,
+    "beyond_noise": false,
+    "better": null,
+    "undefined_draws": 0
+   }
+  },
+  "C2 vs C3": {
+   "error": {
+    "diff": -0.0059325570687420726,
+    "lo": -0.019125446595959588,
+    "hi": 0.0016651778628775744,
+    "beyond_noise": false,
+    "better": null,
+    "undefined_draws": 0
+   },
+   "abs_bias": {
+    "diff": -0.0027689908956440895,
+    "lo": -0.005772508891704369,
+    "hi": 0.008874329246327094,
+    "beyond_noise": false,
+    "better": null,
+    "undefined_draws": 0
+   },
+   "precision": {
+    "diff": -0.0033721643163703297,
+    "lo": -0.010908609164288069,
+    "hi": 0.004313538014749469,
+    "beyond_noise": false,
+    "better": null,
+    "undefined_draws": 0
+   },
+   "spearman": {
+    "diff": -0.0031884688296285693,
+    "lo": -0.00666679430753406,
+    "hi": 0.002029113148113783,
+    "beyond_noise": false,
+    "better": null,
+    "undefined_draws": 0
+   },
+   "peak_month": {
+    "diff": 0.0,
+    "lo": 0.0,
+    "hi": 0.5,
+    "beyond_noise": false,
+    "better": null,
+    "undefined_draws": 0
+   },
+   "season_length": {
+    "diff": -0.16666666666666666,
+    "lo": -0.3333333333333333,
+    "hi": 0.16666666666666666,
+    "beyond_noise": false,
+    "better": null,
+    "undefined_draws": 0
+   }
+  },
+  "C3 vs a": {
+   "error": {
+    "diff": 0.9747122801956718,
+    "lo": 0.9638638134255728,
+    "hi": 0.979378811775911,
+    "beyond_noise": true,
+    "better": "A",
+    "undefined_draws": 0
+   },
+   "abs_bias": {
+    "diff": 7.001836910171939,
+    "lo": 5.883184677615106,
+    "hi": 7.580096992568272,
+    "beyond_noise": true,
+    "better": "A",
+    "undefined_draws": 0
+   },
+   "precision": {
+    "diff": 0.6039790737468091,
+    "lo": 0.5667352476780994,
+    "hi": 0.6414477328319007,
+    "beyond_noise": true,
+    "better": "A",
+    "undefined_draws": 0
+   },
+   "spearman": {
+    "diff": 0.003045582284156967,
+    "lo": -0.003334281485792053,
+    "hi": 0.014492753623188396,
+    "beyond_noise": false,
+    "better": null,
+    "undefined_draws": 0
+   },
+   "peak_month": {
+    "diff": 0.16666666666666666,
+    "lo": -1.5,
+    "hi": 1.0,
+    "beyond_noise": false,
+    "better": null,
+    "undefined_draws": 0
+   },
+   "season_length": {
+    "diff": 0.3333333333333333,
+    "lo": -0.16666666666666666,
+    "hi": 0.5,
+    "beyond_noise": false,
+    "better": null,
+    "undefined_draws": 0
+   }
+  },
+  "C3 vs b": {
+   "error": {
+    "diff": 0.3412832425854494,
+    "lo": 0.19989436800310928,
+    "hi": 0.42538422961162187,
+    "beyond_noise": true,
+    "better": "A",
+    "undefined_draws": 0
+   },
+   "abs_bias": {
+    "diff": 0.12813371158505238,
+    "lo": 0.09814742421681759,
+    "hi": 0.14863792482569926,
+    "beyond_noise": true,
+    "better": "A",
+    "undefined_draws": 0
+   },
+   "precision": {
+    "diff": 0.028271012744630508,
+    "lo": 0.007409516679088242,
+    "hi": 0.05018621775117437,
+    "beyond_noise": true,
+    "better": "A",
+    "undefined_draws": 0
+   },
+   "spearman": {
+    "diff": 0.003045582284156967,
+    "lo": -0.003334281485792053,
+    "hi": 0.014492753623188396,
+    "beyond_noise": false,
+    "better": null,
+    "undefined_draws": 0
+   },
+   "peak_month": {
+    "diff": 0.16666666666666666,
+    "lo": -1.5,
+    "hi": 1.0,
+    "beyond_noise": false,
+    "better": null,
+    "undefined_draws": 0
+   },
+   "season_length": {
+    "diff": 0.3333333333333333,
+    "lo": -0.16666666666666666,
+    "hi": 0.5,
+    "beyond_noise": false,
+    "better": null,
+    "undefined_draws": 0
+   }
+  },
+  "C3 vs cmp": {
+   "error": {
+    "diff": 0.23125349222729275,
+    "lo": 0.1785378216169401,
+    "hi": 0.27362514483575606,
+    "beyond_noise": true,
+    "better": "A",
+    "undefined_draws": 0
+   },
+   "abs_bias": {
+    "diff": 0.039259620900791846,
+    "lo": -0.003149874992528256,
+    "hi": 0.06094008269967443,
+    "beyond_noise": false,
+    "better": null,
+    "undefined_draws": 0
+   },
+   "precision": {
+    "diff": 0.05439257247963558,
+    "lo": 0.03350738680714808,
+    "hi": 0.08201189371883211,
+    "beyond_noise": true,
+    "better": "A",
+    "undefined_draws": 0
+   },
+   "spearman": {
+    "diff": 5.042602168418379e-07,
+    "lo": -0.00855045044618826,
+    "hi": 0.017971014492753623,
+    "beyond_noise": false,
+    "better": null,
+    "undefined_draws": 0
+   },
+   "peak_month": {
+    "diff": 0.0,
+    "lo": -1.1666666666666667,
+    "hi": 1.1666666666666667,
+    "beyond_noise": false,
+    "better": null,
+    "undefined_draws": 0
+   },
+   "season_length": {
+    "diff": 0.0,
+    "lo": -0.3333333333333333,
+    "hi": 0.3333333333333333,
+    "beyond_noise": false,
+    "better": null,
+    "undefined_draws": 0
+   }
+  },
+  "C3 vs 4A": {
+   "error": {
+    "diff": 0.03380632810528128,
+    "lo": 0.014884407334511601,
+    "hi": 0.049405820948899115,
+    "beyond_noise": true,
+    "better": "A",
+    "undefined_draws": 0
+   },
+   "abs_bias": {
+    "diff": 0.00013147242496268472,
+    "lo": -0.006490395754740806,
+    "hi": 0.014715458598177217,
+    "beyond_noise": false,
+    "better": null,
+    "undefined_draws": 0
+   },
+   "precision": {
+    "diff": -0.004702369845120402,
+    "lo": -0.02016614062417675,
+    "hi": 0.013019505692726122,
+    "beyond_noise": false,
+    "better": null,
+    "undefined_draws": 0
+   },
+   "spearman": {
+    "diff": -6.303252712373346e-08,
+    "lo": -0.004348330347173375,
+    "hi": 0.003478765133896016,
+    "beyond_noise": false,
+    "better": null,
+    "undefined_draws": 0
+   },
+   "peak_month": {
+    "diff": 0.0,
+    "lo": -1.0,
+    "hi": 0.8333333333333334,
+    "beyond_noise": false,
+    "better": null,
+    "undefined_draws": 0
+   },
+   "season_length": {
+    "diff": 0.0,
+    "lo": -0.3333333333333333,
+    "hi": 0.16666666666666666,
+    "beyond_noise": false,
+    "better": null,
+    "undefined_draws": 0
+   }
+  },
+  "C3 vs 1A": {
+   "error": {
+    "diff": 0.05318639758495369,
+    "lo": 0.023791490167925065,
+    "hi": 0.09265287225352803,
+    "beyond_noise": true,
+    "better": "A",
+    "undefined_draws": 0
+   },
+   "abs_bias": {
+    "diff": 0.0053138633111441125,
+    "lo": -0.021436580820707766,
+    "hi": 0.015159569014365893,
+    "beyond_noise": false,
+    "better": null,
+    "undefined_draws": 0
+   },
+   "precision": {
+    "diff": 0.007573844988639222,
+    "lo": -0.0057257191320776385,
+    "hi": 0.022048412427807654,
+    "beyond_noise": false,
+    "better": null,
+    "undefined_draws": 0
+   },
+   "spearman": {
+    "diff": 0.008986578799337619,
+    "lo": -0.0014488357104422912,
+    "hi": 0.013043858031845372,
+    "beyond_noise": false,
+    "better": null,
+    "undefined_draws": 0
+   },
+   "peak_month": {
+    "diff": 1.0,
+    "lo": -0.3333333333333333,
+    "hi": 1.0,
+    "beyond_noise": false,
+    "better": null,
+    "undefined_draws": 0
+   },
+   "season_length": {
+    "diff": 0.5,
+    "lo": -0.16666666666666666,
+    "hi": 0.5,
+    "beyond_noise": false,
+    "better": null,
+    "undefined_draws": 0
+   }
+  },
+  "C3 vs C1": {
+   "error": {
+    "diff": -0.00012470247866747108,
+    "lo": -0.0019319467413181357,
+    "hi": 0.0023587263868265983,
+    "beyond_noise": false,
+    "better": null,
+    "undefined_draws": 0
+   },
+   "abs_bias": {
+    "diff": -0.00031810905193736816,
+    "lo": -0.0019190735122434214,
+    "hi": 0.0010818689933090873,
+    "beyond_noise": false,
+    "better": null,
+    "undefined_draws": 0
+   },
+   "precision": {
+    "diff": -0.00029868303756053205,
+    "lo": -0.00522106890117906,
+    "hi": 0.004881563701383583,
+    "beyond_noise": false,
+    "better": null,
+    "undefined_draws": 0
+   },
+   "spearman": {
+    "diff": -0.00028985507246374426,
+    "lo": -0.001159420289855088,
+    "hi": 0.0020289855072463947,
+    "beyond_noise": false,
+    "better": null,
+    "undefined_draws": 0
+   },
+   "peak_month": {
+    "diff": 0.0,
+    "lo": 0.0,
+    "hi": 0.0,
+    "beyond_noise": false,
+    "better": null,
+    "undefined_draws": 0
+   },
+   "season_length": {
+    "diff": 0.0,
+    "lo": 0.0,
+    "hi": 0.16666666666666666,
+    "beyond_noise": false,
+    "better": null,
+    "undefined_draws": 0
+   }
+  },
+  "C3 vs C2": {
+   "error": {
+    "diff": 0.005897569401699609,
+    "lo": -0.0016679553086712093,
+    "hi": 0.018766528355684344,
+    "beyond_noise": false,
+    "better": null,
+    "undefined_draws": 0
+   },
+   "abs_bias": {
+    "diff": 0.0027689908956440895,
+    "lo": -0.008874329246327094,
+    "hi": 0.005772508891704368,
+    "beyond_noise": false,
+    "better": null,
+    "undefined_draws": 0
+   },
+   "precision": {
+    "diff": 0.0033721643163703297,
+    "lo": -0.004313538014749471,
+    "hi": 0.010908609164288067,
+    "beyond_noise": false,
+    "better": null,
+    "undefined_draws": 0
+   },
+   "spearman": {
+    "diff": 0.0031884688296285693,
+    "lo": -0.0020291131481137833,
+    "hi": 0.00666679430753406,
+    "beyond_noise": false,
+    "better": null,
+    "undefined_draws": 0
+   },
+   "peak_month": {
+    "diff": 0.0,
+    "lo": -0.5,
+    "hi": 0.0,
+    "beyond_noise": false,
+    "better": null,
+    "undefined_draws": 0
+   },
+   "season_length": {
+    "diff": 0.16666666666666666,
+    "lo": -0.16666666666666666,
+    "hi": 0.3333333333333333,
+    "beyond_noise": false,
+    "better": null,
+    "undefined_draws": 0
+   }
+  },
+  "a vs c (Terra referee)": {
+   "precision": {
+    "diff": -0.48525964534899757,
+    "lo": -0.5245356476551275,
+    "hi": -0.4494739393174641,
+    "beyond_noise": true,
+    "better": "B",
+    "undefined_draws": 0
+   },
+   "spearman": {
+    "diff": -0.0028985507246377016,
+    "lo": -0.022601540992900265,
+    "hi": 0.008343245534046683,
+    "beyond_noise": false,
+    "better": null,
+    "undefined_draws": 0
+   },
+   "peak_month": {
+    "diff": -0.16666666666666666,
+    "lo": -1.0,
+    "hi": 0.3333333333333333,
+    "beyond_noise": false,
+    "better": null,
+    "undefined_draws": 0
+   },
+   "season_length": {
+    "diff": -0.16666666666666666,
+    "lo": -0.5,
+    "hi": 0.5,
+    "beyond_noise": false,
+    "better": null,
+    "undefined_draws": 0
+   }
+  },
+  "b vs c (Terra referee)": {
+   "precision": {
+    "diff": 0.009293731557320495,
+    "lo": -0.027848096673517796,
+    "hi": 0.04889571904639849,
+    "beyond_noise": false,
+    "better": null,
+    "undefined_draws": 0
+   },
+   "spearman": {
+    "diff": -0.0028985507246377016,
+    "lo": -0.022601540992900265,
+    "hi": 0.008343245534046683,
+    "beyond_noise": false,
+    "better": null,
+    "undefined_draws": 0
+   },
+   "peak_month": {
+    "diff": -0.16666666666666666,
+    "lo": -1.0,
+    "hi": 0.3333333333333333,
+    "beyond_noise": false,
+    "better": null,
+    "undefined_draws": 0
+   },
+   "season_length": {
+    "diff": -0.16666666666666666,
+    "lo": -0.5,
+    "hi": 0.5,
+    "beyond_noise": false,
+    "better": null,
+    "undefined_draws": 0
+   }
+  },
+  "cmp vs c (Terra referee)": {
+   "precision": {
+    "diff": -0.006156893137001629,
+    "lo": -0.04098815774873493,
+    "hi": 0.026855339312956656,
+    "beyond_noise": false,
+    "better": null,
+    "undefined_draws": 0
+   },
+   "spearman": {
+    "diff": -0.00021542941779824817,
+    "lo": -0.01898045354752162,
+    "hi": 0.013768588685982278,
+    "beyond_noise": false,
+    "better": null,
+    "undefined_draws": 0
+   },
+   "peak_month": {
+    "diff": 0.0,
+    "lo": -1.0,
+    "hi": 0.3333333333333333,
+    "beyond_noise": false,
+    "better": null,
+    "undefined_draws": 0
+   },
+   "season_length": {
+    "diff": 0.16666666666666666,
+    "lo": -0.3333333333333333,
+    "hi": 0.3333333333333333,
+    "beyond_noise": false,
+    "better": null,
+    "undefined_draws": 0
+   }
+  },
+  "4A vs c (Terra referee)": {
+   "precision": {
+    "diff": -0.005402678407631645,
+    "lo": -0.03492860611943686,
+    "hi": 0.02199980633674324,
+    "beyond_noise": false,
+    "better": null,
+    "undefined_draws": 0
+   },
+   "spearman": {
+    "diff": 0.0029729763793031605,
+    "lo": -0.020803396399180545,
+    "hi": 0.010471267862572206,
+    "beyond_noise": false,
+    "better": null,
+    "undefined_draws": 0
+   },
+   "peak_month": {
+    "diff": 0.0,
+    "lo": -0.8333333333333334,
+    "hi": 1.0,
+    "beyond_noise": false,
+    "better": null,
+    "undefined_draws": 0
+   },
+   "season_length": {
+    "diff": -0.16666666666666666,
+    "lo": -0.3333333333333333,
+    "hi": 0.3333333333333333,
+    "beyond_noise": false,
+    "better": null,
+    "undefined_draws": 0
+   }
+  },
+  "1A vs c (Terra referee)": {
+   "precision": {
+    "diff": -0.009458213665212933,
+    "lo": -0.04296269717091352,
+    "hi": 0.020386218244144154,
+    "beyond_noise": false,
+    "better": null,
+    "undefined_draws": 0
+   },
+   "spearman": {
+    "diff": -0.003693690287363475,
+    "lo": -0.02485120129123873,
+    "hi": 0.007627289060713348,
+    "beyond_noise": false,
+    "better": null,
+    "undefined_draws": 0
+   },
+   "peak_month": {
+    "diff": 1.0,
+    "lo": -0.16666666666666666,
+    "hi": 1.6666666666666667,
+    "beyond_noise": false,
+    "better": null,
+    "undefined_draws": 0
+   },
+   "season_length": {
+    "diff": -0.3333333333333333,
+    "lo": -0.5,
+    "hi": 0.5,
+    "beyond_noise": false,
+    "better": null,
+    "undefined_draws": 0
+   }
+  },
+  "C1 vs c (Terra referee)": {
+   "precision": {
+    "diff": -0.0080141670958358,
+    "lo": -0.03506697847959947,
+    "hi": 0.015573646630262594,
+    "beyond_noise": false,
+    "better": null,
+    "undefined_draws": 0
+   },
+   "spearman": {
+    "diff": 0.003552686524230686,
+    "lo": -0.01971328339030361,
+    "hi": 0.01188633029361662,
+    "beyond_noise": false,
+    "better": null,
+    "undefined_draws": 0
+   },
+   "peak_month": {
+    "diff": 0.0,
+    "lo": -0.16666666666666666,
+    "hi": 1.5,
+    "beyond_noise": false,
+    "better": null,
+    "undefined_draws": 0
+   },
+   "season_length": {
+    "diff": 0.16666666666666666,
+    "lo": -0.3333333333333333,
+    "hi": 0.5,
+    "beyond_noise": false,
+    "better": null,
+    "undefined_draws": 0
+   }
+  },
+  "C2 vs c (Terra referee)": {
+   "precision": {
+    "diff": -0.004786195604257193,
+    "lo": -0.03761184788963567,
+    "hi": 0.024287031853914853,
+    "beyond_noise": false,
+    "better": null,
+    "undefined_draws": 0
+   },
+   "spearman": {
+    "diff": -0.0031139801424359495,
+    "lo": -0.022242093937623816,
+    "hi": 0.00934966932198707,
+    "beyond_noise": false,
+    "better": null,
+    "undefined_draws": 0
+   },
+   "peak_month": {
+    "diff": 0.0,
+    "lo": -0.16666666666666666,
+    "hi": 1.5,
+    "beyond_noise": false,
+    "better": null,
+    "undefined_draws": 0
+   },
+   "season_length": {
+    "diff": 0.0,
+    "lo": -0.3333333333333333,
+    "hi": 0.5,
+    "beyond_noise": false,
+    "better": null,
+    "undefined_draws": 0
+   }
+  },
+  "C3 vs c (Terra referee)": {
+   "precision": {
+    "diff": -0.008565581934409039,
+    "lo": -0.03537961791541451,
+    "hi": 0.01540174364474388,
+    "beyond_noise": false,
+    "better": null,
+    "undefined_draws": 0
+   },
+   "spearman": {
+    "diff": 0.0021034111619118536,
+    "lo": -0.019705214781063893,
+    "hi": 0.011959008371468122,
+    "beyond_noise": false,
+    "better": null,
+    "undefined_draws": 0
+   },
+   "peak_month": {
+    "diff": 0.0,
+    "lo": -0.16666666666666666,
+    "hi": 1.3333333333333333,
+    "beyond_noise": false,
+    "better": null,
+    "undefined_draws": 0
+   },
+   "season_length": {
+    "diff": 0.16666666666666666,
+    "lo": -0.3333333333333333,
+    "hi": 0.5,
+    "beyond_noise": false,
+    "better": null,
+    "undefined_draws": 0
+   }
+  }
+ },
+ "decisions": {
+  "too_few_flags": {
+   "triggered": false,
+   "approaches_below_20": [],
+   "truth_flags": 474
+  },
+  "non_inferior_to_c": {
+   "a": {
+    "pass": false,
+    "checks": {
+     "precision": false,
+     "spearman": true,
+     "peak_month": true,
+     "season_length": true
+    }
+   },
+   "b": {
+    "pass": true,
+    "checks": {
+     "precision": true,
+     "spearman": true,
+     "peak_month": true,
+     "season_length": true
+    }
+   },
+   "cmp": {
+    "pass": true,
+    "checks": {
+     "precision": true,
+     "spearman": true,
+     "peak_month": true,
+     "season_length": true
+    }
+   },
+   "4A": {
+    "pass": true,
+    "checks": {
+     "precision": true,
+     "spearman": true,
+     "peak_month": true,
+     "season_length": true
+    }
+   },
+   "1A": {
+    "pass": true,
+    "checks": {
+     "precision": true,
+     "spearman": true,
+     "peak_month": true,
+     "season_length": true
+    }
+   },
+   "C1": {
+    "pass": true,
+    "checks": {
+     "precision": true,
+     "spearman": true,
+     "peak_month": true,
+     "season_length": true
+    }
+   },
+   "C2": {
+    "pass": true,
+    "checks": {
+     "precision": true,
+     "spearman": true,
+     "peak_month": true,
+     "season_length": true
+    }
+   },
+   "C3": {
+    "pass": true,
+    "checks": {
+     "precision": true,
+     "spearman": true,
+     "peak_month": true,
+     "season_length": true
+    }
+   }
+  },
+  "beats_a": {
+   "b": {
+    "pass": true,
+    "lower_error_beyond_noise": true,
+    "worse_beyond_noise_on": []
+   },
+   "cmp": {
+    "pass": true,
+    "lower_error_beyond_noise": true,
+    "worse_beyond_noise_on": []
+   },
+   "4A": {
+    "pass": true,
+    "lower_error_beyond_noise": true,
+    "worse_beyond_noise_on": []
+   },
+   "1A": {
+    "pass": true,
+    "lower_error_beyond_noise": true,
+    "worse_beyond_noise_on": []
+   },
+   "C1": {
+    "pass": true,
+    "lower_error_beyond_noise": true,
+    "worse_beyond_noise_on": []
+   },
+   "C2": {
+    "pass": true,
+    "lower_error_beyond_noise": true,
+    "worse_beyond_noise_on": []
+   },
+   "C3": {
+    "pass": true,
+    "lower_error_beyond_noise": true,
+    "worse_beyond_noise_on": []
+   }
+  },
+  "beats_b": {
+   "a": {
+    "pass": false,
+    "lower_error_beyond_noise": false,
+    "worse_beyond_noise_on": [
+     "abs_bias",
+     "precision"
+    ]
+   },
+   "cmp": {
+    "pass": false,
+    "lower_error_beyond_noise": false,
+    "worse_beyond_noise_on": [
+     "precision"
+    ]
+   },
+   "4A": {
+    "pass": true,
+    "lower_error_beyond_noise": true,
+    "worse_beyond_noise_on": []
+   },
+   "1A": {
+    "pass": true,
+    "lower_error_beyond_noise": true,
+    "worse_beyond_noise_on": []
+   },
+   "C1": {
+    "pass": true,
+    "lower_error_beyond_noise": true,
+    "worse_beyond_noise_on": []
+   },
+   "C2": {
+    "pass": true,
+    "lower_error_beyond_noise": true,
+    "worse_beyond_noise_on": []
+   },
+   "C3": {
+    "pass": true,
+    "lower_error_beyond_noise": true,
+    "worse_beyond_noise_on": []
+   }
+  },
+  "clear_winner": {
+   "winner": null
+  },
+  "best_single": {
+   "best": null,
+   "lowest_error": "C1",
+   "tied": [
+    "C1",
+    "C3"
+   ],
+   "remaining": [
+    "C1",
+    "C3"
+   ],
+   "needs_blind_judgement": true,
+   "trail": [
+    "lowest error: C1; within noise on error and absolute bias: ['C3']",
+    "still tied: tie-breaks 3 and 4 need a blind judgement"
+   ]
+  }
+ },
+ "truth_flags_1deg": 474
+}

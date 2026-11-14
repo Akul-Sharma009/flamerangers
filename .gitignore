@@ -23,3 +23,9 @@ build/
 # OS and local settings
 .DS_Store
 .claude/settings.local.json
+
+# Build output (the record store is built, never committed)
+store/
+
+# Local-only notes
+CLAUDE.local.md

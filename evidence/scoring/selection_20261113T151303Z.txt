@@ -1,0 +1,131 @@
+== selection set (step 1)  years=[2015, 2018]  blocks={'sumatra': 10, 'australia_grassland': 10, 'amazon_forest': 8, 'total': 28}  draws=10000 seed=20261114 code=1ae6e8e4f8007627
+Criterion 1 at 1 degree (truth: Aqua). MAE per land cell-month; bias = (pred - truth) / truth
+approach                  sumatra MAE   bias australia_gras MAE   bias  amazon_forest MAE   bias
+a                          157.778  7.002         252.267  8.492         140.162  5.375
+b                           6.057  0.034          8.917  0.226          6.423 -0.176
+cmp                         6.616  0.135          6.609  0.053          6.272 -0.059
+4A                          4.101 -0.001          5.516  0.009          4.990 -0.057
+1A                          4.214  0.006          5.509  0.024          5.196 -0.028
+C1                          3.989 -0.000          5.287  0.015          4.827 -0.047
+C2                          3.981  0.003          5.328  0.018          4.933 -0.039
+C3                          3.990 -0.000          5.296  0.014          4.821 -0.048
+Criteria 2 and 3 (flags at 1 degree pooled; ranking and season at whole region, mean of regions)
+approach           raised   true  truth   prec    rec  spear   topk yrpair   peak season
+a                    1836    471    474  0.257  0.994  0.975  0.889  1.000   0.17   0.50
+b                     459    382    474  0.832  0.806  0.975  0.889  1.000   0.17   0.50
+cmp                   490    395    474  0.806  0.833  0.978  0.889  1.000   0.00   0.17
+4A                    460    398    474  0.865  0.840  0.978  0.889  1.000   0.00   0.17
+1A                    476    406    474  0.853  0.857  0.969  0.889  1.000   1.00   0.67
+C1                    467    402    474  0.861  0.848  0.978  0.889  1.000   0.00   0.17
+C2                    469    402    474  0.857  0.848  0.975  0.889  1.000   0.00   0.33
+C3                    466    401    474  0.861  0.846  0.978  0.889  1.000   0.00   0.17
+Terra referee (truth: Terra, own 2003-2011 history). (c) = Aqua only
+a                    1836    488    501  0.266  0.974  0.960  0.889  1.000   2.00   0.33
+b                     459    349    501  0.760  0.697  0.960  0.889  1.000   2.00   0.33
+cmp                   490    365    501  0.745  0.729  0.963  0.889  1.000   1.83   0.00
+4A                    460    343    501  0.746  0.685  0.966  0.889  1.000   1.83   0.33
+1A                    476    353    501  0.742  0.705  0.959  0.889  1.000   0.83   0.50
+C1                    467    347    501  0.743  0.693  0.967  0.889  1.000   1.83   0.00
+C2                    469    350    501  0.746  0.699  0.960  0.889  1.000   1.83   0.17
+C3                    466    346    501  0.742  0.691  0.965  0.889  1.000   1.83   0.00
+c                     474    356    501  0.751  0.711  0.963  0.778  1.000   1.83   0.17
+Paired comparisons: difference [95% interval], positive = first approach better, * = beyond noise
+  b vs a
+    error=+0.962[+0.951,+0.965]*  abs_bias=+6.968[+5.823,+7.503]*  precision=+0.576[+0.540,+0.616]*  spearman=+0.000[+0.000,+0.000]  peak_month=+0.000[+0.000,+0.000]  season_length=+0.000[+0.000,+0.000]
+  cmp vs a
+    error=+0.958[+0.952,+0.965]*  abs_bias=+6.867[+5.898,+7.438]*  precision=+0.550[+0.509,+0.589]*  spearman=+0.003[-0.012,+0.014]  peak_month=+0.167[-1.000,+0.167]  season_length=+0.333[-0.333,+0.500]
+  cmp vs b
+    error=+0.023[-0.070,+0.110]  abs_bias=+0.117[+0.087,+0.152]*  precision=-0.026[-0.059,-0.002]*  spearman=+0.003[-0.012,+0.014]  peak_month=+0.167[-1.000,+0.167]  season_length=+0.333[-0.333,+0.500]
+  4A vs a
+    error=+0.974[+0.963,+0.979]*  abs_bias=+7.002[+5.883,+7.560]*  precision=+0.609[+0.563,+0.651]*  spearman=+0.003[-0.003,+0.015]  peak_month=+0.167[-0.833,+1.000]  season_length=+0.333[-0.167,+0.500]
+  4A vs b
+    error=+0.323[+0.170,+0.405]*  abs_bias=+0.120[+0.084,+0.150]*  precision=+0.033[+0.004,+0.056]*  spearman=+0.003[-0.003,+0.015]  peak_month=+0.167[-0.833,+1.000]  season_length=+0.333[-0.167,+0.500]
+  4A vs cmp
+    error=+0.204[+0.145,+0.265]*  abs_bias=+0.044[-0.005,+0.070]  precision=+0.059[+0.038,+0.084]*  spearman=+0.000[-0.008,+0.018]  peak_month=+0.000[-0.833,+1.000]  season_length=+0.000[-0.333,+0.333]
+  4A vs 1A
+    error=+0.027[-0.016,+0.074]  abs_bias=+0.005[-0.035,+0.018]  precision=+0.012[-0.012,+0.033]  spearman=+0.009[-0.002,+0.014]  peak_month=+1.000[-1.000,+1.167]  season_length=+0.500[-0.167,+0.500]
+  4A vs C1
+    error=-0.034[-0.053,-0.013]*  abs_bias=-0.000[-0.017,+0.007]  precision=+0.004[-0.015,+0.022]  spearman=-0.000[-0.004,+0.005]  peak_month=+0.000[-0.833,+1.000]  season_length=+0.000[-0.167,+0.333]
+  4A vs C2
+    error=-0.030[-0.046,-0.001]*  abs_bias=+0.003[-0.023,+0.010]  precision=+0.008[-0.013,+0.028]  spearman=+0.003[-0.003,+0.009]  peak_month=+0.000[-0.833,+1.000]  season_length=+0.167[-0.167,+0.333]
+  4A vs C3
+    error=-0.035[-0.052,-0.015]*  abs_bias=-0.000[-0.015,+0.006]  precision=+0.005[-0.013,+0.020]  spearman=+0.000[-0.003,+0.004]  peak_month=+0.000[-0.833,+1.000]  season_length=+0.000[-0.167,+0.333]
+  1A vs a
+    error=+0.973[+0.961,+0.978]*  abs_bias=+6.997[+5.879,+7.599]*  precision=+0.596[+0.561,+0.635]*  spearman=-0.006[-0.007,+0.006]  peak_month=-0.833[-1.500,+1.000]  season_length=-0.167[-0.333,+0.333]
+  1A vs b
+    error=+0.304[+0.138,+0.394]*  abs_bias=+0.149[+0.094,+0.162]*  precision=+0.021[+0.002,+0.039]*  spearman=-0.006[-0.007,+0.006]  peak_month=-0.833[-1.500,+1.000]  season_length=-0.167[-0.333,+0.333]
+  1A vs cmp
+    error=+0.171[+0.119,+0.227]*  abs_bias=+0.031[+0.006,+0.068]*  precision=+0.047[+0.023,+0.078]*  spearman=-0.009[-0.015,+0.013]  peak_month=-1.000[-1.500,+1.167]  season_length=-0.500[-0.500,+0.333]
+  1A vs 4A
+    error=-0.028[-0.080,+0.016]  abs_bias=-0.005[-0.018,+0.035]  precision=-0.012[-0.033,+0.012]  spearman=-0.009[-0.014,+0.002]  peak_month=-1.000[-1.167,+1.000]  season_length=-0.500[-0.500,+0.167]
+  1A vs C1
+    error=-0.056[-0.100,-0.026]*  abs_bias=-0.006[-0.015,+0.020]  precision=-0.008[-0.022,+0.005]  spearman=-0.009[-0.013,+0.001]  peak_month=-1.000[-1.000,+0.333]  season_length=-0.500[-0.333,+0.167]
+  1A vs C2
+    error=-0.053[-0.085,-0.019]*  abs_bias=-0.003[-0.011,+0.014]  precision=-0.004[-0.019,+0.008]  spearman=-0.006[-0.009,+0.001]  peak_month=-1.000[-1.000,+0.167]  season_length=-0.333[-0.333,+0.167]
+  1A vs C3
+    error=-0.056[-0.102,-0.024]*  abs_bias=-0.005[-0.015,+0.021]  precision=-0.008[-0.022,+0.006]  spearman=-0.009[-0.013,+0.001]  peak_month=-1.000[-1.000,+0.333]  season_length=-0.500[-0.500,+0.167]
+  C1 vs a
+    error=+0.975[+0.964,+0.979]*  abs_bias=+7.002[+5.883,+7.582]*  precision=+0.604[+0.567,+0.642]*  spearman=+0.003[-0.003,+0.014]  peak_month=+0.167[-1.500,+1.000]  season_length=+0.333[-0.167,+0.500]
+  C1 vs b
+    error=+0.341[+0.199,+0.426]*  abs_bias=+0.130[+0.100,+0.149]*  precision=+0.029[+0.007,+0.050]*  spearman=+0.003[-0.003,+0.014]  peak_month=+0.167[-1.500,+1.000]  season_length=+0.333[-0.167,+0.500]
+  C1 vs cmp
+    error=+0.230[+0.179,+0.271]*  abs_bias=+0.039[-0.003,+0.061]  precision=+0.055[+0.034,+0.082]*  spearman=+0.000[-0.009,+0.018]  peak_month=+0.000[-1.167,+1.167]  season_length=+0.000[-0.333,+0.333]
+  C1 vs 4A
+    error=+0.033[+0.013,+0.051]*  abs_bias=+0.000[-0.007,+0.017]  precision=-0.004[-0.022,+0.015]  spearman=+0.000[-0.005,+0.004]  peak_month=+0.000[-1.000,+0.833]  season_length=+0.000[-0.333,+0.167]
+  C1 vs 1A
+    error=+0.053[+0.025,+0.091]*  abs_bias=+0.006[-0.020,+0.015]  precision=+0.008[-0.005,+0.022]  spearman=+0.009[-0.001,+0.013]  peak_month=+1.000[-0.333,+1.000]  season_length=+0.500[-0.167,+0.333]
+  C1 vs C2
+    error=+0.008[+0.001,+0.018]*  abs_bias=+0.003[-0.007,+0.005]  precision=+0.004[-0.004,+0.011]  spearman=+0.003[-0.002,+0.006]  peak_month=+0.000[-0.667,+0.000]  season_length=+0.167[-0.167,+0.167]
+  C1 vs C3
+    error=+0.000[-0.002,+0.002]  abs_bias=+0.000[-0.001,+0.002]  precision=+0.000[-0.005,+0.005]  spearman=+0.000[-0.002,+0.001]  peak_month=+0.000[+0.000,+0.000]  season_length=+0.000[-0.167,+0.000]
+  C2 vs a
+    error=+0.975[+0.963,+0.979]*  abs_bias=+6.999[+5.881,+7.584]*  precision=+0.601[+0.563,+0.640]*  spearman=-0.000[-0.004,+0.011]  peak_month=+0.167[-1.167,+1.000]  season_length=+0.167[-0.167,+0.333]
+  C2 vs b
+    error=+0.343[+0.183,+0.425]*  abs_bias=+0.137[+0.107,+0.156]*  precision=+0.025[+0.003,+0.048]*  spearman=-0.000[-0.004,+0.011]  peak_month=+0.167[-1.167,+1.000]  season_length=+0.167[-0.167,+0.333]
+  C2 vs cmp
+    error=+0.213[+0.166,+0.260]*  abs_bias=+0.035[+0.003,+0.062]*  precision=+0.051[+0.027,+0.082]*  spearman=-0.003[-0.010,+0.016]  peak_month=+0.000[-1.167,+1.167]  season_length=-0.167[-0.333,+0.333]
+  C2 vs 4A
+    error=+0.029[+0.001,+0.044]*  abs_bias=-0.003[-0.010,+0.023]  precision=-0.008[-0.028,+0.013]  spearman=-0.003[-0.009,+0.003]  peak_month=+0.000[-1.000,+0.833]  season_length=-0.167[-0.333,+0.167]
+  C2 vs 1A
+    error=+0.051[+0.018,+0.078]*  abs_bias=+0.003[-0.014,+0.011]  precision=+0.004[-0.008,+0.019]  spearman=+0.006[-0.001,+0.009]  peak_month=+1.000[-0.167,+1.000]  season_length=+0.333[-0.167,+0.333]
+  C2 vs C1
+    error=-0.008[-0.019,-0.001]*  abs_bias=-0.003[-0.005,+0.007]  precision=-0.004[-0.011,+0.004]  spearman=-0.003[-0.006,+0.002]  peak_month=+0.000[+0.000,+0.667]  season_length=-0.167[-0.167,+0.167]
+  C2 vs C3
+    error=-0.006[-0.019,+0.002]  abs_bias=-0.003[-0.006,+0.009]  precision=-0.003[-0.011,+0.004]  spearman=-0.003[-0.007,+0.002]  peak_month=+0.000[+0.000,+0.500]  season_length=-0.167[-0.333,+0.167]
+  C3 vs a
+    error=+0.975[+0.964,+0.979]*  abs_bias=+7.002[+5.883,+7.580]*  precision=+0.604[+0.567,+0.641]*  spearman=+0.003[-0.003,+0.014]  peak_month=+0.167[-1.500,+1.000]  season_length=+0.333[-0.167,+0.500]
+  C3 vs b
+    error=+0.341[+0.200,+0.425]*  abs_bias=+0.128[+0.098,+0.149]*  precision=+0.028[+0.007,+0.050]*  spearman=+0.003[-0.003,+0.014]  peak_month=+0.167[-1.500,+1.000]  season_length=+0.333[-0.167,+0.500]
+  C3 vs cmp
+    error=+0.231[+0.179,+0.274]*  abs_bias=+0.039[-0.003,+0.061]  precision=+0.054[+0.034,+0.082]*  spearman=+0.000[-0.009,+0.018]  peak_month=+0.000[-1.167,+1.167]  season_length=+0.000[-0.333,+0.333]
+  C3 vs 4A
+    error=+0.034[+0.015,+0.049]*  abs_bias=+0.000[-0.006,+0.015]  precision=-0.005[-0.020,+0.013]  spearman=-0.000[-0.004,+0.003]  peak_month=+0.000[-1.000,+0.833]  season_length=+0.000[-0.333,+0.167]
+  C3 vs 1A
+    error=+0.053[+0.024,+0.093]*  abs_bias=+0.005[-0.021,+0.015]  precision=+0.008[-0.006,+0.022]  spearman=+0.009[-0.001,+0.013]  peak_month=+1.000[-0.333,+1.000]  season_length=+0.500[-0.167,+0.500]
+  C3 vs C1
+    error=-0.000[-0.002,+0.002]  abs_bias=-0.000[-0.002,+0.001]  precision=-0.000[-0.005,+0.005]  spearman=-0.000[-0.001,+0.002]  peak_month=+0.000[+0.000,+0.000]  season_length=+0.000[+0.000,+0.167]
+  C3 vs C2
+    error=+0.006[-0.002,+0.019]  abs_bias=+0.003[-0.009,+0.006]  precision=+0.003[-0.004,+0.011]  spearman=+0.003[-0.002,+0.007]  peak_month=+0.000[-0.500,+0.000]  season_length=+0.167[-0.167,+0.333]
+  a vs c (Terra referee)
+    precision=-0.485[-0.525,-0.449]*  spearman=-0.003[-0.023,+0.008]  peak_month=-0.167[-1.000,+0.333]  season_length=-0.167[-0.500,+0.500]
+  b vs c (Terra referee)
+    precision=+0.009[-0.028,+0.049]  spearman=-0.003[-0.023,+0.008]  peak_month=-0.167[-1.000,+0.333]  season_length=-0.167[-0.500,+0.500]
+  cmp vs c (Terra referee)
+    precision=-0.006[-0.041,+0.027]  spearman=-0.000[-0.019,+0.014]  peak_month=+0.000[-1.000,+0.333]  season_length=+0.167[-0.333,+0.333]
+  4A vs c (Terra referee)
+    precision=-0.005[-0.035,+0.022]  spearman=+0.003[-0.021,+0.010]  peak_month=+0.000[-0.833,+1.000]  season_length=-0.167[-0.333,+0.333]
+  1A vs c (Terra referee)
+    precision=-0.009[-0.043,+0.020]  spearman=-0.004[-0.025,+0.008]  peak_month=+1.000[-0.167,+1.667]  season_length=-0.333[-0.500,+0.500]
+  C1 vs c (Terra referee)
+    precision=-0.008[-0.035,+0.016]  spearman=+0.004[-0.020,+0.012]  peak_month=+0.000[-0.167,+1.500]  season_length=+0.167[-0.333,+0.500]
+  C2 vs c (Terra referee)
+    precision=-0.005[-0.038,+0.024]  spearman=-0.003[-0.022,+0.009]  peak_month=+0.000[-0.167,+1.500]  season_length=+0.000[-0.333,+0.500]
+  C3 vs c (Terra referee)
+    precision=-0.009[-0.035,+0.015]  spearman=+0.002[-0.020,+0.012]  peak_month=+0.000[-0.167,+1.333]  season_length=+0.167[-0.333,+0.500]
+Decisions
+  too_few_flags: {"triggered": false, "approaches_below_20": [], "truth_flags": 474}
+  non_inferior_to_c: {"a": {"pass": false, "checks": {"precision": false, "spearman": true, "peak_month": true, "season_length": true}}, "b": {"pass": true, "checks": {"precision": true, "spearman": true, "peak_month": true, "season_length": true}}, "cmp": {"pass": true, "checks": {"precision": true, "spearman": true, "peak_month": true, "season_length": true}}, "4A": {"pass": true, "checks": {"precision": true, "spearman": true, "peak_month": true, "season_length": true}}, "1A": {"pass": true, "checks": {"precision": true, "spearman": true, "peak_month": true, "season_length": true}}, "C1": {"pass": true, "checks": {"precision": true, "spearman": true, "peak_month": true, "season_length": true}}, "C2": {"pass": true, "checks": {"precision": true, "spearman": true, "peak_month": true, "season_length": true}}, "C3": {"pass": true, "checks": {"precision": true, "spearman": true, "peak_month": true, "season_length": true}}}
+  beats_a: {"b": {"pass": true, "lower_error_beyond_noise": true, "worse_beyond_noise_on": []}, "cmp": {"pass": true, "lower_error_beyond_noise": true, "worse_beyond_noise_on": []}, "4A": {"pass": true, "lower_error_beyond_noise": true, "worse_beyond_noise_on": []}, "1A": {"pass": true, "lower_error_beyond_noise": true, "worse_beyond_noise_on": []}, "C1": {"pass": true, "lower_error_beyond_noise": true, "worse_beyond_noise_on": []}, "C2": {"pass": true, "lower_error_beyond_noise": true, "worse_beyond_noise_on": []}, "C3": {"pass": true, "lower_error_beyond_noise": true, "worse_beyond_noise_on": []}}
+  beats_b: {"a": {"pass": false, "lower_error_beyond_noise": false, "worse_beyond_noise_on": ["abs_bias", "precision"]}, "cmp": {"pass": false, "lower_error_beyond_noise": false, "worse_beyond_noise_on": ["precision"]}, "4A": {"pass": true, "lower_error_beyond_noise": true, "worse_beyond_noise_on": []}, "1A": {"pass": true, "lower_error_beyond_noise": true, "worse_beyond_noise_on": []}, "C1": {"pass": true, "lower_error_beyond_noise": true, "worse_beyond_noise_on": []}, "C2": {"pass": true, "lower_error_beyond_noise": true, "worse_beyond_noise_on": []}, "C3": {"pass": true, "lower_error_beyond_noise": true, "worse_beyond_noise_on": []}}
+  clear_winner: {"winner": null}
+  best_single: {"best": null, "lowest_error": "C1", "tied": ["C1", "C3"], "remaining": ["C1", "C3"], "needs_blind_judgement": true, "trail": ["lowest error: C1; within noise on error and absolute bias: ['C3']", "still tied: tie-breaks 3 and 4 need a blind judgement"]}

@@ -1,0 +1,37 @@
+{
+  "note": "Scoring outputs copied unchanged from the planning record. Scores only; no hotspot or truth data. Do not edit these files (AD-13).",
+  "files": {
+    "final_20261113T172020Z.json": {
+      "sha256": "b5031af7372e03b2907408434b49918fc796db3f269ea64a36a99457614214a7",
+      "bytes": 171696
+    },
+    "final_20261113T172020Z.txt": {
+      "sha256": "aaec537a4b42ee74611455f36708ed643788641c6c42f8fa780ad477c8f73344",
+      "bytes": 11847
+    },
+    "reported_only_20261113T205827Z.json": {
+      "sha256": "969b40cbf8c6b8ef1e45a3b1ee99a09833f538b10bdbcecfc97b95a18390eafe",
+      "bytes": 217940
+    },
+    "reported_only_20261113T205827Z.txt": {
+      "sha256": "db492c871ae800b227686e7473e906ec26fde99d9b30a059cfa65f8d62ab189d",
+      "bytes": 10244
+    },
+    "selection_20261113T145716Z.json": {
+      "sha256": "ca453e41af37b9a5d89189520c874226b97c500209a73091b0f756099b3c9e24",
+      "bytes": 455096
+    },
+    "selection_20261113T145716Z.txt": {
+      "sha256": "588fe0b6de60020a2e67d73f3f39c87788115e85a9e18fcf89d67bccb2ebedab",
+      "bytes": 54801
+    },
+    "selection_20261113T151303Z.json": {
+      "sha256": "d24b38629171924a4a3f971685146852959428c8a87b43ad27c02af141dbb516",
+      "bytes": 164850
+    },
+    "selection_20261113T151303Z.txt": {
+      "sha256": "b83ae2407f3d0242ade6a75c5d9bf733ae135de3660404de2ead64e7d9ac4e12",
+      "bytes": 14897
+    }
+  }
+}

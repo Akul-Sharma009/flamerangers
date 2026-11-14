@@ -1,0 +1,121 @@
+# STATUS DEFINITIONS:
+# ==================
+# Epic Status:
+#   - backlog: Epic not yet started
+#   - in-progress: Epic actively being worked on
+#   - done: All stories in epic completed
+
+# Story Status:
+#   - backlog: Story only exists in epic file
+#   - ready-for-dev: Story file created, ready for development
+#   - in-progress: Developer actively working on implementation
+#   - review: Implementation complete, ready for review
+#   - done: Story completed
+
+# Retrospective Status:
+#   - optional: Can be completed but not required
+#   - done: Retrospective has been completed
+
+# Action Item Status:
+#   - open: Committed during a retrospective, not yet addressed
+#   - in-progress: Actively being worked on
+#   - done: Completed
+
+# WORKFLOW NOTES:
+# ===============
+# - Epic transitions to 'in-progress' automatically when its first story starts (via build's sprint sync)
+# - Stories can be worked in parallel if team capacity allows
+# - Developer typically creates the next story after the previous one is 'done' to incorporate learnings
+# - Dev moves story to 'review', then runs code-review (fresh context, different LLM recommended)
+# - Retrospective appends its action items to action_items; the status view surfaces open ones
+generated: 11-14-2026 02:21
+last_updated: 11-14-2026 (after plan reviews)
+project: SpaceApps
+project_key: NOKEY
+tracking_system: file-system
+story_location: _bmad-output/implementation-artifacts
+development_status:
+  epic-1: backlog
+  1-1-repo-scaffold-and-guardrails-both: backlog
+  1-2-data-contract-and-sumatra-fixture-both: backlog
+  1-3-service-stub-at-a-public-address-t: backlog
+  1-4-ui-concept-chosen-a: backlog
+  1-5-web-shell-showing-the-fixture-calendar-a: backlog
+  epic-1-retrospective: optional
+
+  epic-2: backlog
+  2-1-export-c1-s-parameters-and-parity-targets-a: review
+  2-2-c1-in-core-matching-the-scored-predictions-t: backlog
+  2-3-ingest-and-cleaning-for-one-extent-t: backlog
+  2-4-weights-and-the-harmonized-record-t: backlog
+  2-5-grids-thresholds-and-flags-t: backlog
+  2-6-publish-a-version-and-serve-real-counts-t: backlog
+  2-7-hotspots-for-any-search-t: backlog
+  2-8-coverage-for-the-evaluated-regions-then-the-world-t: backlog
+  2-9-the-current-month-refreshed-daily-t: backlog
+  2-10-noaa-20-against-suomi-npp-reported-only-t: backlog
+  epic-2-retrospective: optional
+
+  epic-3: backlog
+  3-1-statistics-for-the-calendar-t: backlog
+  3-2-flags-per-area-and-the-current-month-comparison-t: backlog
+  3-3-select-an-area-a: backlog
+  3-4-select-a-date-range-a: backlog
+  3-5-the-burning-activity-calendar-a: backlog
+  3-6-provenance-and-evidence-caveats-on-every-cell-a: backlog
+  3-7-current-month-card-a: backlog
+  3-8-anomaly-view-and-flags-a: backlog
+  3-9-most-active-months-and-years-a: backlog
+  3-10-accessibility-and-phone-width-pass-a: backlog
+  epic-3-retrospective: optional
+
+  epic-4: backlog
+  4-1-analytics-csv-t: backlog
+  4-2-hotspot-csv-t: backlog
+  4-3-picture-downloads-a: backlog
+  4-4-download-controls-a: backlog
+  4-5-numbers-agree-check-t: backlog
+  epic-4-retrospective: optional
+
+  epic-5: backlog
+  5-1-commit-the-scoring-outputs-and-the-fixed-claims-a: backlog
+  5-2-evidence-build-and-its-checks-a: backlog
+  5-3-the-outcome-in-plain-words-a: backlog
+  5-4-head-to-head-table-a: backlog
+  5-5-aqua-only-and-the-incumbent-a: backlog
+  5-6-what-the-scores-can-t-show-a: backlog
+  5-7-about-the-data-page-a: backlog
+  epic-5-retrospective: optional
+
+  epic-6: backlog
+  6-1-nasa-datasets-and-references-t-drafts-a-reviews: backlog
+  6-2-readme-and-fresh-clone-run-both-t-runs-the-clone: backlog
+  6-3-security-and-readiness-checks-a: backlog
+  6-4-the-link-stays-up-through-judging-t: backlog
+  6-5-demo-assets-and-submission-text-a: backlog
+  6-6-pitch-storyline-drafted-on-saturday-a: backlog
+  epic-6-retrospective: optional
+
+  epic-7: backlog
+  7-1-raw-splice-series-t: backlog
+  7-2-raw-against-harmonized-toggle-a: backlog
+  7-3-seasonal-profile-statistics-t: backlog
+  7-4-seasonal-profile-chart-a: backlog
+  7-5-season-to-date-statistics-t: backlog
+  7-6-season-to-date-chart-a: backlog
+  7-7-hotspot-map-for-a-month-a: backlog
+  7-8-all-candidates-table-a: backlog
+  epic-7-retrospective: optional
+
+  epic-8: backlog
+  8-1-shareable-link-a: backlog
+  8-2-administrative-unit-selection-a: backlog
+  8-3-reference-period-as-a-request-option-t: backlog
+  8-4-reference-period-control-a: backlog
+  8-5-trend-test-t: backlog
+  8-6-trend-indicator-a: backlog
+  8-7-two-area-comparison-a: backlog
+  8-8-featured-area-gallery-a: backlog
+  8-9-cell-states-for-one-month-worldwide-t: backlog
+  8-10-globe-of-unusual-burning-a: backlog
+  epic-8-retrospective: optional
