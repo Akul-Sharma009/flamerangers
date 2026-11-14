@@ -54,3 +54,24 @@ def month_state(year: int, month: int, *, data_through: date) -> tuple[str, str 
     if (last - first).days > (data_through - first).days + 1:
         return "partial", "data_through"
     return "complete", None
+
+
+def meta_dates(data_through: date) -> dict:
+    """AD-16: the current month, the day d and the reference period, all from data_through."""
+    return {"current_month": f"{data_through.year:04d}-{data_through.month:02d}",
+            "data_through_day": data_through.day,
+            "reference_period": {"start_year": 2003, "end_year": data_through.year - 1}}
+
+
+def partial_reasons(year: int, month: int, *, data_through: date, missing_days: bool, start: date, end: date) -> list[str]:
+    """AD-17 partial reasons of one month, in the contract's order. Months outside the record get none."""
+    state, reason = month_state(year, month, data_through=data_through)
+    out = [reason] if state == "partial" else []
+    if state != "null" and missing_days:
+        out.append("missing_days")
+    first = date(year, month, 1)
+    last = date(year + month // 12, month % 12 + 1, 1)
+    # A range ending on data_through does not cut the current month: the data ends there anyway.
+    if start > first or end < min(date.fromordinal(last.toordinal() - 1), data_through):
+        out.append("range_cut")
+    return out

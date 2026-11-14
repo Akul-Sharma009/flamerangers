@@ -61,3 +61,15 @@ def tile_extent(bounds) -> tuple:
 
 def is_tile_extent(bounds) -> bool:
     return tuple(float(b) for b in bounds) == tile_extent(bounds)
+
+
+def region_caveat(geom, geoms: dict) -> str:
+    """southern_africa when the area overlaps that region; untuned_region when any of it lies
+    outside the tuning regions; else none. From the area's shape (lead's call, 14 Nov)."""
+    sa = geoms.get("southern_africa")
+    if sa is not None and shapely.area(shapely.intersection(geom, sa)) > 0:
+        return "southern_africa"
+    tuned = shapely.union_all([g for rid, g in geoms.items() if rid in TUNING_REGIONS])
+    if shapely.area(shapely.difference(geom, tuned)) > 1e-12 * max(shapely.area(geom), 1.0):
+        return "untuned_region"
+    return "none"

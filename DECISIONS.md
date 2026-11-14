@@ -408,3 +408,19 @@ Each entry has: a status (**ASSUMED** or **TESTED**), its evidence, and a "revis
   - The strong tier compares the rounded count with the rounded 1.5 × threshold.
 - **Evidence:** `uv run pytest burncal/core/test_grids.py burncal/pipeline/test_aggregate.py`. Sumatra thresholds match the parity targets in 899 of 900 cell-months within 1e-6. The miss: September at 105°E 6°S, 21.0 against 20.6, because FIRMS gives 41 Aqua rows for September 2006 in that cell where the harness history has 39. Sumatra's September 2003–2011 total is 36,686 against the stored 36,684; every other month of the stored history matches exactly. The two rows are not near the coast or the region edge. Australian grassland and Amazon forest are not checked yet: they need their 2003–2011 Aqua data downloaded.
 - **Revisit if:** the lead's harness inputs show which two rows differ, or the Australian and Amazon checks miss.
+
+## Story 2.6: publishing and serving the record (14 Nov)
+
+- **Status:** ASSUMED (lead to confirm); fast path TESTED
+- **Decision:**
+  - A version lives in `store/published/versions/<record_version>/`: manifest, coverage tables, grids, the full record rows (for Story 2.7) and a lean `points.parquet` of the rows in any count. It is written under a temporary name and renamed, then `CURRENT.json` names it and the previous version. The service answers both and returns `version_superseded` (with `current_record_version`) for anything older. It re-reads the pointer when the file changes.
+  - `record_version` is the data-through date plus 8 hex digits of a hash over the raw files' hashes (including `coverage.json`), the parameter file's hash and the git revision. No clock is read.
+  - Coverage comes from `coverage.json` beside the raw files: the extent and, per FIRMS source, the date ranges downloaded and available. `inputs[].days` counts covered days per satellite and quality, standard beating NRT per day. A month gets `missing_days` when a day of the record has no covered feeding satellite. The NOAA-20 2024 gap shows as zero NOAA-20 days, so `raw.noaa20` is null there.
+  - Fast path: whole 0.25° cells inside the area come from the grid; cells the edge cuts come from point rows. A point on the area's edge is inside.
+  - An area must lie wholly inside the store's extent; otherwise `outside_coverage` (404).
+  - `region_caveat` comes from the area's shape against the region boundaries (lead's call, 14 Nov): `southern_africa` when the area overlaps that region, `untuned_region` when any part lies outside the three tuning regions, else `none`. It no longer depends on cell classes.
+  - Scale cautions compare the area (on a sphere) with a 1° and a 0.25° box at the area's latitude, so a long thin strip is not cautioned.
+  - A range ending on `data_through` does not cut the current month (`range_cut` only when the range ends before the data does).
+  - Until Stories 3.1 and 3.2, the statistics fields are null or empty, `rank` is null and `current_month` is null. `cells_flagged_*` and `cells_total` are already served. The CSV endpoints still answer from the fixture until Stories 2.7, 4.1 and 4.2.
+- **Evidence:** `uv run pytest burncal/pipeline/test_publish.py burncal/service/test_store_service.py`. Fast path against brute force on Sumatra, an Amazon polygon and the Punjab box: equal for every month (synthetic store), and on the real Sumatra version (largest difference 9.6e-10).
+- **Revisit if:** an area partly outside the extent should get a partial answer instead of 404, or the lead wants statistics before the web switches off the fixture.

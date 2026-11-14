@@ -125,6 +125,24 @@ Not in the repo: the Vercel trial used a two-line `index.py` entrypoint and a `r
 | AC3 standard beats NRT per satellite-day | `test_2_3_ac3_*` in `test_ingest.py` and `test_build_extent.py`; 3,949 NRT rows replaced in the Sumatra build |
 | AC4 tuning-year Aqua counts agree, or differences listed with causes | `test_2_3_ac4_*` in `test_compare_tuning.py`; `uv run python -m burncal.pipeline.compare_tuning`; `docs/cleaning-differences.md` |
 
+## Story 2.6: publish a version and serve real counts (branch `teammate/2.6-publish-serve`, on top of 2.5)
+
+- Publish: `uv run python -m burncal.pipeline.publish <record dir> <grids dir> <raw dir> store/published <data_through>`. The raw dir needs `coverage.json` (extent and downloaded date ranges per FIRMS source). Prints the new `record_version`.
+- Serve: `uv run uvicorn burncal.service.app:app --port 8000`. With `store/published/CURRENT.json` present (or `BURNCAL_STORE_ROOT` set), `/meta`, `/calendar` and `/cells` answer from the record and `/meta` has `placeholder: false`. Without it, every endpoint answers from the fixture as before. The CSVs still come from the fixture.
+- **Sumatra version `20261113-3d2a8f8c`:** data through 13 Nov 2026, 111 MB, published in 2 s. The service starts in 1.6 s. 20 Sumatra calendars from a local client: p50 0.042 s, p95 0.046 s. The hosted p95 against the 3 s target is not measured yet (the hosted stub still runs contract 0.1.0).
+- Examples from the Sumatra calendar: September 2015 12,120.0 (real Aqua); September 2023 2,165.6 (converted Suomi NPP); November 2026 231.4 to the 13th, partial `data_through`, `validated_satellite` false. All 113 of Sumatra's 1° cells are `tuned`.
+- Statistics fields, `rank` and the current-month card are null or empty until Stories 3.1 and 3.2.
+- Checks: `uv run pytest` 228 passed, 9 skipped; import check passed.
+
+| Criterion | Test or evidence |
+| --- | --- |
+| AC1 version with manifest, coverage and `record_version`; one pointer; previous answered, older `version_superseded` | `test_2_6_ac1_*` in `burncal/pipeline/test_publish.py`, `burncal/service/test_store_service.py` |
+| AC2 `/meta` gives the current month, *d* and reference period from `data_through`; core reads no clock | `test_2_6_ac2_*` in `burncal/core/test_record.py`, `test_store_service.py` |
+| AC3 Sumatra calendar: count, raw per satellite, provenance; `placeholder: false`; `record_version` and `data_through` everywhere | `test_2_6_ac3_*`; Sumatra version above |
+| AC4 fast path equals the brute-force point sum on Sumatra, an Amazon polygon and a Punjab box | `test_2_6_ac4_fast_path_equals_brute_force_point_sum[*]`; real Sumatra version, largest difference 9.6e-10 |
+| AC5 scale cautions below 1° and 0.25° | `test_2_6_ac5_*` in `burncal/core/test_aoi.py`, `test_store_service.py` |
+| AC6 hosted p95 of 20 Sumatra requests against 3 s | Not done: needs the hosted service redeployed. Local p95 0.046 s. |
+
 ## Story 2.5: grids, thresholds and flags (branch `teammate/2.5-grids-flags`, on top of 2.4)
 
 - Run: `uv run python -m burncal.pipeline.aggregate <record dir> <out dir> [data_through]`. Prints counts only. Writes `cells_1deg`, `cells_025deg`, `thresholds_1deg` and `flags_1deg`.
