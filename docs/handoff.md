@@ -125,6 +125,20 @@ Not in the repo: the Vercel trial used a two-line `index.py` entrypoint and a `r
 | AC3 standard beats NRT per satellite-day | `test_2_3_ac3_*` in `test_ingest.py` and `test_build_extent.py`; 3,949 NRT rows replaced in the Sumatra build |
 | AC4 tuning-year Aqua counts agree, or differences listed with causes | `test_2_3_ac4_*` in `test_compare_tuning.py`; `uv run python -m burncal.pipeline.compare_tuning`; `docs/cleaning-differences.md` |
 
+## Stories 2.7 and 4.2: hotspots for any search, as CSV (branch `teammate/2.7-hotspots`, on top of 3.2)
+
+- `/hotspots.csv` now answers from the store: rows inside the area and the exact dates, every column of `HotspotRow`, header as `CSV_SPEC.md`. Rows of feeding satellites by default, every satellite with `all_satellites: true`. Above 250,000 rows the answer is `413 too_large_for_sync` with the estimate and the years; the web then asks year by year. `/analytics.csv` still answers from the fixture (Story 4.1).
+- Sumatra: September 2015 has 12,147 rows, 12,120 of them feeding and kept, equal to the calendar count. Whole record, all satellites: 2,409,453 rows, 413 in 0.25 s. 2019 alone: 24.5 MB in 1.0 s.
+- Checks: `uv run pytest` 248 passed, 9 skipped; import check passed.
+
+| Criterion | Test or evidence |
+| --- | --- |
+| 2.7 AC1 every column for rows inside the area and exact dates | `test_2_7_ac1_*` in `burncal/service/test_store_service.py` |
+| 2.7 AC2 feeding, kept rows of a complete month up to 2021 equal its count | `test_2_7_ac2_*`; Sumatra September 2015 |
+| 4.2 AC1 default feeding rows, option for every satellite, each row states satellite, `feeds_record`, `excluded_reason`, `weight` | `test_4_2_ac1_*` |
+| 4.2 AC2 estimate first, then by year; no search refused | `test_4_2_ac2_*` |
+| 4.2 AC3 header: row-count note, weight sums to the count, counting limits | `test_4_2_ac3_*` |
+
 ## Story 3.2: flags per area and the current-month card (branch `teammate/3.2-flags-current-month`, on top of 3.1)
 
 - `/calendar` serves `current_month`: days 1 to *d* against the median of the same days in each complete reference year, with the ratio (none when the median is 0), the difference, *d*, the reference period, each year's same-days count for the ruler, `quality`, `validated_satellite` and `monthly_validation_only: true`.
