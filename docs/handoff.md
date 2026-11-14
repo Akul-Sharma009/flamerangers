@@ -2,7 +2,7 @@
 
 Short running status for the next session. Facts only; decisions and their status are in `DECISIONS.md`, story status in `sprint-status.yaml`.
 
-Updated: Sat 14 Nov 2026, evening SGT (Stories 5.4 and 3.3; contract 0.3.0).
+Updated: Sat 14 Nov 2026, late evening SGT (PRs 3 to 11 merged; the lead's review list is under Next).
 
 ## Where things stand
 
@@ -21,8 +21,17 @@ Updated: Sat 14 Nov 2026, evening SGT (Stories 5.4 and 3.3; contract 0.3.0).
 | 5.3 The outcome in plain words | Done | Merged to `master`. See below. |
 | 5.4 Head-to-head table | Done | Reviewed by the lead and merged to master. See below. |
 | 3.3 Select an area | Done | Reviewed by the lead and merged to master. See below. |
+| 2.3 Ingest and cleaning | Done | PR 3, merged 14 Nov |
+| 2.4 Weights and the record | Done | PR 4, merged 14 Nov, with the weaker-class tie rule (225 / 570 / 6 / 38); full C1 parity PASS |
+| 2.5 Grids, thresholds, flags | In progress | PR 5, merged 14 Nov. Open: AC2 results for Australia and Amazon not recorded; static-input check (Next) |
+| 2.6 Publish and serve | In progress | PR 6, merged 14 Nov. Open: AD-2 publish gate, AC6 hosted p95 (Next) |
+| 3.1 Statistics | Done | PR 7, merged 14 Nov |
+| 3.2 Flags and current month | Done | PR 8, merged 14 Nov |
+| 2.7 and 4.2 Hotspots and CSV | Done | PR 9, merged 14 Nov; an empty search now gives a header and no rows (was a 500) |
+| 4.1 Analytics CSV | Done | PR 10, merged 14 Nov |
+| 4.5 Numbers-agree check | Done | PR 11, merged 14 Nov |
 
-`master` holds Stories 1.1 to 1.5, 2.1, 2.2 and 5.1. New work branches from `master`.
+`master` holds every story above. The teammate's branches 2.3 to 4.5 are merged; new work branches from `master`.
 
 ## What exists
 
@@ -254,7 +263,7 @@ One year (2024) of FIRMS standard data, MODIS_SP (Aqua and Terra rows) and VIIRS
 
 ### Object-storage timing: cold Sumatra calendar (14 Nov)
 
-- Store: Sumatra 2002-07 to 2026-08 from FIRMS standard data (Suomi NPP 2023 missing: FIRMS kept returning errors for those dates), 1,925,775 rows, one lean Parquet file of 17.0 MB (9.3 bytes/row), on a public Hugging Face dataset (`adk7712/burncal-store-trial`). `weight` and `feeds_record` are placeholders until Story 2.4.
+- Store: Sumatra 2002-07 to 2026-08 from FIRMS standard data (Suomi NPP 2023 missing: FIRMS kept returning errors for those dates), 1,925,775 rows, one lean Parquet file of 17.0 MB (9.3 bytes/row), on a public Hugging Face dataset (trial only). `weight` and `feeds_record` are placeholders until Story 2.4.
 - Query: monthly `SUM(weight)` of feeding rows inside Sumatra's bounding box, all 290 months, DuckDB reading the Parquet where it sits (`hf://`, range requests). Nothing is downloaded first.
 - Service bundle with FastAPI and DuckDB only: under Vercel's standard size, so no dependency install at instance start (the full set with pyarrow and pandas installs for 2.8 s).
 
@@ -390,11 +399,21 @@ The points where the plan left room are listed in `DECISIONS.md` ("Contract 0.2.
 
 ## Next
 
-1. Data owner: Story 2.3 is PR 3 and Story 2.4 is PR 4 (stacked on PR 3). The lead reviewed both on 14 Nov: tests, the import check, gitleaks and full C1 parity pass. Before merging:
-   - PR 3: rebase onto master (conflict only in `DECISIONS.md`; keep both sides; take master's `contract/` files).
-   - PR 4, the five C1 per-row choices: 1 (rules strictly inside the polygon), 2 (a footprint's 1A term uses its anchor's area) and 4 (ties broken by satellite, time, latitude, longitude) are confirmed. 3 (5° season tiles) is confirmed, with each build extent widened to whole 5° tiles so a tile's season does not depend on where the extent is cut. 5 changes: a 1° cell's `evidence_class` is the class covering most of its area, with any part outside every region counted as `not_evaluated` and an exact tie going to the weaker class, so a cell half inside a region and half outside is `not_evaluated` (over the six regions: 225 tuned, 570 tested_unseen, 6 reported_only, 38 not_evaluated; the 8 cells that move are half-inside Punjab cells). The lead's first counts (14 and 30) let the region win ties; the lead confirmed the stated rule on 14 Nov. `region_caveat` is computed from the AOI's shape against the region boundaries, not from cell classes. The data owner records these in `DECISIONS.md` ("Story 2.4") with the lead's call noted.
-   - Then the lead rechecks the tests and parity and merges PR 3, then PR 4.
-2. Lead: Story 3.4 adds the dates tab to the same picker; Stories 5.5 and 5.6 go below the head-to-head table on the evidence page.
+From the lead's review of PRs 3 to 11 (14 Nov). Merged with two fixes: `/meta` from a store now says contract 0.3.0 (a test ties it to `openapi.yaml`), and a hotspot search with no record file in its range gives the header and no rows instead of a 500.
+
+Checks on the merged master: `uv run pytest` 310 passed, 1 skipped (Sumatra record test, no local `store/`; parity case set); full C1 parity PASS, worst miss 2.1e-9 (4A, 1°); import, evidence and wording checks passed; web typecheck, 71 tests and build passed; gitleaks `git` and `dir` found no leaks; `params/` and `evidence/scoring/` unchanged.
+
+1. Data owner, before any converted count is public:
+   - **AD-2 gate.** `publish()` in `burncal/pipeline/publish.py` hashes the params but never runs the parity check; only pytest does, and it skips without the case folder. Publish should refuse converted counts unless parity passes.
+   - **Null is not 0.** In `burncal/service/answers.py` (`calendar()`), every month in the record gets a count even when no feeding day was loaded, so a coverage gap is served as `0.0`. `burncal/pipeline/aggregate.py` also writes 0 for in-record cell-months with no rows. Both should be null from coverage and missing days.
+   - **Static-mask inputs.** `burncal/pipeline/clean.py` / `build_extent.py` build the mask from whatever raw files are present. Fail the build unless Aqua, Terra and Suomi NPP for 2014, 2016, 2017 and 2020 are all there (the McArthur River cell, 136E 16S).
+   - **2.5 AC2 record.** Put the Australian grassland (967/972) and Amazon forest (672/672) threshold parity in `DECISIONS.md` and a test, with the 5 misses and their cause.
+   - **AD-11.** In `burncal/service/store.py` `refresh()`, a version that fails to load makes every request 500. Keep serving the last good version.
+   - **Sep 2006, 105E 6S.** The harness history has 39 Aqua rows for that cell-month, from the FIRMS Indonesia country archive file, none dropped by its cleaning (all day, type 0). Diff the product's 41 against them and record the cause in `docs/cleaning-differences.md` (country archive versus area API is the likeliest).
+2. Lead: choose the host (comparison done 14 Nov; decision pending), then 2.6 AC6 hosted p95. The service loads the current and the previous version wholly into memory at start-up, so RAM, not bundle size, is the limit.
+3. Lead, for a contract 0.4.0 if wanted: `cells_flagged_strong` and `cells_flagged_marginal` are non-null integers, so months outside the record show 0 in `/calendar` and the analytics CSV.
+4. Low items from the reviews, not yet acted on: `share_of_max` can use a part-year as the 100% bar; the current-month card gives no caution when days 1 to *d* have missing days; a null `frp` would be written as `nan`; `validated_satellite` is true for months outside the record; `anomaly_count` can be `-0.0`; with `year` set, `/hotspots.csv` has no row limit; `/cells` serves threshold 0.0 after `data_through`; `compare_tuning` prints "fire days".
+5. Lead: Story 3.4 adds the dates tab to the same picker; Stories 5.5 and 5.6 go below the head-to-head table on the evidence page.
 
 ## Checkpoints (flags, not deadlines; times in SGT)
 
@@ -414,4 +433,5 @@ The points where the plan left room are listed in `DECISIONS.md` ("Contract 0.2.
 - The scoring harness ran on Python 3.12.15, numpy 2.5.4 and pandas 3.1.1; the product pins Python 3.14. Check this first if the parity check misses.
 - No converted count is published until the parity check passes.
 - Product tests sit beside the code. The scoring harness stays in the planning record and nothing here imports it.
+- The service holds each version it serves in memory (current and previous). A global store will not fit that way; it needs reads by tile.
 - Starlette warns that `httpx` in its test client is deprecated in favour of `httpx2`. Not acted on.

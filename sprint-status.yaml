@@ -29,7 +29,7 @@
 # - Dev moves story to 'review', then runs code-review (fresh context, different LLM recommended)
 # - Retrospective appends its action items to action_items; the status view surfaces open ones
 generated: 11-14-2026 02:21
-last_updated: 11-14-2026 (Stories 5.4 and 3.3 done)
+last_updated: 11-14-2026 (PRs 3 to 11 merged, Stories 2.3 to 2.7, 3.1, 3.2, 4.1, 4.2 and 4.5)
 project: SpaceApps
 project_key: NOKEY
 tracking_system: file-system
@@ -43,22 +43,22 @@ development_status:
   1-5-web-shell-showing-the-fixture-calendar-a: review
   epic-1-retrospective: optional
 
-  epic-2: backlog
+  epic-2: in-progress
   2-1-export-c1-s-parameters-and-parity-targets-a: done
   2-2-c1-in-core-matching-the-scored-predictions-t: done
-  2-3-ingest-and-cleaning-for-one-extent-t: review
-  2-4-weights-and-the-harmonized-record-t: review
-  2-5-grids-thresholds-and-flags-t: review
-  2-6-publish-a-version-and-serve-real-counts-t: review
-  2-7-hotspots-for-any-search-t: review
+  2-3-ingest-and-cleaning-for-one-extent-t: done
+  2-4-weights-and-the-harmonized-record-t: done
+  2-5-grids-thresholds-and-flags-t: in-progress  # merged; AC2 Australia and Amazon results not recorded; static-input check open
+  2-6-publish-a-version-and-serve-real-counts-t: in-progress  # merged; AC6 hosted p95 and the AD-2 publish gate open
+  2-7-hotspots-for-any-search-t: done
   2-8-coverage-for-the-evaluated-regions-then-the-world-t: backlog
   2-9-the-current-month-refreshed-daily-t: backlog
   2-10-noaa-20-against-suomi-npp-reported-only-t: backlog
   epic-2-retrospective: optional
 
   epic-3: in-progress
-  3-1-statistics-for-the-calendar-t: review
-  3-2-flags-per-area-and-the-current-month-comparison-t: review
+  3-1-statistics-for-the-calendar-t: done
+  3-2-flags-per-area-and-the-current-month-comparison-t: done
   3-3-select-an-area-a: done
   3-4-select-a-date-range-a: backlog
   3-5-the-burning-activity-calendar-a: backlog
@@ -69,12 +69,12 @@ development_status:
   3-10-accessibility-and-phone-width-pass-a: backlog
   epic-3-retrospective: optional
 
-  epic-4: backlog
-  4-1-analytics-csv-t: review
-  4-2-hotspot-csv-t: review
+  epic-4: in-progress
+  4-1-analytics-csv-t: done
+  4-2-hotspot-csv-t: done
   4-3-picture-downloads-a: backlog
   4-4-download-controls-a: backlog
-  4-5-numbers-agree-check-t: review
+  4-5-numbers-agree-check-t: done
   epic-4-retrospective: optional
 
   epic-5: in-progress
