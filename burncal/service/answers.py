@@ -133,7 +133,35 @@ def calendar(v: Version, geom, name, start: date, end: date, regions: dict) -> d
             "record_high": None if st["record_high"] is None else {
                 "month": _ym(st["record_high"]["month"]), "count": r1(st["record_high"]["count"])},
         },
-        "current_month": None,
+        "current_month": _card(v, geom, complete, ref_years, months),
+    }
+
+
+def _card(v: Version, geom, complete, ref_years, months) -> dict:
+    """The current-month card (AD-15): days 1 to d against the same days of each complete reference year."""
+    dt = v.data_through
+    years = [y for y in range(ref_years["start_year"], ref_years["end_year"] + 1) if (y, dt.month) in complete]
+    to_date, by_year = v.same_days(geom, dt.month, dt.day, years)
+    cmp = stats.same_days(to_date, by_year)
+    now = next((m for m in months if m["month"] == _ym((dt.year, dt.month))), None)
+    ins = v.month_inputs().get((dt.year, dt.month), [])
+    flags = v.flag_counts(v.cells_1deg_of(geom))
+    fl = flags.loc[(dt.year, dt.month)] if (dt.year, dt.month) in flags.index else None
+    return {
+        "month": _ym((dt.year, dt.month)), "day": dt.day,
+        "count_to_date": r1(to_date),
+        "same_days_median": r1(cmp["same_days_median"]) if cmp["same_days_median"] is not None else 0.0,
+        "no_typical_activity": cmp["no_typical_activity"],
+        "ratio": r2(cmp["ratio"]),
+        "difference": r1(cmp["difference"]) if cmp["difference"] is not None else r1(to_date),
+        "reference_period": ref_years,
+        "same_days_by_year": [{"year": y, "count": r1(c)} for y, c in zip(years, by_year)],
+        "cells_flagged_strong": int(fl["strong"]) if fl is not None else 0,
+        "cells_flagged_marginal": int(fl["marginal"]) if fl is not None else 0,
+        "cells_total": now["cells_total"] if now else len(v.cells_1deg_of(geom)),
+        "quality": "NRT" if any(i["quality"] == "NRT" and i["feeds_record"] for i in ins) else "SP",
+        "validated_satellite": all(i["satellite"] in ("SNPP", "AQUA") for i in ins if i["feeds_record"]),
+        "monthly_validation_only": True,
     }
 
 

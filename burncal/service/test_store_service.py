@@ -223,3 +223,53 @@ def test_3_1_ac4_numbers_rounded_once_from_unrounded_values(client, versions, st
     assert m["reference_mean"] == round(mean, 1)
     assert m["anomaly_count"] == round(sums[(2015 - 2002) * 12 + 8] - mean, 1)
     assert m["anomaly_pct"] == round(100 * (sums[(2015 - 2002) * 12 + 8] - mean) / mean, 2)
+
+
+# --- Story 3.2: flags per area and the current-month card ---------------------------
+def test_3_2_ac1_area_flags_are_counts_of_whole_cells(client, versions):
+    body = _body(versions[0], PUNJAB, name=None)
+    cal = {m["month"]: m for m in client.post("/calendar", json=body).json()["months"]}
+    for month in ("2015-09", "2008-03", "2023-10"):
+        cells = client.post("/cells", json={"record_version": versions[0], "aoi": body["aoi"], "month": month}).json()["cells"]
+        m = cal[month]
+        assert m["cells_total"] == len(cells) == 16
+        assert m["cells_flagged_strong"] == sum(c["flag_state"] == "strong" for c in cells)
+        assert m["cells_flagged_marginal"] == sum(c["flag_state"] == "marginal" for c in cells)
+    assert "flag_state" not in cal["2015-09"]  # no flag on the area total
+
+
+def test_3_2_ac2_cells_have_state_count_threshold_partly_inside_and_evidence(client, versions):
+    r = client.post("/cells", json={"record_version": versions[0], "aoi": {"name": None, "geometry": SUMATRA}, "month": "2015-09"})
+    c = r.json()
+    valid(c, "Cells")
+    assert {"flag_state", "count", "threshold", "partly_inside", "evidence_class"} <= set(c["cells"][0])
+    assert any(x["partly_inside"] for x in c["cells"]) and all(x["evidence_class"] for x in c["cells"])
+
+
+def test_3_2_ac3_current_month_card(client, versions, store_root):
+    c = client.post("/calendar", json=_body(versions[0], AMAZON, name=None)).json()
+    card = c["current_month"]
+    valid(card, "CurrentMonth")
+    assert (card["month"], card["day"]) == ("2026-11", 13)
+    assert card["monthly_validation_only"] is True and card["validated_satellite"] is False and card["quality"] == "NRT"
+    assert card["reference_period"] == {"start_year": 2003, "end_year": 2025}
+    years = [y["year"] for y in card["same_days_by_year"]]
+    assert years == list(range(2003, 2026))  # every November 2003-2025 is complete here
+    v = Store(store_root).latest()
+    to_date, by_year = v.same_days(shape(AMAZON), 11, 13, years)
+    assert card["count_to_date"] == round(to_date, 1)
+    assert [y["count"] for y in card["same_days_by_year"]] == [round(x, 1) for x in by_year]
+    med = float(np.median(by_year))
+    assert card["same_days_median"] == round(med, 1) and card["difference"] == round(to_date - med, 1)
+    assert card["ratio"] == (None if med == 0 else round(to_date / med, 2))
+    nov = {m["month"]: m for m in c["months"]}["2026-11"]
+    assert card["cells_flagged_strong"] == nov["cells_flagged_strong"] and card["cells_total"] == nov["cells_total"]
+
+
+def test_3_2_ac3_same_days_fast_path_equals_brute_force(store_root):
+    v = Store(store_root).latest()
+    for geom in AREAS.values():
+        g = shape(geom)
+        fast = v.same_days(g, 11, 13, range(2003, 2026))
+        inside = shapely.intersects_xy(g, v._p_lon, v._p_lat)
+        assert np.allclose(fast[1], v.same_days(g, 11, 13, range(2003, 2026), mask=inside)[1], atol=1e-9)

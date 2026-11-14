@@ -331,3 +331,10 @@ Each entry has: a status (**ASSUMED** or **TESTED**), its evidence, and a "revis
   - A month's colour class uses its shown count; its anomaly class uses its shown percentage. Incomplete months still show their median and anomaly against the whole-month reference; the like-for-like comparison for the current month is the card (Story 3.2).
 - **Evidence:** `uv run pytest burncal/core/test_stats.py burncal/service/test_store_service.py`. Sumatra: record high September 2015 (12,120.0), top years 2006 and 2015.
 - **Revisit if:** the lead wants the reference period to stop at 2021 (Aqua only), or quantile breaks that ignore one very large month.
+
+## Story 3.2: the current-month card (14 Nov)
+
+- **Status:** ASSUMED (lead to confirm)
+- **Decision:** The card compares days 1 to *d* of the current month with the same days of each reference year whose month is complete (AD-15). It counts point rows inside the area, with the same edge-cell shortcut as the monthly fast path. `quality` is NRT when any feeding input of the month is NRT. The card's flag counts are the current month's whole-cell flags, which are provisional. The card is always served; the date range does not hide it.
+- **Evidence:** `uv run pytest burncal/core/test_stats.py burncal/service/test_store_service.py` (the shortcut equals the brute-force same-days sum on three areas). Sumatra, 13 Nov 2026: 231.4 to date against a same-days median of 77.0.
+- **Revisit if:** the lead wants the card hidden when the range ends before the current month.

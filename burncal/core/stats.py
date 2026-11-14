@@ -99,3 +99,12 @@ def summarize(series: dict, complete, shown, *, in_range, reference_years) -> di
                                           key=lambda d: (d["rank"], d["calendar_month"])),
         "record_high": None if high is None else {"month": high, "count": series[high]},
     }
+
+
+def same_days(to_date: float, by_year) -> dict:
+    """AD-15: days 1 to d of the current month against the median of the same days in each reference year."""
+    med = statistics.median(by_year) if len(by_year) else None
+    return {"same_days_median": med,
+            "ratio": None if not med else to_date / med,
+            "difference": None if med is None else to_date - med,
+            "no_typical_activity": med == 0}

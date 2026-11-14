@@ -49,6 +49,7 @@ class Version:
         self._p_key = _key(_cell_ix(self._p_lon), _cell_ix(self._p_lat))
         t = p["acq_datetime_utc"]
         self._p_k = self._month_index(t.dt.year, t.dt.month)
+        self._p_day = t.dt.day.to_numpy()
         sat = p["satellite"].to_numpy()
         self._p_vals = self._values(np.where(p["feeds_record"].to_numpy(), p["weight"].to_numpy(float), 0.0),
                                     [(sat == s).astype(float) for s in SATELLITES])
@@ -72,8 +73,8 @@ class Version:
         inside = shapely.intersects_xy(geom, self._p_lon, self._p_lat)
         return self._sum(self._p_k[inside], self._p_vals[inside])
 
-    def count(self, geom) -> np.ndarray:
-        """Fast path: whole fine cells inside the area from the grid, cut cells from the points."""
+    def _cells_split(self, geom):
+        """Keys of the fine cells wholly inside the area and of the cells its edge cuts."""
         shapely.prepare(geom)
         x0, y0, x1, y1 = geom.bounds
         near = ((self._c_ix >= _cell_ix(x0)) & (self._c_ix <= _cell_ix(x1))
@@ -82,12 +83,31 @@ class Version:
         ix, iy = self._c_ix[near][first], self._c_iy[near][first]
         boxes = shapely.box(ix * FINE, iy * FINE, (ix + 1) * FINE, (iy + 1) * FINE)
         covered = shapely.covers(geom, boxes)
-        cut = ~covered & shapely.intersects(geom, boxes)
-        whole = np.isin(self._c_key, keys[covered])
-        total = self._sum(self._c_k[whole], self._c_vals[whole])
-        edge = np.isin(self._p_key, keys[cut])
+        return keys[covered], keys[~covered & shapely.intersects(geom, boxes)]
+
+    def inside(self, geom) -> np.ndarray:
+        """Point rows inside the area: every point of a covered cell, and points of cut cells tested one by one."""
+        whole, cut = self._cells_split(geom)
+        mask = np.isin(self._p_key, whole)
+        edge = np.isin(self._p_key, cut)
         edge[edge] = shapely.intersects_xy(geom, self._p_lon[edge], self._p_lat[edge])
-        return total + self._sum(self._p_k[edge], self._p_vals[edge])
+        return mask | edge
+
+    def same_days(self, geom, month: int, day: int, years, mask=None) -> tuple[float, list[float]]:
+        """(count for days 1 to day of `month` in the data-through year, the same days in each of `years`)."""
+        m = self.inside(geom) if mask is None else mask
+        sel = m & (self._p_day <= day) & ((self._p_k % 12) == month - 1)
+        by_k = np.bincount(self._p_k[sel], weights=self._p_vals[sel, 0], minlength=self.n_months)
+        k = lambda y: (y - 2002) * 12 + month - 1  # noqa: E731
+        return float(by_k[k(self.data_through.year)]), [float(by_k[k(y)]) for y in years]
+
+    def count(self, geom) -> np.ndarray:
+        """Fast path: whole fine cells inside the area from the grid, cut cells from the points."""
+        whole, cut = self._cells_split(geom)
+        g = np.isin(self._c_key, whole)
+        edge = np.isin(self._p_key, cut)
+        edge[edge] = shapely.intersects_xy(geom, self._p_lon[edge], self._p_lat[edge])
+        return self._sum(self._c_k[g], self._c_vals[g]) + self._sum(self._p_k[edge], self._p_vals[edge])
 
     def cells_1deg_of(self, geom) -> pd.DataFrame:
         """The 1-degree cells of the extent that the area overlaps with positive area."""
