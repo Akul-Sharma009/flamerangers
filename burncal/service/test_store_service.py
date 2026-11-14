@@ -442,6 +442,15 @@ def test_4_5_ac1_calendar_csvs_and_hotspots_agree(client, versions, area):
     assert report["months_compared"] == 300 and report["hotspot_months_compared"] == 233
 
 
+def test_2_8_check_numbers_searches_every_region_the_version_holds():
+    regions = {"a": {"type": "Polygon", "coordinates": [[[1, 1], [2, 1], [2, 2], [1, 2], [1, 1]]]},
+               "b": {"type": "Polygon", "coordinates": [[[11, 1], [12, 1], [12, 2], [11, 2], [11, 1]]]},
+               "c": {"type": "Polygon", "coordinates": [[[31, 1], [32, 1], [32, 2], [31, 2], [31, 1]]]}}
+    names = [n for n, _ in check_numbers.searches(regions, [[0, 0, 5, 5], [10, 0, 15, 5]])]
+    assert names == ["a", "b"]
+    assert [n for n, _ in check_numbers.searches(regions, [[-60, -15, -50, -5]])] == ["amazon"]  # the drawn polygon
+
+
 def test_4_5_ac2_a_failing_check_fails(client, versions, monkeypatch):
     real = check_numbers._calendar
 

@@ -1,7 +1,7 @@
 """Story 4.5: the numbers-agree check. Exits 1 when any number disagrees.
 
 Run against a published store: uv run python tools/check_numbers.py [store root]
-For each search (Sumatra, an Amazon polygon, a Punjab box), over the whole record:
+For each search (every region polygon inside the version's extents, and a drawn Amazon polygon), over the whole record:
   - every analytics CSV row equals the matching /calendar month, field by field, as text;
   - for every complete month up to December 2021, the hotspot CSV's rows that feed the record
     and are not excluded number exactly the month's harmonized count (Aqua rows weigh 1).
@@ -73,6 +73,18 @@ def exit_code(*reports):
     return 1 if any(r["failures"] for r in reports) else 0
 
 
+def _inside(geometry, bbox) -> bool:
+    xs = [x for ring in geometry["coordinates"] for x, _ in ring]
+    ys = [y for ring in geometry["coordinates"] for _, y in ring]
+    return bbox[0] <= min(xs) and max(xs) <= bbox[2] and bbox[1] <= min(ys) and max(ys) <= bbox[3]
+
+
+def searches(regions: dict, bboxes: list) -> list:
+    """(name, geometry): every region polygon inside one of the version's extents, then the drawn Amazon polygon."""
+    out = [(n, g) for n, g in regions.items() if any(_inside(g, b) for b in bboxes)]
+    return out + [("amazon", AMAZON)] * any(_inside(AMAZON, b) for b in bboxes)
+
+
 def main(store_root):
     from fastapi.testclient import TestClient
     sys.path.insert(0, str(ROOT))
@@ -81,8 +93,9 @@ def main(store_root):
     regions = {f["properties"]["region_id"]: f["geometry"]
                for f in json.loads((ROOT / "contract" / "regions.geojson").read_text(encoding="utf-8"))["features"]}
     rv = client.get("/meta").json()["record_version"]
-    reports = [check(client, rv, regions["sumatra"], name="sumatra"), check(client, rv, AMAZON, name="amazon"),
-               check(client, rv, regions["punjab"], name="punjab")]
+    man = json.loads((Path(store_root) / "versions" / rv / "manifest.json").read_text(encoding="utf-8"))
+    bboxes = [e["bbox"] for e in man.get("extents") or [{"bbox": man["extent"]}]]
+    reports = [check(client, rv, g, name=n) for n, g in searches(regions, bboxes)]
     for r in reports:
         state = "not loaded" if r["not_loaded"] else f"{len(r['failures'])} failures"
         print(f"{r['search']}: {state}; {r['months_compared']} months, {r['hotspot_months_compared']} hotspot months")

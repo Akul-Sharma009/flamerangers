@@ -171,16 +171,28 @@ Not in the repo: the Vercel trial used a two-line `index.py` entrypoint and a `r
 | **2.6 AC6**: 20 Sumatra calendars | p50 0.82 s, **p95 1.09 s** against 3 s; max 1.11 s |
 
 - **Redeployed 14 Nov, whole-tile Sumatra** (`20261113-9cedd502`, built only from the planned files; see `DECISIONS.md`): parity PASS (worst 2.9e-10), `check_numbers` 0 failures over 300 months, threshold parity 899/900 (the known September cell). Hosted: `/meta` placeholder false; 20 calendars p50 0.88 s, **p95 1.12 s**, max 1.17 s; start-up log RSS 275 MB, `/tmp` free 106 MB with two versions synced (53 MB); cold first request 8.1 s. The deploy folder (code, `contract/messages.yaml`, `regions.geojson`, fixture problems, `index.py`, pinned `requirements.txt` with duckdb, `.python-version` 3.14, `.vercelignore`) is rebuilt outside the repo for each deploy.
-- **Codex review items** (14 Nov, `DECISIONS.md`): the parity pass carries the params hash and code revision, and publish refuses uncommitted `burncal/` code; publish loads a version before the pointer names it; the service loads (and the host syncs) the previous version only when a request names it. Not yet deployed.
+- **Codex review items** (14 Nov, `DECISIONS.md`): the parity pass carries the params hash and code revision, and publish refuses uncommitted `burncal/` code; publish loads a version before the pointer names it; the service loads (and the host syncs) the previous version only when a request names it. Deployed 15 Nov (code `ec595a1`): start-up sync 0.5 s, RSS 250 MB, `/tmp` free 137 MB (was 1.7–2.1 s, 275 MB, 106 MB); 20 Sumatra calendars p50 0.82 s, p95 1.07 s; a request naming the previous version 4.8 s the first time (fetch and load), then about 2.8 s (older format, key computed in the query).
 - **Six regions: fixed.** The service now reads hotspots from disk with DuckDB (`DECISIONS.md`, 15 Nov), so memory no longer grows with the area: two Sumatra versions take 217 MB steady (was 1,025 MB). Not yet deployed: the next deploy needs `duckdb` in the deploy requirements and a version published in the new format.
 
-## Story 2.8: coverage for the six evaluated regions (branch `teammate/2.8-coverage`, in progress)
+## Story 2.8: coverage for the six evaluated regions (branch `teammate/2.8-coverage`; six regions done, world waits for the lead)
 
-- Every build extent is whole 5° tiles: Sumatra 90–110°E 10°S–10°N, Australian grassland 125–145°E 25–15°S, Amazon forest 60–50°W 15–5°S, Southern Africa 20–35°E 20–5°S, Siberia 100–135°E 55–70°N, Punjab 70–80°E 25–35°N.
-- The pipeline now runs one satellite-year file at a time (clean, convert, aggregate), equal to the whole-extent run on Sumatra; one version can hold all six extents (`pipeline.publish <store root> <data_through> <record>,<grids>,<raw> ...`).
-- **Size sample** (four 5-day windows of 2024 per region, whole tiles): Southern Africa about 0.7M MODIS and about 2.7M Suomi NPP rows a year; Siberia about 0.24M MODIS a year (the Suomi NPP sample looked incomplete); Punjab 25–32 thousand MODIS rows a year in 2004–2005. For the three new regions the chosen scope is about 70M rows, about 9,000 area-API requests, about 2.5 hours at the measured rate.
-- **Threshold parity**: Amazon forest 672/672; Australian grassland 967/972 (one cell at 136°E 16°S; Suomi NPP 2016 for the static mask still failing to download); Sumatra 899/900 (see Story 2.5).
-- Not done yet: the downloads are running; the global-year measurement and the world run (lead sees the numbers first).
+- All six regions downloaded on whole 5° tiles (every planned file; Southern Africa and Australia needed 2 and 3 passes), staged from the planned files only, built, and published together as `20261113-d6f8b9e6` in the local store. **Not deployed:** the start-up sync would be 901 MB against the 120 MB gate. Sizes per region and four options for the lead are in `DECISIONS.md` (Story 2.8, 15 Nov). The hosted service still serves Sumatra only.
+- `tools/check_numbers.py` now checks every region the version holds: 0 failures for all six and the Amazon polygon. Threshold parity: Sumatra 899/900, Amazon 672/672, Australia 967/972. Australia's 5 misses are not the static mask (rebuilt with Suomi NPP 2016); a coastline difference is likelier, not yet checked.
+- Largest area served locally: Southern Africa's whole 15×15° extent, p50 1.15 s (target 10 s). Hosted, add about 0.8 s.
+- To rebuild: download each region (`burncal.pipeline.download`), link its planned files into `store/staged/<region_id>/` (the extent's name in the version is that folder's name), then clean, convert, aggregate as in the README with outputs under `store/build/`, and publish all six triples in one command. Peak memory 4.4 GB (Southern Africa).
+
+| Criterion | Test or evidence |
+| --- | --- |
+| AC1 each region's calendar loads | `test_2_8_ac1_each_region_calendar_loads` (6 regions, every record month non-null) |
+| AC1 extents are whole tiles | `test_2_8_ac1_each_region_has_its_own_whole_tile_extent` |
+| AC1 outside coverage is `outside_coverage`, never zeros | `test_2_8_ac1_an_area_outside_every_extent_is_outside_coverage_never_zero`; synthetic `test_2_6_outside_coverage_is_404` |
+| AC1 numbers agree in every region | `tools/check_numbers.py store/published`; `test_2_8_check_numbers_searches_every_region_the_version_holds` |
+| AC1 thresholds | `test_2_5_ac2_*` on the whole-tile builds |
+| One version holds several extents | `test_2_8_one_version_holds_several_extents`; `test_2_8_build_one_satellite_year_at_a_time_equals_the_whole_extent` |
+| AC2 global plan from a measured sample | Not done: needs the lead's go-ahead for a global sample |
+| AC3 one global year measured, the lead sees it first | Not done (no global download without the lead) |
+| AC4 world run, continental areas against 10 s | Not done; largest served area so far 1.15 s locally |
+| AC5 too-large areas reported | Size finding above reported to the lead; no limit added |
 
 ## Story 4.5: numbers-agree check (branch `teammate/4.5-numbers-agree`, on top of 4.1)
 
