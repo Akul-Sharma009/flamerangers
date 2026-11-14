@@ -397,3 +397,14 @@ Each entry has: a status (**ASSUMED** or **TESTED**), its evidence, and a "revis
   - **The `evidence_class` of a 1° cell is the class covering most of the cell's area** (lead's call). The part outside every region counts as `not_evaluated`; areas are planar. An exact tie goes to the weaker class (lead's call, 14 Nov, correcting his first counts), so Punjab's 8 cells that are exactly half inside are `not_evaluated`. Over the six regions: 225 tuned, 570 tested_unseen, 6 reported_only, 38 not_evaluated.
 - **Evidence:** `uv run pytest burncal/core/test_c1.py burncal/core/test_regions.py burncal/pipeline/test_convert.py`. With every row in one tuning region, the per-row weights equal Story 2.2's weights, and parity still passes with the case set. `test_2_4_ac3_six_regions_give_the_leads_counts` reproduces the lead's corrected counts.
 - **Revisit if:** the lead wants a cell's class taken from its centre.
+
+## Story 2.5: grids, thresholds and flags (14 Nov)
+
+- **Status:** ASSUMED (lead to confirm); threshold parity TESTED for Sumatra with one open miss
+- **Decision:**
+  - Cell-month grids at 1° and 0.25° hold the harmonized count (sum of weights of feeding rows with `excluded_reason` `none`) and a raw row count per satellite (rows with `excluded_reason` `none`, feeding or not). Excluded rows are in no count. Only cell-months with rows are stored; a missing cell-month inside the store's extent and dates is 0.
+  - Thresholds and flags use whole 1° cells (AD-9), so a cell cut by a region boundary uses all its hotspots. The harness scored region-clipped cells; the parity check therefore feeds the same function with region-clipped counts.
+  - `flags_1deg` is dense: every 1° cell of the extent, every month from January 2002 to December of the data-through year. `count` is null and `flag_state` `outside_record` outside the record. `provisional` is true for partial months (`record_start`, `data_through`); `missing_days` waits for coverage in Story 2.6.
+  - The strong tier compares the rounded count with the rounded 1.5 × threshold.
+- **Evidence:** `uv run pytest burncal/core/test_grids.py burncal/pipeline/test_aggregate.py`. Sumatra thresholds match the parity targets in 899 of 900 cell-months within 1e-6. The miss: September at 105°E 6°S, 21.0 against 20.6, because FIRMS gives 41 Aqua rows for September 2006 in that cell where the harness history has 39. Sumatra's September 2003–2011 total is 36,686 against the stored 36,684; every other month of the stored history matches exactly. The two rows are not near the coast or the region edge. Australian grassland and Amazon forest are not checked yet: they need their 2003–2011 Aqua data downloaded.
+- **Revisit if:** the lead's harness inputs show which two rows differ, or the Australian and Amazon checks miss.
