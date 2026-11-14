@@ -2,7 +2,7 @@
 
 Short running status for the next session. Facts only; decisions and their status are in `DECISIONS.md`, story status in `sprint-status.yaml`.
 
-Updated: Sat 14 Nov 2026, evening SGT (Story 6.6).
+Updated: Sat 14 Nov 2026, evening SGT (Story 5.2).
 
 ## Where things stand
 
@@ -17,6 +17,7 @@ Updated: Sat 14 Nov 2026, evening SGT (Story 6.6).
 | 1.5 Web shell | Review | Draws Sumatra from the fixture; committed. See below. |
 | 5.1 Scoring files and claims | Done | `evidence/claims.yaml` written and checked; the lead approved the wording. See below. |
 | 6.6 Pitch storyline | Done | Drafted in `docs/pitch/storyline.md` as a 7-slide deck. See below. |
+| 5.2 Evidence build and checks | Done | Merged to `master`. See below. |
 
 `master` holds Stories 1.1 to 1.5, 2.1, 2.2 and 5.1. New work branches from `master`.
 
@@ -33,6 +34,8 @@ Updated: Sat 14 Nov 2026, evening SGT (Story 6.6).
 uv sync
 uv run pytest
 uv run python tools/check_imports.py
+uv run python evidence/build.py --check
+uv run python evidence/wording.py   # after npm run build
 cd web && npm install && npm run typecheck && npm run test && npm run build
 ```
 
@@ -135,6 +138,22 @@ Not in the repo: the Vercel trial used a two-line `index.py` entrypoint and a `r
 | AC3 result in `claims.yaml` sentences, with the failed flag-precision test and the savanna weakness | Slides 5 and 6; `test_6_6_every_quoted_claim_is_word_for_word`, `test_6_6_failed_test_and_savanna_weakness_are_stated`, `test_6_6_no_banned_wording` |
 | AC4 PRD Q8 answered or listed as open | "Creativity: PRD Q8": answered in direction by the lead, wording ASSUMED |
 
+## Story 5.2: evidence build and its checks (branch `lead/5.2-evidence-build`)
+
+- `uv run python evidence/build.py` writes `web/src/evidence/evidence.json` (committed, 2.3 MB, 167 KB gzipped) from three scoring files: the final run, the selection run it names, and the reported-only run. `--check` fails if the file is stale, breaks `contract/evidence.schema.json`, or any figure differs from the field it names. Run the build after any change to `claims.yaml`.
+- Contents: the 13 fixed claims word for word with their figures; for each set, approach tables ((a), (b), comparator, 4A, 1A, C1) at 0.25°, 1° and whole region, pooled and per region; the same against the Terra referee with (c); paired differences with interval and beyond noise; every test result in `decisions`; blocks and draws; count error and bias by year with the period label. Every cell is a figure with its source; the web prints `display`.
+- `uv run python evidence/wording.py` checks `README.md` and `web/dist` (build the site first) for "beat the baselines", "every baseline" and the equivalents listed in the file.
+- `evidence/test_claims.py` now uses the build's formats, so there is one formatting implementation.
+- Checks: `uv run pytest` 176 passed, 9 skipped (parity case not set); import check passed; evidence check passed; wording check passed on a fresh `npm run build`.
+- For the lead: Story 5.4 asks for 2014–2017 and 2018–2021 separately, but the files give only per-year results labelled `early`/`late`, no period totals. The build lists the years and computes no totals (see `DECISIONS.md`). NOAA-20 (Story 2.10) has no result file yet, so `evidence.json` has nothing for it and Story 5.6 should say "not yet run".
+- Not done: nothing in the web app reads `evidence.json` yet (Stories 5.3 to 5.6). The view should load it with a dynamic `import()`.
+
+| Criterion | Test or evidence |
+| --- | --- |
+| AC1 `evidence.json` with every number the view shows, each traceable to a field | `test_5_2_ac1_written_file_is_current_valid_and_true`, `..._every_figure_names_a_field_in_a_listed_scoring_file`, `..._sources_are_the_three_sets`, `..._claims_are_claims_yaml_word_for_word`, `..._head_to_head_tables_cover_story_5_4`, `..._differences_carry_interval_and_beyond_noise`, `..._aqua_only_against_the_terra_referee_covers_story_5_5`, `..._final_decisions_include_the_pick_rule_and_gwis`, `..._years_are_shown_by_period_without_totals` |
+| AC2 a number that differs from its source fails the build | `test_5_2_ac2_a_figure_that_differs_from_its_source_fails[*]` (value, claim, interval, beyond noise, display, pointer), `..._the_cli_exits_nonzero_on_a_tampered_file`, `..._a_claim_that_differs_from_its_source_fails_the_build`, `..._a_changed_scoring_file_fails` |
+| AC3 wording check on the built site and the README | `test_5_2_ac3_readme_and_site_pass_the_wording_check`, `..._wording_check_fails_on_each_listed_claim[*]`, `..._the_fixed_claims_pass_the_wording_check`, `..._phrase_split_across_lines_is_caught`, `..._a_missing_path_fails`; `evidence/wording.py` on a fresh build |
+
 ## Contract 0.2.0: what changed from the first draft
 
 The first draft passed its tests but an independent review found it could not carry the product. The rewrite:
@@ -153,7 +172,7 @@ The points where the plan left room are listed in `DECISIONS.md` ("Contract 0.2.
 ## Next
 
 1. Data owner: Stories 1.3 and 2.2 are merged; next is Story 2.3 (ingest and cleaning for one extent).
-2. Lead: Story 5.2 (evidence build and its checks), and the open points in Story 6.6's storyline.
+2. Lead: review and merge Story 5.2; then Stories 5.3 to 5.6 (the evidence view, reading `evidence.json`), and the open points in Story 6.6's storyline.
 
 ## Checkpoints (flags, not deadlines; times in SGT)
 

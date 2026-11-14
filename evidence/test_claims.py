@@ -1,9 +1,10 @@
 """Story 5.1 checks: the scoring copies match their manifest, and every figure in
 claims.yaml resolves to a field in a scoring file and matches the sentence.
 
-Story 5.2's evidence build does the full check when it writes evidence.json; this test
-keeps claims.yaml honest until then."""
+Story 5.2's evidence build (build.py) runs the same checks when it writes evidence.json;
+these keep claims.yaml honest on its own."""
 import hashlib
+import importlib.util
 import json
 import re
 from pathlib import Path
@@ -21,13 +22,11 @@ BANNED = [r"beat the baselines", r"beats the baselines", r"every baseline", r"al
 
 REPORTED_ONLY = {"reported_only_20261113T205827Z.json", "reported_only_20261113T205827Z.txt"}
 
-FORMATS = {
-    "pct1": lambda v: f"{v * 100:.1f}%",
-    "pct1_abs": lambda v: f"{abs(v) * 100:.1f}%",
-    "fix3": lambda v: f"{v:.3f}",
-    "fix3_abs": lambda v: f"{abs(v):.3f}",
-    "fix2": lambda v: f"{v:.2f}",
-}
+# One formatting implementation: the evidence build's (Story 5.2).
+_spec = importlib.util.spec_from_file_location("evidence_build_formats", HERE / "build.py")
+_build = importlib.util.module_from_spec(_spec)
+_spec.loader.exec_module(_build)
+FORMATS = _build.FORMATS
 
 
 def resolve(ref):

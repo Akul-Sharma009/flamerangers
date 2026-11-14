@@ -182,3 +182,59 @@ Each entry has: a status (**ASSUMED** or **TESTED**), its evidence, and a "revis
 - **Decision:** `evidence/claims.yaml` gains `comparator-vs-b` (the region-month comparator, never eligible, passed the (b) test that C1 failed; C1 still has lower count error than it) and `margin-vs-4a` (C1's error against 4A fell short of the margin fixed beforehand, so the rule preferred 4A, which also failed against (b)). Slide 5 quotes both. The margin sentence does not quote the margin's size, because the scoring file holds only the check's result, not the value, and every number in a claim must point at a value.
 - **Evidence:** `/comparisons/cmp vs b`, `/comparisons/C1 vs cmp`, `/comparisons/C1 vs 4A`, `/decisions/final/margin` and `/decisions/not used for the pick/beats_b/cmp` in `evidence/scoring/final_20261113T172020Z.json`. A judge opening the evidence page would see both results with no sentence to answer them.
 - **Revisit if:** the lead wants the margin's size in the sentence; then add a figure source for it (for example the planning record's test plan, copied with Story 6.3) rather than typing the number.
+
+## Story 5.2: evidence.json is generated, committed and checked for freshness (14 Nov 2026)
+
+- **Status:** TESTED (`uv run python evidence/build.py --check`; `test_5_2_ac1_written_file_is_current_valid_and_true`)
+- **Decision:** `evidence/build.py` writes `web/src/evidence/evidence.json`, which is committed like `contract/fixture/`. The check fails if the committed file is not byte for byte what the build writes now, breaks `contract/evidence.schema.json`, names a source whose hash differs from the manifest, or holds a figure (value, interval end or beyond-noise mark) that differs from the field it names. The web build needs no Python. The file is 2.3 MB (167 KB gzipped), written compactly, so the evidence view should load it with a dynamic `import()` to keep it out of the calendar's bundle.
+- **Evidence:** 13 claims, 117 tables, 11,653 figures; every one re-read from its pointer. Tamper tests (value, interval, beyond noise, display, pointer, a changed scoring file) each fail the check.
+- **Revisit if:** the host's web build can run `uv`, or the file size hurts the evidence page's load time.
+
+## Story 5.2: intervals and beyond-noise marks are read beside the value (14 Nov 2026)
+
+- **Status:** ASSUMED
+- **Decision:** the frozen schema gives a figure one source pointer, and none for its interval or beyond-noise mark. So a figure with an interval must point at a `.../diff` field, and the build and the check read `lo`, `hi` and `beyond_noise` from the same object. The build fails if a claim in `claims.yaml` names an interval or beyond-noise pointer anywhere else.
+- **Evidence:** every comparison in the scoring files holds `diff`, `lo`, `hi` and `beyond_noise` together; every interval in `claims.yaml` already followed this.
+- **Revisit if:** contract 0.2.0 is reopened; then give `interval` and `beyond_noise` their own pointers.
+
+## Story 5.2: a NaN in a scoring file is a null cell (14 Nov 2026)
+
+- **Status:** ASSUMED
+- **Decision:** where a scoring file holds `NaN` (flag precision when no flag was raised, for example C1 in Amazon forest at whole-region scale on the final set), the table cell is `null`. JSON cannot hold NaN and the schema allows a null cell. The flag counts beside it (0 raised) say why. A claim figure that resolves to NaN fails the build.
+- **Evidence:** `/approaches/C1/region/regions/amazon_forest/flags/precision` in `final_20261113T172020Z.json`; `test_5_2_ac1_head_to_head_tables_cover_story_5_4`.
+- **Revisit if:** Story 5.4 needs to tell "undefined" apart from "not scored"; then show "no flags raised" from the counts, still without a number typed.
+
+## Story 5.2: the selection set is the run the final run names (14 Nov 2026)
+
+- **Status:** TESTED (`test_5_2_ac1_sources_are_the_three_sets`)
+- **Decision:** the build reads three files: the final run, the selection run it names in `/meta/selection_result` (`selection_20261113T151303Z.json`, the run that scored C1), and the reported-only run that `claims.yaml` names. The earlier selection run (`selection_20261113T145716Z.json`, single methods only) is not read; it holds none of the combinations and Story 5.4 shows C1.
+- **Evidence:** the final file's `/meta/selection_result`; the earlier file has no C1.
+- **Revisit if:** Story 7.8 (all-candidates table) is built; it needs the earlier run.
+
+## Story 5.2: what the tables hold (14 Nov 2026)
+
+- **Status:** ASSUMED. Stories 5.3 to 5.6 are not built, so "every number the evidence view shows" is read from their acceptance criteria.
+- **Decision:** for each of the three sets, the build writes: approach tables for (a), (b), the comparator ("comparator, never picked"), 4A, 1A and C1 at 0.25°, 1° and whole region, pooled and per region, with every metric the file gives (error, bias, flag counts, precision, recall, rank correlation, top months, year order, peak month, season length and their unit counts); the same against the Terra referee with (c) added (Story 5.5); paired differences with interval and beyond noise, positive meaning the first approach did better, as the scoring files' text reports say; every field of `decisions`; blocks per region and draws; and count error and bias per year with the file's period label. The fixed claims come from `claims.yaml` word for word. Displays: two decimals for count error and months, signed percent for bias and error differences, three decimals for shares, "yes"/"no" for test results.
+- **Evidence:** Stories 5.4 to 5.6 acceptance criteria; `test_5_2_ac1_*`.
+- **Revisit if:** Story 5.4 to 5.6 needs a number not in the file; add it to the build, never to the page.
+
+## Story 5.2: no totals for 2014–2017 and 2018–2021 (14 Nov 2026)
+
+- **Status:** ASSUMED. Flag to the lead.
+- **Decision:** Story 5.4 asks for results for 2014–2017 and 2018–2021 separately. The scoring files give count error and bias for each year, labelled `early` or `late`, and no total per period. Adding years up would be recomputing a score, which `evidence/` may not do, so the by-year table lists each year with its period label and no period total.
+- **Evidence:** `/approaches/*/by_year_1deg` in the final file (2014–2017 `early`, 2018–2021 `late`, southern Africa and Siberia only); the selection run covers 2015 and 2018 only. `test_5_2_ac1_years_are_shown_by_period_without_totals`.
+- **Revisit if:** the lead accepts per-year rows as meeting Story 5.4, or a period total is wanted; then it has to come from the planning record's harness, not from this build.
+
+## Story 5.2: the wording check (14 Nov 2026)
+
+- **Status:** TESTED (`test_5_2_ac3_*`)
+- **Decision:** `evidence/wording.py` scans `README.md` and the built site (`web/dist`) by default, and fails on "beat the baselines", "every baseline", "all baselines" and equivalent claims listed in the file: beat, outperform, surpass, exceed or dominate the/all/both/the three baselines; better, more accurate or lower error than any or all baselines; "beat every other method"; "best of all"; "won against all the baselines". Line breaks are ignored. A missing path is an error, so an unbuilt site cannot pass. The pytest run also scans `web/src` (which holds `evidence.json`), the pitch storyline and `web/dist` if it is built. "Fires" is not in this check: the built site bundles library code that uses the word for events; `test_claims.py` still bans it in the claims.
+- **Evidence:** passes on README, `web/src`, the storyline and a fresh `npm run build`; each listed phrase in a planted page fails it; every fixed claim passes it.
+- **Revisit if:** a reviewer finds another way to say it; add it to `BANNED` with a test.
+
+## Story 5.2: evidence table row keys are JSON pointers (14 Nov 2026)
+
+- **Status:** TESTED (gitleaks hook; `uv run python evidence/build.py --check`)
+- **Decision:** rows of the run and by-year tables are keyed by JSON pointer (`/blocks/sumatra`, `/truth_flags_1deg`, `/sumatra/2015`), as the decisions table already was. The schema leaves the key's format open.
+- **Evidence:** keys like `southern_africa.2015` in a `"key":` field matched gitleaks' `generic-api-key` rule 30 times and blocked the commit. The pointer form passes the unchanged hook, so no allowlist was added.
+- **Revisit if:** the evidence view (Stories 5.3–5.6) needs another key format; keep it out of the `name.name` shape or the hook will flag it again.
