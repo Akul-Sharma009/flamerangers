@@ -22,6 +22,7 @@ SUMATRA = REGIONS["sumatra"]
 AMAZON = {"type": "Polygon", "coordinates": [[[-59.3, -11.2], [-55.1, -11.9], [-52.6, -8.4], [-54.9, -5.6], [-58.8, -6.7], [-59.3, -11.2]]]}
 PUNJAB = REGIONS["punjab"]
 AREAS = {"sumatra": SUMATRA, "amazon": AMAZON, "punjab": PUNJAB}
+PARITY_OK = lambda: {"passed": True, "misses": {}}  # noqa: E731  stand-in for the AD-2 case check
 DT = date(2026, 11, 13)
 EXTENT = [-62.0, -13.0, 108.0, 33.0]
 
@@ -80,12 +81,12 @@ def store_root(tmp_path_factory):
         t.to_parquet(grids_dir / f"{name}.parquet")
     (raw / "coverage.json").write_text(json.dumps({"extent": EXTENT, "sources": {
         "MODIS_SP": [["2002-07-01", "2026-08-31"]], "MODIS_NRT": [["2026-09-01", "2026-11-13"]],
-        "VIIRS_SNPP_SP": [["2012-01-20", "2024-02-10"], ["2024-02-16", "2026-07-31"]],
+        "VIIRS_SNPP_SP": [["2012-01-20", "2023-04-30"], ["2023-06-01", "2024-02-10"], ["2024-02-16", "2026-07-31"]],
         "VIIRS_SNPP_NRT": [["2026-08-01", "2026-11-02"]], "VIIRS_NOAA20_NRT": [["2026-08-01", "2026-11-13"]]}}))
     root = tmp / "store"
-    publish.publish(rec, grids_dir, raw, root, data_through=DT, code_revision="old")
-    publish.publish(rec, grids_dir, raw, root, data_through=DT, code_revision="previous")
-    publish.publish(rec, grids_dir, raw, root, data_through=DT, code_revision="current")
+    publish.publish(rec, grids_dir, raw, root, data_through=DT, code_revision="old", parity_check=PARITY_OK)
+    publish.publish(rec, grids_dir, raw, root, data_through=DT, code_revision="previous", parity_check=PARITY_OK)
+    publish.publish(rec, grids_dir, raw, root, data_through=DT, code_revision="current", parity_check=PARITY_OK)
     return root
 
 
@@ -453,3 +454,33 @@ def test_4_5_ac2_a_failing_check_fails(client, versions, monkeypatch):
     report = check_numbers.check(client, versions[0], PUNJAB, name="punjab")
     assert report["failures"]
     assert check_numbers.exit_code(report) == 1
+
+
+
+def test_2_6_null_is_not_zero_an_uncovered_month_is_null(client, versions):
+    c = client.post("/calendar", json=_body(versions[0], SUMATRA)).json()
+    m = {x["month"]: x for x in c["months"]}
+    assert m["2023-05"]["count"] is None and m["2023-05"]["null_reason"] == "outside_coverage"
+    assert m["2023-05"]["rank"] is None and m["2023-05"]["source"] is None
+    assert m["2023-04"]["count"] is not None and m["2023-06"]["count"] is not None
+    cells = client.post("/cells", json={"record_version": versions[0], "aoi": {"name": None, "geometry": PUNJAB},
+                                         "month": "2023-05"}).json()["cells"]
+    assert all(x["count"] is None and x["flag_state"] == "outside_record" for x in cells)
+
+
+
+def test_2_6_ad11_a_version_that_fails_to_load_leaves_the_last_good_one_serving(store_root, versions, tmp_path):
+    import os
+    import shutil
+    root = tmp_path / "copy"
+    shutil.copytree(store_root, root)
+    app = TestClient(create_app(root))
+    assert app.get("/meta").json()["record_version"] == versions[0]
+    broken = "20261114-deadbeef"
+    (root / "versions" / broken).mkdir()
+    (root / "versions" / broken / "manifest.json").write_text("{not json")
+    (root / "CURRENT.json").write_text(json.dumps({"record_version": broken, "previous": versions[0]}))
+    os.utime(root / "CURRENT.json", ns=(10**18, 10**18))
+    m = app.get("/meta")
+    assert m.status_code == 200 and m.json()["record_version"] == versions[0]
+    assert app.post("/calendar", json=_body(versions[0], PUNJAB, name=None)).status_code == 200

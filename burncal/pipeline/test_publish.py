@@ -13,6 +13,7 @@ COVERAGE = {"extent": [100.0, -2.0, 102.0, 0.0], "sources": {
     "VIIRS_SNPP_NRT": [["2026-08-01", "2026-11-02"]],
     "VIIRS_NOAA20_NRT": [["2026-08-01", "2026-11-13"]],
 }}
+PARITY_OK = lambda: {"passed": True, "misses": {}}  # noqa: E731  stand-in for the AD-2 case check
 
 
 def test_2_6_ac1_coverage_days_per_satellite_quality_month():
@@ -56,7 +57,7 @@ def _inputs(tmp_path):
 def test_2_6_ac1_publish_writes_a_version_and_switches_the_pointer(tmp_path):
     rec, grids, raw = _inputs(tmp_path)
     root = tmp_path / "store"
-    v1 = publish.publish(rec, grids, raw, root, data_through=date(2026, 11, 13), code_revision="abc")
+    v1 = publish.publish(rec, grids, raw, root, data_through=date(2026, 11, 13), code_revision="abc", parity_check=PARITY_OK)
     assert v1.startswith("20261113-") and len(v1) == 17
     vdir = root / "versions" / v1
     man = json.loads((vdir / "manifest.json").read_text())
@@ -67,7 +68,7 @@ def test_2_6_ac1_publish_writes_a_version_and_switches_the_pointer(tmp_path):
     assert (vdir / "records" / "raw" / "AQUA_2015.parquet").exists() and (vdir / "records" / "evidence_1deg.parquet").exists()
     assert json.loads((root / "CURRENT.json").read_text()) == {"record_version": v1, "previous": None}
     # a new code revision is a new version; the previous one stays on disk and is named in the pointer
-    v2 = publish.publish(rec, grids, raw, root, data_through=date(2026, 11, 13), code_revision="def")
+    v2 = publish.publish(rec, grids, raw, root, data_through=date(2026, 11, 13), code_revision="def", parity_check=PARITY_OK)
     assert v2 != v1 and (root / "versions" / v1).exists()
     assert json.loads((root / "CURRENT.json").read_text()) == {"record_version": v2, "previous": v1}
     # the same inputs give the same version
@@ -90,7 +91,7 @@ def test_2_8_one_version_holds_several_extents(tmp_path):
     (other / "southern" / "coverage.json").write_text(json.dumps(cov))
     root = tmp_path / "store"
     v = publish.publish_many([(rec, grids, raw), (other / "record", other / "grids", other / "southern")], root,
-                             data_through=date(2026, 11, 13), code_revision="x")
+                             data_through=date(2026, 11, 13), code_revision="x", parity_check=PARITY_OK)
     vdir = root / "versions" / v
     man = json.loads((vdir / "manifest.json").read_text())
     assert [e["name"] for e in man["extents"]] == ["raw", "southern"]
@@ -100,4 +101,44 @@ def test_2_8_one_version_holds_several_extents(tmp_path):
     days = pd.read_parquet(vdir / "coverage_days.parquet")
     assert set(days["extent"]) == {"raw", "southern"}
     with pytest.raises(ValueError, match="both named"):
-        publish.publish_many([(rec, grids, raw), (rec, grids, raw)], tmp_path / "s2", data_through=date(2026, 11, 13), code_revision="y")
+        publish.publish_many([(rec, grids, raw), (rec, grids, raw)], tmp_path / "s2", data_through=date(2026, 11, 13), code_revision="y", parity_check=PARITY_OK)
+
+
+def test_2_6_ad2_publish_refuses_converted_counts_without_parity(tmp_path):
+    rec, grids, raw = _inputs(tmp_path)
+    failing = lambda: {"passed": False, "reason": "parity case not available", "misses": {}}  # noqa: E731
+    with pytest.raises(RuntimeError, match="AD-2"):
+        publish.publish(rec, grids, raw, tmp_path / "store", data_through=date(2026, 11, 13), code_revision="a",
+                        parity_check=failing)
+    assert not (tmp_path / "store" / "CURRENT.json").exists()
+    # a record that ends before 2022 holds no converted count: no gate
+    v = publish.publish(rec, grids, raw, tmp_path / "store", data_through=date(2021, 12, 31), code_revision="a",
+                        parity_check=failing)
+    man = json.loads((tmp_path / "store" / "versions" / v / "manifest.json").read_text())
+    assert man["parity"] == {"required": False}
+
+
+def test_2_6_ad2_publish_records_the_parity_result(tmp_path):
+    rec, grids, raw = _inputs(tmp_path)
+    ok = lambda: {"passed": True, "misses": {"C1 1deg": 1.5e-10}}  # noqa: E731
+    v = publish.publish(rec, grids, raw, tmp_path / "store", data_through=date(2026, 11, 13), code_revision="a",
+                        parity_check=ok)
+    man = json.loads((tmp_path / "store" / "versions" / v / "manifest.json").read_text())
+    assert man["parity"] == {"required": True, "passed": True, "misses": {"C1 1deg": 1.5e-10}}
+
+
+@pytest.mark.skipif(not __import__("os").environ.get("BURNCAL_PARITY_CASE_DIR"), reason="BURNCAL_PARITY_CASE_DIR not set")
+def test_2_6_ad2_the_real_parity_case_passes():
+    from burncal.pipeline import parity
+    got = parity.check_case()
+    assert got["passed"] and len(got["misses"]) == 6, got
+
+
+
+def test_2_6_null_is_not_zero_a_month_with_no_feeding_day_is_uncovered():
+    cov = {"extent": [0, 0, 5, 5], "sources": {"MODIS_SP": [["2002-07-01", "2021-12-31"]],
+                                                "VIIRS_SNPP_SP": [["2022-01-01", "2023-04-30"], ["2023-06-01", "2026-07-31"]]}}
+    _, missing = publish.coverage_tables(cov, data_through=date(2026, 7, 31))
+    m = missing.set_index(["year", "month"])["uncovered"]
+    assert bool(m[(2023, 5)]) is True
+    assert (2023, 4) not in m.index and (2023, 6) not in m.index

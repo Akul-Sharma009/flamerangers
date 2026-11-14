@@ -64,11 +64,11 @@ def calendar(v: Version, geom, name, start: date, end: date, regions: dict) -> d
     sums = v.count(geom)
     flags = v.flag_counts(cells)
     ext = v.extent_of(geom)
-    inputs, missing = v.month_inputs(ext), v.missing(ext)
+    inputs, missing, uncovered = v.month_inputs(ext), v.missing(ext), v.uncovered(ext)
     dt = v.data_through
     record_months = [(y, m) for y in range(2002, dt.year + 1) for m in range(1, 13)
                      if record.month_state(y, m, data_through=dt)[0] != "null"]
-    series = {t: float(sums[(t[0] - 2002) * 12 + t[1] - 1, 0]) for t in record_months}
+    series = {t: float(sums[(t[0] - 2002) * 12 + t[1] - 1, 0]) for t in record_months if t not in uncovered}
     complete = {t for t in record_months if not any(
         r in ("record_start", "data_through", "missing_days") for r in record.partial_reasons(
             t[0], t[1], data_through=dt, missing_days=t in missing, start=date(t[0], t[1], 1), end=dt))}
@@ -93,7 +93,7 @@ def calendar(v: Version, geom, name, start: date, end: date, regions: dict) -> d
         months.append({
             "month": _ym(t),
             "count": r1(value),
-            "null_reason": None if in_record else "outside_record",
+            "null_reason": None if in_record else ("outside_coverage" if t in uncovered else "outside_record"),
             "source": None if not in_record else ("aqua_real" if t <= (2021, 12) else "viirs_converted"),
             "inputs": ins,
             "raw": {s.lower(): (int(round(sums[k, j + 1])) if in_record and days.get(s, 0) > 0 else None)

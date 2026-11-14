@@ -20,7 +20,7 @@ import pandas as pd
 import shapely
 
 from burncal.core import record
-from burncal.pipeline import c1_params
+from burncal.pipeline import aggregate, c1_params, parity
 
 SOURCE_SATELLITES = {"MODIS": ("AQUA", "TERRA"), "VIIRS_SNPP": ("SNPP",), "VIIRS_NOAA20": ("NOAA20",),
                      "VIIRS_NOAA21": ("NOAA21",)}
@@ -67,8 +67,13 @@ def coverage_tables(coverage: dict, *, data_through: date) -> tuple[pd.DataFrame
     all_days = np.arange(np.datetime64(record.RECORD_START, "D"), np.datetime64(data_through, "D") + np.timedelta64(1, "D"))
     gap = all_days[~np.isin(all_days, np.array(sorted(covered_feeding), dtype="datetime64[D]"))]
     gm = pd.DatetimeIndex(gap.astype("datetime64[ns]"))
-    missing = pd.DataFrame({"year": gm.year, "month": gm.month}).drop_duplicates().reset_index(drop=True)
-    return days, missing
+    gaps = pd.DataFrame({"year": gm.year, "month": gm.month}).groupby(["year", "month"]).size()
+    rec = pd.DatetimeIndex(all_days.astype("datetime64[ns]"))
+    in_record = pd.DataFrame({"year": rec.year, "month": rec.month}).groupby(["year", "month"]).size()
+    missing = gaps.rename("gap_days").reset_index()
+    # uncovered: no feeding day of the month (inside the record) was loaded, so its count is null, not 0
+    missing["uncovered"] = [g == in_record[(y, m)] for y, m, g in zip(missing["year"], missing["month"], missing["gap_days"])]
+    return days, missing.drop(columns="gap_days")
 
 
 def _sha256(path: Path) -> str:
@@ -104,17 +109,30 @@ def _write_pointer(root: Path, version: str) -> None:
     os.replace(tmp, pointer)
 
 
-def publish(record_dir, grids_dir, raw_dir, store_root, *, data_through: date, code_revision: str) -> str:
+def publish(record_dir, grids_dir, raw_dir, store_root, *, data_through: date, code_revision: str,
+            parity_check=None) -> str:
     """One extent: see publish_many."""
     return publish_many([(record_dir, grids_dir, raw_dir)], store_root, data_through=data_through,
-                        code_revision=code_revision)
+                        code_revision=code_revision, parity_check=parity_check)
 
 
-def publish_many(builds, store_root, *, data_through: date, code_revision: str) -> str:
+def _parity_gate(data_through: date, parity_check) -> dict:
+    """AD-2: a version holding converted counts (any month from January 2022) needs a passing parity check."""
+    if data_through < record.VIIRS_FIRST:
+        return {"required": False}
+    result = (parity_check or parity.check_case)()
+    if not result.get("passed"):
+        raise RuntimeError(f"AD-2: parity check did not pass, so converted counts are not published: "
+                           f"{result.get('reason') or result.get('misses')}")
+    return {"required": True, "passed": True, "misses": result["misses"]}
+
+
+def publish_many(builds, store_root, *, data_through: date, code_revision: str, parity_check=None) -> str:
     """Several extents in one version. builds: (record dir, grids dir, raw dir) per extent; the extent's
     name is its raw dir's name. Extents must not overlap. Each keeps its own coverage tables, and its
     record rows under records/<name>/; grids, evidence and points are joined."""
     builds = [tuple(map(Path, b)) for b in builds]
+    gate = _parity_gate(data_through, parity_check)
     root = Path(store_root)
     version = record_version([raw for _, _, raw in builds], data_through, code_revision)
     final = root / "versions" / version
@@ -137,9 +155,11 @@ def publish_many(builds, store_root, *, data_through: date, code_revision: str) 
             for part in parts:
                 shutil.copy2(part, tmp / "records" / name / part.name)
             ev_all.append(pd.read_parquet(record_dir / "evidence_1deg.parquet"))
-            for g in GRIDS:
-                grids_all[g].append(pd.read_parquet(grids_dir / f"{g}.parquet"))
             days, missing = coverage_tables(coverage, data_through=data_through)
+            uncovered = set(zip(missing["year"][missing["uncovered"]], missing["month"][missing["uncovered"]]))
+            for g in GRIDS:
+                t = pd.read_parquet(grids_dir / f"{g}.parquet")
+                grids_all[g].append(aggregate.null_uncovered(t, uncovered) if g == "flags_1deg" else t)
             days_all.append(days.assign(extent=name))
             missing_all.append(missing.assign(extent=name))
             for part in parts:
@@ -156,7 +176,7 @@ def publish_many(builds, store_root, *, data_through: date, code_revision: str) 
         pts.to_parquet(tmp / "points.parquet", compression="zstd", index=False)
         manifest = {"record_version": version, "data_through": data_through.isoformat(), "extents": extents,
                     "code_revision": code_revision, "params_sha256": _sha256(c1_params.PARAMS_FILE),
-                    "inputs": inputs, "rows_in_counts": int(len(pts))}
+                    "inputs": inputs, "rows_in_counts": int(len(pts)), "parity": gate}
         (tmp / "manifest.json").write_text(json.dumps(manifest, indent=1))
         os.replace(tmp, final)
     _write_pointer(root, version)

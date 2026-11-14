@@ -22,7 +22,16 @@ def _batches(paths):
     return dict(sorted(out.items(), key=lambda kv: (kv[0][1], kv[0][0])))
 
 
-def build(raw_dir, land_path, out_dir) -> dict:
+STATIC_SOURCES = ("MODIS_SP", "VIIRS_SNPP_SP")  # Aqua and Terra come in the MODIS file
+
+
+def missing_static_inputs(paths) -> list[str]:
+    """The tuning-year files the static mask needs that are not present (lead's review, 14 Nov)."""
+    names = {p.stem for p in paths}
+    return [f"{s}_{y}" for y in core_clean.STATIC_YEARS for s in STATIC_SOURCES if f"{s}_{y}" not in names]
+
+
+def build(raw_dir, land_path, out_dir, *, require_static_inputs: bool = True) -> dict:
     """One satellite family and year at a time, so an extent never has to fit in memory at once.
 
     The static mask comes first, from the tuning-year MODIS and Suomi NPP files only. Each batch then
@@ -30,16 +39,20 @@ def build(raw_dir, land_path, out_dir) -> dict:
     satellite-day (AD-6). The result equals cleaning the whole extent at once.
     """
     paths = sorted(Path(raw_dir).glob("*.csv"))
+    if require_static_inputs and (gone := missing_static_inputs(paths)):
+        raise ValueError(f"static mask needs every tuning-year file; missing: {', '.join(gone)}")
     land = clean.load_land(land_path)
     mask_paths = [p for p in paths if p.stem.startswith(("MODIS_", "VIIRS_SNPP_"))
                   and int(p.stem.rsplit("_", 1)[1]) in core_clean.STATIC_YEARS]
     mask_rows = ingest.ingest_csv_files(mask_paths)
-    static = clean.static_from(ingest.prefer_standard(mask_rows), land) if len(mask_rows) else []
+    static = clean.static_from(ingest.prefer_standard(mask_rows), land) if len(mask_rows) and "longitude" in mask_rows else []
     del mask_rows
     n_in = n_out = 0
     by = {}
     for _, batch in _batches(paths).items():
         df = ingest.ingest_csv_files(batch)
+        if df.empty or "longitude" not in df:
+            continue  # a year with no hotspots in the extent
         n_in += len(df)
         df = clean.clean(ingest.prefer_standard(df), land, static)
         n_out += len(df)

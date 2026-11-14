@@ -471,3 +471,21 @@ Each entry has: a status (**ASSUMED** or **TESTED**), its evidence, and a "revis
   - Simplest fallback: static answers for the six featured areas on the web host. It does not answer a drawn area.
 - **Evidence:** the stub trial (`docs/handoff.md`, Story 1.3) and the teammate's object-storage timing (cold Sumatra calendar 4.07 s on Vercel through DuckDB range reads). The real service loads the current and the previous version wholly into memory at start-up (`burncal/service/store.py`); its memory use is not measured yet.
 - **Revisit if:** the service's memory with Sumatra's current and previous versions loaded comes near 2 GB, or six regions will not fit in 2 GB; the store version cannot reach the function (bundle over the limit, or `/tmp` too small); or the hosted p95 of 20 Sumatra calendars misses the 3 s target (Story 2.6 AC6). The options then are serving only the current version, splitting regions across deployments, lazy reads by tile, or a container host from the list above.
+
+## Story 2.5 AC2: Australian grassland and Amazon forest threshold parity (15 Nov)
+
+- **Status:** TESTED (Amazon); TESTED with one open cell (Australia)
+- **Decision:** Thresholds come from the same code for all three tuning regions; the parity check feeds it region-clipped 2003–2011 Aqua counts, as the harness did.
+- **Evidence:** `test_2_5_ac2_amazon_thresholds_match_the_parity_targets` and `test_2_5_ac2_australia_thresholds_match_except_the_known_cell` (they run where the records are built). Amazon forest: 672 of 672 cell-months within 1e-6. Australian grassland: 967 of 972. The 5 misses are all at 136°E 16°S (the McArthur River mine), months 1, 2, 10, 11 and 12, product higher (for example 88.2 against 87.0 in October). The record was built without Suomi NPP 2016, which FIRMS refused on four attempts, so the static mask could not mark this persistent source. The build now refuses to run without every static-mask tuning-year file (MODIS and Suomi NPP for 2014, 2016, 2017 and 2020).
+- **Revisit if:** the rebuild with Suomi NPP 2016 still misses this cell; then the cause is elsewhere.
+
+## The lead's review list: gate, nulls, static inputs, last good version (15 Nov)
+
+- **Status:** TESTED
+- **Decision:**
+  - **AD-2 gate.** `publish` runs the parity case check (`burncal/pipeline/parity.py`, the same comparison as Story 2.2's test) whenever the version holds converted counts (data through 2022 or later). If the case is not available or any of 4A, 1A and C1 at 1° and 0.25° misses by more than 1e-6, publish refuses and nothing is written. The manifest records the result.
+  - **Null is not 0.** A month of the record with no feeding day loaded is "uncovered": `/calendar` gives count null with `outside_coverage`, and the flag table gives count null with `outside_record` (the contract has no flag state for "not loaded"). Partly covered months keep their count and carry `missing_days`.
+  - **Static-mask inputs.** The clean step refuses to run unless MODIS and Suomi NPP standard files for 2014, 2016, 2017 and 2020 are all present.
+  - **AD-11.** If the pointer names a version that fails to load, the service keeps answering from the last good versions and keeps the error; it does not retry on every request.
+- **Evidence:** `test_2_6_ad2_*` in `burncal/pipeline/test_publish.py` (the real case passes with `BURNCAL_PARITY_CASE_DIR` set), `test_2_6_null_is_not_zero_*`, `test_2_5_static_mask_build_fails_without_every_tuning_year_file`, `test_2_6_ad11_*`.
+- **Revisit if:** the lead wants publishing allowed on a machine without the case (for example a hosted daily refresh, Story 2.9); then the gate needs a recorded pass the refresh can check instead.

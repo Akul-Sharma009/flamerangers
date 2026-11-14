@@ -4,6 +4,7 @@ The fast path sums whole 0.25-degree grid cells inside the area and adds the poi
 that the area's edge cuts. It must equal the brute-force point sum (count_points).
 """
 import json
+import logging
 from datetime import date
 from pathlib import Path
 
@@ -13,6 +14,7 @@ import shapely
 
 from burncal.core import grids
 
+log = logging.getLogger("burncal.service")
 SATELLITES = ("AQUA", "TERRA", "SNPP", "NOAA20", "NOAA21")
 FEEDING_SATELLITES = ("AQUA", "SNPP", "NOAA20")
 FINE = 0.25
@@ -49,7 +51,11 @@ class Version:
             miss["extent"] = ""
         if "extent" not in self.coverage_days:
             self.coverage_days["extent"] = ""
+        if "uncovered" not in miss:
+            miss["uncovered"] = False
         self._missing = {e: set(zip(g["year"], g["month"])) for e, g in miss.groupby("extent")}
+        unc = miss[miss["uncovered"]]
+        self._uncovered = {e: set(zip(g["year"], g["month"])) for e, g in unc.groupby("extent")}
         c = pd.read_parquet(g / "cells_025deg.parquet")
         self._c_ix, self._c_iy = _cell_ix(c["sw_lon"] + FINE / 2) , _cell_ix(c["sw_lat"] + FINE / 2)
         self._c_key = _key(self._c_ix, self._c_iy)
@@ -74,6 +80,10 @@ class Version:
 
     def missing(self, extent) -> set:
         return self._missing.get(extent, set())
+
+    def uncovered(self, extent) -> set:
+        """Months of the record with no feeding day loaded: their count is null (outside_coverage)."""
+        return self._uncovered.get(extent, set())
 
     def _records(self, extent) -> Path:
         sub = self.path / "records" / extent
@@ -191,15 +201,27 @@ class Store:
         self.root = Path(root)
         self.pointer = self.root / "CURRENT.json"
         self._mtime, self._versions, self.current, self.previous = None, {}, None, None
+        self.load_error = None
         self.refresh()
 
     def refresh(self) -> None:
-        mtime = self.pointer.stat().st_mtime_ns
-        if mtime == self._mtime:
+        """Re-read the pointer when it changes. A version that fails to load is not switched to:
+        the last good versions keep answering (AD-11), and the failure is kept in load_error."""
+        try:
+            mtime = self.pointer.stat().st_mtime_ns
+            if mtime == self._mtime:
+                return
+            p = json.loads(self.pointer.read_text(encoding="utf-8"))
+            keep = {p["record_version"], p["previous"]} - {None}
+            versions = {v: self._versions.get(v) or Version(self.root / "versions" / v) for v in keep}
+        except Exception as exc:  # noqa: BLE001
+            self._mtime = mtime if "mtime" in locals() else self._mtime  # do not retry a broken pointer on every request
+            self.load_error = f"{type(exc).__name__}: {exc}"
+            if self.current is None:
+                raise
+            log.warning("store refresh failed; still serving %s (%s)", self.current, self.load_error)
             return
-        p = json.loads(self.pointer.read_text(encoding="utf-8"))
-        keep = {p["record_version"], p["previous"]} - {None}
-        self._versions = {v: self._versions.get(v) or Version(self.root / "versions" / v) for v in keep}
+        self._versions, self.load_error = versions, None
         self.current, self.previous, self._mtime = p["record_version"], p["previous"], mtime
 
     def get(self, record_version: str) -> Version | None:
