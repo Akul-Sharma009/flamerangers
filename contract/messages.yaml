@@ -85,6 +85,7 @@ notes:
   noaa20_check_not_run: "The NOAA-20 comparison has not been run yet."
   range_and_reference: "Rankings cover the dates you chose. Medians and anomalies always use the reference period."
   month_complete: "Complete month: every day of input data is in."
+  partly_inside: "Partly inside the area. The count and flag are for the whole cell."
   missing_days_to_date: "Some days of input data are missing so far this month, so the count to date may be low."
 
 # Card sentences with {placeholders}. The service fills no words; the web fills
@@ -97,6 +98,11 @@ sentences:
   ruler_caption: "Days 1 to {day} of {month_name} in each year from {reference_start} to {reference_end}."
   record_high: "The highest month on record here is {month}, with {count} hotspots."
   noaa20_compared: "From {period_start} to {period_end}, converted NOAA-20 counts differed from converted Suomi NPP counts by {bias_pct}% overall, with a mean absolute difference of {mean_abs_difference} per one-degree cell-month."
+  anomaly: "Difference from the {reference_start}–{reference_end} mean for {month_name}: {anomaly_count} hotspots ({anomaly_pct}%)."
+  reference_mean: "The {reference_start}–{reference_end} mean for {month_name} is {mean} hotspots."
+  flag_reference: "Flag thresholds come from {flag_start}–{flag_end}, a different period from the mean, so a large anomaly can have no flag and a flag can come with a small anomaly."
+  anomaly_scale: "Anomaly as a percentage of the {reference_start}–{reference_end} mean for the calendar month. Each class starts at the value shown."
+  cells_heading: "Flag state of each one-degree cell in {month}."
 
 # States the web finds itself, before or instead of a service answer. The
 # service never sends these; they are here so the web types no words (0.3.0; date sentences 0.4.0).

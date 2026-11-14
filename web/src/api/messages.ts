@@ -42,6 +42,7 @@ export interface Messages {
     | "noaa20_check_not_run"
     | "range_and_reference"
     | "month_complete"
+    | "partly_inside"
     | "missing_days_to_date"
   >;
   client: Table<
