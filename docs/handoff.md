@@ -123,6 +123,17 @@ Not in the repo: the Vercel trial used a two-line `index.py` entrypoint and a `r
 | AC3 standard beats NRT per satellite-day | `test_2_3_ac3_*` in `test_ingest.py` and `test_build_extent.py`; 3,949 NRT rows replaced in the Sumatra build |
 | AC4 tuning-year Aqua counts agree, or differences listed with causes | `test_2_3_ac4_*` in `test_compare_tuning.py`; `uv run python -m burncal.pipeline.compare_tuning`; `docs/cleaning-differences.md` |
 
+## Story 4.1: analytics CSV (branch `teammate/4.1-analytics-csv`, on top of 2.7)
+
+- `/analytics.csv` answers from the store: one row per month of the calendar, built by flattening the same object `/calendar` returns, so every number is identical. Header as `CSV_SPEC.md`. The `citation` line is still a stand-in until Story 6.1.
+- Sumatra, July 2002 to 13 Nov 2026: 0.07 s locally.
+- Checks: `uv run pytest` 294 passed, 9 skipped; import check passed.
+
+| Criterion | Test or evidence |
+| --- | --- |
+| AC1 one row per month with every column; header with query, version, switch, unit, reference period, data-through, limits, citations | `test_4_1_ac1_*` in `burncal/service/test_store_service.py` (citations are a stand-in until Story 6.1) |
+| AC2 every number identical to `/calendar` | `test_4_1_ac2_*` |
+
 ## Stories 2.7 and 4.2: hotspots for any search, as CSV (branch `teammate/2.7-hotspots`, on top of 3.2)
 
 - `/hotspots.csv` now answers from the store: rows inside the area and the exact dates, every column of `HotspotRow`, header as `CSV_SPEC.md`. Rows of feeding satellites by default, every satellite with `all_satellites: true`. Above 250,000 rows the answer is `413 too_large_for_sync` with the estimate and the years; the web then asks year by year. `/analytics.csv` still answers from the fixture (Story 4.1).
