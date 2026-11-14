@@ -123,6 +123,18 @@ Not in the repo: the Vercel trial used a two-line `index.py` entrypoint and a `r
 | AC3 standard beats NRT per satellite-day | `test_2_3_ac3_*` in `test_ingest.py` and `test_build_extent.py`; 3,949 NRT rows replaced in the Sumatra build |
 | AC4 tuning-year Aqua counts agree, or differences listed with causes | `test_2_3_ac4_*` in `test_compare_tuning.py`; `uv run python -m burncal.pipeline.compare_tuning`; `docs/cleaning-differences.md` |
 
+## Story 4.5: numbers-agree check (branch `teammate/4.5-numbers-agree`, on top of 4.1)
+
+- `uv run python tools/check_numbers.py [store root]` exits 1 on any disagreement. For Sumatra, an Amazon polygon and the Punjab box over the whole record: every analytics CSV row equals its `/calendar` month field by field, and for every complete month up to December 2021 the hotspot CSV's feeding, kept rows number exactly the harmonized count. A search outside the store's coverage is reported as not loaded.
+- `uv run pytest` runs the same check on the synthetic store for all three searches, so a failing check fails the build.
+- Published Sumatra version: 0 failures; 300 months and 233 hotspot months compared, in 4 s. Amazon and Punjab are not loaded until Story 2.8.
+- Checks: `uv run pytest` 298 passed, 9 skipped; import check passed.
+
+| Criterion | Test or evidence |
+| --- | --- |
+| AC1 calendar equals analytics CSV; hotspot rows equal complete months' counts to 2021, three searches | `test_4_5_ac1_*` (3 searches) in `burncal/service/test_store_service.py`; `tools/check_numbers.py` on Sumatra |
+| AC2 a failing check fails the build | `test_4_5_ac2_a_failing_check_fails`; the script exits 1 |
+
 ## Story 4.1: analytics CSV (branch `teammate/4.1-analytics-csv`, on top of 2.7)
 
 - `/analytics.csv` answers from the store: one row per month of the calendar, built by flattening the same object `/calendar` returns, so every number is identical. Header as `CSV_SPEC.md`. The `citation` line is still a stand-in until Story 6.1.
