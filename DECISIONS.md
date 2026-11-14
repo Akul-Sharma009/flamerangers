@@ -548,3 +548,35 @@ Each entry has: a status (**ASSUMED** or **TESTED**), its evidence, and a "revis
 - **Decision:** Rows are years, so the rule is drawn between the row of the year of `meta.record_switch.viirs_from` and the row below it. This is right because the switch is at a year boundary (January 2022).
 - **Evidence:** `grid.test.tsx` AC2 block.
 - **Revisit if:** the switch ever moves off a January; the rule would then have to step inside a row.
+
+## Story 3.7: the card's sentences wait for contract 0.4.0 (14 Nov 2026)
+
+- **Status:** ASSUMED. Flag to the lead and the data owner: wording for 0.4.0 below.
+- **Decision:** `messages.yaml` 0.3.0 has no sentence for the card's headline, its "usual" line, the flagged-cells caution, the ruler caption, the highest-month sentence or the NOAA-20 comparison, so the web types none. Until the contract has them, the card shows the same served values as labelled figures (a ledger list: "Same-days median 456.4"), with short labels typed in the web as Stories 3.3 and 3.5 did. The headline is the served count ("261.3 hotspots"). `web/src/card/words.ts` already reads an optional `sentences:` section; once 0.4.0 adds these keys, the card writes sentences with no web change. A template with an unknown placeholder or a null value is not filled, and the figures show instead. Suggested section:
+  ```yaml
+  sentences:
+    current_month: "So far this month: {count} hotspots, {ratio}× the {reference_start}–{reference_end} median for the same days of {month_name}."
+    current_month_count: "So far this month: {count} hotspots."
+    current_month_usual: "Usual = the {reference_start}–{reference_end} median for days 1 to {day} of {month_name}: {median} hotspots. This month differs by {difference}. Data through {data_through}."
+    cells_flagged: "{strong} of {total} one-degree cells are flagged strong and {marginal} marginal, a caution and not an alarm."
+    ruler_caption: "Days 1 to {day} of {month_name} in each year from {reference_start} to {reference_end}."
+    record_high: "The highest month on record here is {month}, with {count} hotspots."
+    noaa20_compared: "From {period_start} to {period_end}, converted NOAA-20 counts differed from converted Suomi NPP counts by {bias_pct}% overall, with a mean absolute difference of {mean_abs_difference} per one-degree cell-month."
+  ```
+  `current_month_count` is the median-of-0 case: it is followed by `notes.no_typical_activity` and no ratio.
+- **Evidence:** `card.test.tsx` AC3 block: with these templates the card writes the criterion's example sentence exactly from served values; with contract 0.3.0 `contractSentences()` is empty and no sentence is typed; every number on the card is a served value.
+- **Revisit if:** the lead changes the wording (the keys and placeholders are what the web relies on), or the data owner objects to a `sentences:` section.
+
+## Story 3.7: the ruler's axis (14 Nov 2026)
+
+- **Status:** ASSUMED
+- **Decision:** The ruler is an SVG drawn by React at the column's measured width, with a symmetric-log axis from the smallest to the largest of the served marks (each reference year's same-days count, the median, this year's count). The axis has no tick values; the only labels are served values: this year's mark ("2026: 261.3"), the median tick ("median 456.4"), and each year's count on hover. A table view under it holds every year's served count. This year's mark slides along the axis on load (the concept's one transition), off under reduced motion.
+- **Evidence:** UI-CONCEPT.md section 3, item 4, and section 6. A symlog axis from 0 crowded Sumatra's 23 years into the right third at 343 px; from the smallest mark they spread across the axis (checked in the built-in browser at 1280 and 375 px). The extent is found with `d3.extent`: a drawing range, never shown, so AD-8 holds for what the reader sees. A plain log axis has no place for 0; symlog does. `card.test.tsx` AC2 block: marks in the served order of their counts, inside the drawing at both widths; a 0 count at the left end.
+- **Revisit if:** the lead reads the extent as a computed number under AD-8 (the service could serve a position or share per mark, as it does `share_of_max`), or readers misread a log axis without ticks.
+
+## Story 3.7: what the card shows beyond the sentence (14 Nov 2026)
+
+- **Status:** ASSUMED
+- **Decision:** Under the headline: the figures (ratio, same-days median, difference, same days "1–d Month", reference period, data-through date, flagged 1° cells "n strong · n marginal · of N", and the satellites that fed the month with their served day counts), then the contract's sentences: the quality label (NRT or SP), `validated_satellite_false` when the satellite is not validated, `monthly_validation_only`, and `provisional` (the current month is never complete). When `validated_satellite` is false, `meta.noaa20_check` null gives `noaa20_check_not_run`; once served, `noaa20_check` ("Reported only. …") and the pooled figures (period, bias, mean absolute difference, cell-months). With a median of 0 the card shows the count, the median 0 and `no_typical_activity`, and no ratio, not even a dash. A null `current_month` shows the month and "Not loaded yet."; a null count or median (should one ever be served) shows "–", never 0. The second sentence is the served `statistics.record_high`, which the contract defines over the whole record whatever the range. The card sits in the left column under the locator, before the footnotes.
+- **Evidence:** `card.test.tsx` (24 tests, one block per criterion); built-in browser at 1280 and 375 px.
+- **Revisit if:** Story 2.10 serves per-region figures the lead wants on the card (only the pooled ones are shown), or the lead wants the figure list shorter once the sentences exist.
