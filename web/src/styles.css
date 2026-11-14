@@ -1,0 +1,66 @@
+/* Ledger page (UI-CONCEPT.md). Light paper ground only: the concept rules out a dark theme. */
+:root {
+  --paper: #f6f0e4;
+  --ink: #1d1a16;
+  --muted: #6b6257;
+  --rule: #c9bfae;
+  --faint: #e9e0cf;
+
+  /* One sequential sepia ramp, one per served colour_class (0 = no hotspots).
+     Text on classes 0-3 is ink, on 4-6 paper (contrast checked against both). */
+  --c0: #f1e6d0;
+  --c1: #e6cfa2;
+  --c2: #d3a866;
+  --c3: #bd8246;
+  --c4: #9a5f2e;
+  --c5: #6a3414;
+  --c6: #37190a;
+
+  --serif: "Iowan Old Style", "Palatino Linotype", Palatino, "Book Antiqua", Georgia, serif;
+  --sans: "Avenir Next", "Gill Sans", "Trebuchet MS", sans-serif;
+  --num: "SF Mono", ui-monospace, Menlo, Consolas, monospace;
+}
+
+* { box-sizing: border-box; }
+html, body { margin: 0; background: var(--paper); color: var(--ink); font-family: var(--sans); }
+a { color: var(--ink); text-underline-offset: 3px; }
+
+.banner {
+  background: var(--ink); color: var(--paper);
+  font-size: 12.5px; text-align: center; padding: 4px 16px; letter-spacing: .02em;
+}
+
+header.mast {
+  display: flex; flex-wrap: wrap; gap: 4px 16px; justify-content: space-between; align-items: baseline;
+  padding: 10px 28px 8px; border-bottom: 3px double var(--ink);
+}
+.mast .title { font-family: var(--serif); font-size: 17px; font-variant: small-caps; letter-spacing: .08em; }
+.mast nav a { font-size: 13px; margin-left: 20px; }
+.mast nav a[aria-current="page"] { font-weight: 600; text-decoration-thickness: 2px; }
+
+main.page { padding: 18px 28px 32px; }
+main.ledger { display: grid; grid-template-columns: minmax(0, 4fr) minmax(0, 8fr); gap: 32px; }
+
+.place { font-size: 12px; color: var(--muted); letter-spacing: .05em; text-transform: uppercase; }
+.place .name { display: block; font-family: var(--serif); font-size: 30px; color: var(--ink); text-transform: none; letter-spacing: 0; font-weight: 600; margin: 4px 0 2px; }
+.place .size { text-transform: none; letter-spacing: 0; font-family: var(--num); }
+ol.notes { margin: 16px 0 0; padding: 10px 0 0 18px; border-top: 1px solid var(--rule); font-size: 12px; line-height: 1.5; color: var(--muted); }
+ol.notes li { margin-bottom: 4px; }
+
+.gridhead { display: flex; flex-wrap: wrap; gap: 2px 12px; justify-content: space-between; align-items: baseline; margin-bottom: 6px; }
+.gridhead h2 { font-family: var(--serif); font-size: 16px; margin: 0; font-weight: 600; }
+.gridhead span { font-size: 11.5px; color: var(--muted); font-family: var(--num); }
+
+.problem { border-top: 1px solid var(--ink); border-bottom: 1px solid var(--ink); padding: 8px 0; font-family: var(--serif); font-size: 16px; }
+.loading { color: var(--muted); font-size: 13px; }
+
+.stub h1 { font-family: var(--serif); font-weight: 600; font-size: 28px; margin: 4px 0 8px; }
+.stub p { max-width: 60ch; line-height: 1.5; color: var(--muted); }
+
+@media (max-width: 800px) {
+  header.mast { padding: 8px 16px; }
+  .mast nav a { margin-left: 0; margin-right: 12px; font-size: 12.5px; }
+  main.page { padding: 14px 16px 24px; }
+  main.ledger { grid-template-columns: 1fr; gap: 16px; }
+  .place .name { font-size: 24px; }
+}

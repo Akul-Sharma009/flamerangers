@@ -49,3 +49,38 @@ Each entry has: a status (**ASSUMED** or **TESTED**), its evidence, and a "revis
 - **Evidence:** hand-written fixtures of five months could not exercise a year-by-month grid, year totals or rankings. The generator's numbers are invented and `/meta` says `placeholder: true`.
 - **Revisit if:** the generator's statistics are ever mistaken for the product's. The real ones live in `burncal/core` only.
 
+
+## Story 1.5: messages.yaml is parsed at build time with `yaml` 2.9.1 (14 Nov 2026)
+
+- **Status:** ASSUMED
+- **Decision:** `yaml` 2.9.1 is an exact-pinned devDependency, used only by a small Vite plugin (`web/vite.config.ts`) that turns `contract/messages.yaml` into the virtual module `virtual:messages`. The browser ships JSON and no YAML parser; there is one source for the words.
+- **Evidence:** No YAML parser was in the tree. The alternatives were a generated `messages.json` (a second copy that can drift) or a runtime parser (bundle weight). Vitest uses the same config, so tests read the same words.
+- **Revisit if:** the service starts serving the messages, or the plugin breaks under a Vite upgrade.
+
+## Story 1.5: fixture mode when VITE_SERVICE_BASE_URL is unset (14 Nov 2026)
+
+- **Status:** ASSUMED
+- **Decision:** `web/src/config.ts` gives `null` when the variable is unset or empty, and `web/src/api/client.ts` then reads `contract/fixture/` through lazy imports. Setting the variable points the same client at the service. The old `http://localhost:8000` default is gone.
+- **Evidence:** Story 1.5 needs the shell before Story 1.3's stub exists. Client tests cover both modes, problem answers, and one retry on `version_superseded`.
+- **Revisit if:** the public build must never fall back to fixtures; then make an unset variable a build error.
+
+## Story 1.5: grid drawing (14 Nov 2026)
+
+- **Status:** ASSUMED
+- **Decision:** A pure model (`web/src/grid/model.ts`) groups the served months by year, newest first, and maps served fields to marks. D3 draws the SVG at the container's real pixel width, so text stays legible at 375 px; below about 700 px the cells show tint only, with the value in the tooltip. The ramp is seven sepia steps, one per served `colour_class`, extended from the mockup's stops; text is ink on classes 0–3 and paper on 4–6. `null` months are hatched, and `0` months take the lightest fill with a "0". A month carries the strong mark if any cell is strong, else the marginal mark if any is marginal. The sensor-change rule is placed from `meta.record_switch.viirs_from`.
+- **Evidence:** It follows UI-CONCEPT.md. Contrast against the paper runs 1.09 (class 0, "near zero", as in the concept) to 14.2. Ink on class 4 would be 3.3:1, so class 4 takes paper text (4.6:1). No colour-vision simulation was run (Story 3.10). The flag-mark noise was not judged on real data.
+- **Revisit if:** real data puts a flag mark on most months (UI-CONCEPT.md section 5), or the Story 3.10 simulation fails.
+
+## Story 1.5: hash routes and system font stacks (14 Nov 2026)
+
+- **Status:** ASSUMED
+- **Decision:** Top navigation uses hash routes (`#/`, `#/evidence`, `#/about`), with no router package. Type uses the mockup's system serif, sans and mono stacks. No web fonts are loaded yet.
+- **Evidence:** Hash routes need no server rewrite on an unchosen host. UI-CONCEPT.md says "two Google Fonts families" but names none.
+- **Revisit if:** shareable deep links (FR-30) need real paths, or the fonts are chosen.
+
+## Story 1.5: hero sentence and ruler left to Story 3.7 (14 Nov 2026)
+
+- **Status:** ASSUMED
+- **Decision:** The calendar page shows the area name, size, cautions and standing notes on the left, and not the current-month sentence or ruler.
+- **Evidence:** The sentence template and the "usual =" line are UI copy with no entry in `messages.yaml`. Writing them is Story 3.7's job, with the lead deciding the words.
+- **Revisit if:** the lead wants the sentence for the Saturday demo.

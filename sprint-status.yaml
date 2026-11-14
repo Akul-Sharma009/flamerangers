@@ -40,7 +40,7 @@ development_status:
   1-2-data-contract-and-sumatra-fixture-both: done
   1-3-service-stub-at-a-public-address-t: backlog
   1-4-ui-concept-chosen-a: backlog
-  1-5-web-shell-showing-the-fixture-calendar-a: backlog
+  1-5-web-shell-showing-the-fixture-calendar-a: review
   epic-1-retrospective: optional
 
   epic-2: backlog

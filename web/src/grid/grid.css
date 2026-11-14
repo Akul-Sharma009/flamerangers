@@ -1,0 +1,42 @@
+.calgrid { width: 100%; min-width: 0; }
+.calgrid svg { display: block; width: 100%; overflow: visible; }
+.calgrid text { font-family: var(--num); fill: currentColor; }
+.calgrid .yr { font-size: 11.5px; fill: var(--ink); text-anchor: end; }
+.calgrid .colhead, .calgrid .foot-label { font-family: var(--sans); font-size: 11px; fill: var(--muted); }
+.calgrid .colhead { text-anchor: middle; }
+.calgrid .cell { color: var(--ink); }
+.calgrid .cell text.num { font-size: 10px; text-anchor: end; }
+.calgrid .cell text.dash { font-size: 11px; text-anchor: middle; fill: var(--muted); }
+.calgrid .cell.k0, .calgrid .cell.k1, .calgrid .cell.k2, .calgrid .cell.k3 { color: var(--ink); }
+.calgrid .cell.k4, .calgrid .cell.k5, .calgrid .cell.k6 { color: var(--paper); }
+.calgrid .cell.k0 .bg { fill: var(--c0); }
+.calgrid .cell.k1 .bg { fill: var(--c1); }
+.calgrid .cell.k2 .bg { fill: var(--c2); }
+.calgrid .cell.k3 .bg { fill: var(--c3); }
+.calgrid .cell.k4 .bg { fill: var(--c4); }
+.calgrid .cell.k5 .bg { fill: var(--c5); }
+.calgrid .cell.k6 .bg { fill: var(--c6); }
+.calgrid .cell.nullcell { color: var(--muted); }
+.calgrid .mtd { fill: none; stroke: var(--ink); stroke-width: 2; stroke-dasharray: 3 2; }
+.calgrid .flag-strong { fill: currentColor; }
+.calgrid .flag-marginal { fill: none; stroke: currentColor; stroke-width: 1.2; }
+.calgrid .tot-bar { fill: var(--muted); }
+.calgrid .tot-bar.hollow { fill: none; stroke: var(--muted); stroke-width: 1.2; }
+.calgrid .tot-num { font-size: 10.5px; fill: var(--ink); }
+.calgrid .rank circle { fill: none; stroke: var(--ink); stroke-width: 1.2; }
+.calgrid .rank text { font-size: 9.5px; text-anchor: middle; fill: var(--ink); }
+.calgrid .switch-rule { stroke: var(--ink); stroke-width: 2; }
+.calgrid .switch-note { font-family: var(--sans); font-size: 11px; fill: var(--muted); }
+.calgrid .foot-rule { stroke: var(--rule); stroke-width: 1; }
+.calgrid .median { font-size: 10px; fill: var(--muted); text-anchor: middle; }
+.calgrid .hatch-line { stroke: var(--rule); stroke-width: 1; }
+.calgrid .dot { fill: var(--rule); }
+
+.gridlegend { display: flex; flex-wrap: wrap; gap: 6px 16px; align-items: center; margin-top: 10px; font-family: var(--sans); font-size: 11px; color: var(--muted); }
+.gridlegend .group { display: inline-flex; align-items: center; gap: 4px; }
+.gridlegend .ramp { display: inline-flex; gap: 2px; }
+.gridlegend .step { display: inline-flex; flex-direction: column; align-items: flex-start; gap: 1px; }
+.gridlegend .step i { display: block; width: 44px; height: 12px; border: 1px solid var(--rule); }
+.gridlegend .step span { font-family: var(--num); font-size: 10px; }
+.gridlegend .item { display: inline-flex; align-items: center; gap: 5px; }
+.gridlegend svg { flex: none; }
