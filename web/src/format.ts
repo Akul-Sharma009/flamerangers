@@ -31,3 +31,17 @@ export function formatDay(day: string): string {
   const { year, monthIndex } = parseYearMonth(day.slice(0, 7));
   return `${Number(day.slice(8, 10))} ${MONTH_NAMES[monthIndex]} ${year}`;
 }
+
+// Ratios are served with 2 decimals; maximumFractionDigits 2 only drops trailing zeros.
+const ratioFormat = new Intl.NumberFormat("en-US", { maximumFractionDigits: 2 });
+const signedFormat = new Intl.NumberFormat("en-US", { maximumFractionDigits: 1, signDisplay: "exceptZero" });
+
+/** A served ratio: 2.3 -> "2.3" (the "×" is written where it is shown). */
+export function formatRatio(value: number): string {
+  return ratioFormat.format(value);
+}
+
+/** A served difference with its sign: -195.1 -> "−195.1", 12 -> "+12". */
+export function formatSigned(value: number): string {
+  return signedFormat.format(value).replace("-", "−");
+}

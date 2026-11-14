@@ -5,6 +5,7 @@ import { AreaLocator } from "../area/AreaLocator";
 import { defaultArea, type AoiInput } from "../area/featured";
 import { loadArea, type AreaResult } from "../area/load";
 import { areaProblemText } from "../area/words";
+import { CurrentMonthCard } from "../card/CurrentMonthCard";
 import { formatYearMonth } from "../format";
 import { CalendarGrid } from "../grid/CalendarGrid";
 import { GridLegend } from "../grid/GridLegend";
@@ -75,6 +76,8 @@ export function CalendarView({
           onSelectRange={onSelectRange}
           initialOpen={initialOpen}
         />
+        {/* The headline sentence and ruler sit under the locator (UI-CONCEPT.md, left column). */}
+        {ready ? <CurrentMonthCard calendar={ready.calendar} meta={ready.meta} /> : null}
         {calendar ? (
           <ol className="notes">
             <li>{messages.notes.hotspot_definition}</li>
