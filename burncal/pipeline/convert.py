@@ -14,7 +14,7 @@ import pandas as pd
 from shapely.geometry import shape
 
 from burncal.core import c1, record, regions
-from burncal.pipeline import c1_params, ingest
+from burncal.pipeline import c1_params
 
 REGIONS_FILE = Path(__file__).resolve().parents[2] / "contract" / "regions.geojson"
 HISTORY_YEARS = (2003, 2011)
@@ -30,24 +30,36 @@ def load_regions(path=REGIONS_FILE) -> tuple[dict, dict]:
     return geoms, classes
 
 
-def _season(df, params, region_id, rules) -> np.ndarray:
+def _season_key(df, region_id) -> np.ndarray:
+    """Where a row's season comes from outside the tuning regions: its evaluated region, else its 5-degree tile."""
+    return np.where(region_id != "", "r:" + region_id.astype(str),
+                    "t:" + regions.tile_id(df["longitude"], df["latitude"]).astype(str))
+
+
+def season_history(aqua: pd.DataFrame, geoms: dict) -> pd.DataFrame:
+    """Kept Aqua rows of 2003-2011, totalled per season key and calendar month (12 columns)."""
+    t = aqua["acq_datetime_utc"]
+    year, month = t.dt.year.to_numpy(), t.dt.month.to_numpy()
+    hist = ((aqua["satellite"] == "AQUA").to_numpy() & (aqua["excluded_reason"] == "none").to_numpy()
+            & (year >= HISTORY_YEARS[0]) & (year <= HISTORY_YEARS[1]))
+    region_id = regions.region_of(aqua["longitude"].to_numpy(float), aqua["latitude"].to_numpy(float), geoms)
+    key = _season_key(aqua, region_id)
+    return pd.crosstab(key[hist], month[hist]).reindex(columns=range(1, 13), fill_value=0)
+
+
+def _season(df, params, region_id, rules, totals) -> np.ndarray:
     """Per row: is its calendar month fire season where it lies?
 
     Tuning regions use C1's stored months. Other evaluated regions use their own 2003-2011 Aqua
     history; everywhere else the fixed 5-degree tile's history (AD-4; the tile rule is untested).
     """
     month = df["acq_datetime_utc"].dt.month.to_numpy()
-    year = df["acq_datetime_utc"].dt.year.to_numpy()
     out = np.zeros(len(df), bool)
     tuned = rules != ""
     for r in set(rules[tuned].tolist()):
         m = rules == r
         out[m] = params["season"][r][month[m] - 1]
-    key = np.where(region_id != "", "r:" + region_id.astype(str),
-                   "t:" + regions.tile_id(df["longitude"], df["latitude"]).astype(str))
-    hist = ((df["satellite"] == "AQUA").to_numpy() & (df["excluded_reason"] == "none").to_numpy()
-            & (year >= HISTORY_YEARS[0]) & (year <= HISTORY_YEARS[1]))
-    totals = pd.crosstab(key[hist], month[hist]).reindex(columns=range(1, 13), fill_value=0)
+    key = _season_key(df, region_id)
     need = ~tuned
     for k in set(key[need].tolist()):
         h = totals.loc[k].to_numpy() if k in totals.index else np.zeros(12)
@@ -56,14 +68,18 @@ def _season(df, params, region_id, rules) -> np.ndarray:
     return out
 
 
-def convert(df: pd.DataFrame, params: dict, geoms: dict) -> pd.DataFrame:
-    """Add the record columns. Rows keep their order; nothing is dropped."""
+def convert(df: pd.DataFrame, params: dict, geoms: dict, history: pd.DataFrame | None = None) -> pd.DataFrame:
+    """Add the record columns. Rows keep their order; nothing is dropped.
+
+    history: season_history() of the whole extent; taken from df itself when not given.
+    """
     out = df.copy()
     lon, lat = out["longitude"].to_numpy(float), out["latitude"].to_numpy(float)
     region_id = regions.region_of(lon, lat, geoms)
     rules = regions.rules_region(region_id)
     out["region_id"], out["rules_region"] = region_id, rules
-    out["in_season"] = _season(out, params, region_id, rules)
+    totals = season_history(out, geoms) if history is None else history
+    out["in_season"] = _season(out, params, region_id, rules, totals)
     out["feeds_record"] = record.feeds_record(out["satellite"], out["utc_date"])
     out["validated_satellite"] = record.validated_satellite(out["satellite"], out["utc_date"])
     c1w = np.full(len(out), np.nan)
@@ -95,26 +111,41 @@ def evidence_cells(extent, geoms, classes) -> pd.DataFrame:
 
 
 def build(clean_dir, out_dir, *, extent, regions_path=REGIONS_FILE, params=None) -> dict:
-    """extent: (west, south, east, north) of the build, whole 5-degree tiles, holding every row."""
+    """One satellite-year file at a time. extent: (west, south, east, north), whole 5-degree tiles.
+
+    The season history is read once from the Aqua files of 2003-2011. Footprints are built within
+    each satellite-year file; a pass crossing midnight on 31 December is split there.
+    """
     if not regions.is_tile_extent(extent):
         raise ValueError(f"build extent {tuple(extent)} is not whole 5-degree tiles; use {regions.tile_extent(extent)}")
     params = params or c1_params.read_c1_params()
     geoms, classes = load_regions(regions_path)
-    df = pd.concat([pd.read_parquet(p) for p in sorted(Path(clean_dir).glob("[A-Z]*_[0-9]*.parquet"))], ignore_index=True)
+    parts = sorted(Path(clean_dir).glob("[A-Z]*_[0-9]*.parquet"))
+    lean = ["satellite", "acq_datetime_utc", "longitude", "latitude", "excluded_reason"]
+    aqua = [p for p in parts if p.stem.startswith("AQUA_") and HISTORY_YEARS[0] <= int(p.stem[5:]) <= HISTORY_YEARS[1]]
+    history = season_history(pd.concat([pd.read_parquet(p, columns=lean) for p in aqua], ignore_index=True)
+                             if aqua else pd.DataFrame(columns=lean).astype({"acq_datetime_utc": "datetime64[ns, UTC]"}), geoms)
     x0, y0, x1, y1 = extent
-    if not (df["longitude"].between(x0, x1).all() and df["latitude"].between(y0, y1).all()):
-        raise ValueError("rows fall outside the build extent")
-    df = convert(df, params, geoms)
     out_dir = Path(out_dir)
-    ingest.write_partitions(df, out_dir)
+    out_dir.mkdir(parents=True, exist_ok=True)
+    rows = feeding = 0
+    weights, rules_n = {}, {}
+    for p in parts:
+        df = pd.read_parquet(p)
+        if not (df["longitude"].between(x0, x1).all() and df["latitude"].between(y0, y1).all()):
+            raise ValueError(f"{p.name}: rows fall outside the build extent")
+        df = convert(df, params, geoms, history)
+        df.to_parquet(out_dir / p.name, compression="zstd", index=False)
+        f = df[df["feeds_record"] & (df["excluded_reason"] == "none")]
+        rows, feeding = rows + len(df), feeding + len(f)
+        for k, v in f.groupby("satellite")["weight"].sum().items():
+            weights[k] = weights.get(k, 0.0) + float(v)
+        for k, v in df["rules_region"].value_counts().items():
+            rules_n[k or "pooled"] = rules_n.get(k or "pooled", 0) + int(v)
     evidence_cells(extent, geoms, classes).to_parquet(out_dir / "evidence_1deg.parquet", index=False)
-    feeding = df[df["feeds_record"] & (df["excluded_reason"] == "none")]
-    return {
-        "rows": len(df),
-        "rows_feeding_and_counted": len(feeding),
-        "weight_sum_by_satellite": {k: round(float(v), 1) for k, v in feeding.groupby("satellite")["weight"].sum().items()},
-        "rows_by_rules_region": {k or "pooled": int(v) for k, v in df["rules_region"].value_counts().items()},
-    }
+    return {"rows": rows, "rows_feeding_and_counted": feeding,
+            "weight_sum_by_satellite": {k: round(v, 1) for k, v in sorted(weights.items())},
+            "rows_by_rules_region": rules_n}
 
 
 if __name__ == "__main__":

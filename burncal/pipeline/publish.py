@@ -1,6 +1,6 @@
 """Story 2.6: publish one immutable store version and switch the pointer (AD-11, AD-12).
 
-Run: uv run python -m burncal.pipeline.publish <record dir> <grids dir> <raw dir> <store root> <data_through> [code revision]
+Run: uv run python -m burncal.pipeline.publish <store root> <data_through> <record dir>,<grids dir>,<raw dir> [...]
 
 The raw dir holds coverage.json: the build extent and, per FIRMS source, the date ranges downloaded
 and available. A version is written whole under a temporary name, renamed, and only then named in
@@ -17,6 +17,7 @@ from pathlib import Path
 
 import numpy as np
 import pandas as pd
+import shapely
 
 from burncal.core import record
 from burncal.pipeline import c1_params
@@ -82,9 +83,13 @@ def input_manifest(raw_dir) -> dict:
     return {p.name: _sha256(p) for p in sorted(Path(raw_dir).iterdir()) if p.is_file()}
 
 
-def record_version(raw_dir, data_through: date, code_revision: str) -> str:
-    """YYYYMMDD-<8 hex>: the hash covers the input manifest, the parameter file and the code revision."""
-    h = hashlib.sha256(json.dumps({"inputs": input_manifest(raw_dir), "params": _sha256(c1_params.PARAMS_FILE),
+def record_version(raw_dirs, data_through: date, code_revision: str) -> str:
+    """YYYYMMDD-<8 hex>: the hash covers the input manifests, the parameter file and the code revision."""
+    raw_dirs = [raw_dirs] if isinstance(raw_dirs, (str, Path)) else list(raw_dirs)
+    inputs = {Path(d).name: input_manifest(d) for d in raw_dirs}
+    if len(raw_dirs) == 1:
+        inputs = next(iter(inputs.values()))
+    h = hashlib.sha256(json.dumps({"inputs": inputs, "params": _sha256(c1_params.PARAMS_FILE),
                                    "code": code_revision}, sort_keys=True).encode())
     return f"{data_through:%Y%m%d}-{h.hexdigest()[:8]}"
 
@@ -100,29 +105,58 @@ def _write_pointer(root: Path, version: str) -> None:
 
 
 def publish(record_dir, grids_dir, raw_dir, store_root, *, data_through: date, code_revision: str) -> str:
-    record_dir, grids_dir, raw_dir, root = map(Path, (record_dir, grids_dir, raw_dir, store_root))
-    coverage = json.loads((raw_dir / "coverage.json").read_text(encoding="utf-8"))
-    version = record_version(raw_dir, data_through, code_revision)
+    """One extent: see publish_many."""
+    return publish_many([(record_dir, grids_dir, raw_dir)], store_root, data_through=data_through,
+                        code_revision=code_revision)
+
+
+def publish_many(builds, store_root, *, data_through: date, code_revision: str) -> str:
+    """Several extents in one version. builds: (record dir, grids dir, raw dir) per extent; the extent's
+    name is its raw dir's name. Extents must not overlap. Each keeps its own coverage tables, and its
+    record rows under records/<name>/; grids, evidence and points are joined."""
+    builds = [tuple(map(Path, b)) for b in builds]
+    root = Path(store_root)
+    version = record_version([raw for _, _, raw in builds], data_through, code_revision)
     final = root / "versions" / version
     if not final.exists():
         tmp = root / "versions" / f".{version}.tmp"
         shutil.rmtree(tmp, ignore_errors=True)
         (tmp / "grids").mkdir(parents=True)
-        shutil.copytree(record_dir, tmp / "records")
-        for name in GRIDS:
-            shutil.copy2(grids_dir / f"{name}.parquet", tmp / "grids" / f"{name}.parquet")
-        days, missing = coverage_tables(coverage, data_through=data_through)
-        days.to_parquet(tmp / "coverage_days.parquet", index=False)
-        missing.to_parquet(tmp / "missing_days.parquet", index=False)
-        parts = sorted(record_dir.glob("[A-Z]*_[0-9]*.parquet"))
-        pts = pd.concat([pd.read_parquet(p, columns=POINT_COLUMNS + ["excluded_reason"]) for p in parts], ignore_index=True)
-        pts = pts[pts["excluded_reason"] == "none"].drop(columns="excluded_reason")
-        pts = pts[pts["acq_datetime_utc"].dt.date <= data_through]
+        extents, days_all, missing_all, ev_all, pts_all, grids_all, inputs = [], [], [], [], [], {g: [] for g in GRIDS}, {}
+        for record_dir, grids_dir, raw_dir in builds:
+            name = raw_dir.name
+            if any(e["name"] == name for e in extents):
+                raise ValueError(f"two extents are both named {name!r}")
+            coverage = json.loads((raw_dir / "coverage.json").read_text(encoding="utf-8"))
+            box = shapely.box(*coverage["extent"])
+            if any(shapely.area(shapely.intersection(box, shapely.box(*e["bbox"]))) > 0 for e in extents):
+                raise ValueError(f"extent {name} overlaps another extent")
+            extents.append({"name": name, "bbox": coverage["extent"]})
+            parts = sorted(record_dir.glob("[A-Z]*_[0-9]*.parquet"))
+            (tmp / "records" / name).mkdir(parents=True)
+            for part in parts:
+                shutil.copy2(part, tmp / "records" / name / part.name)
+            ev_all.append(pd.read_parquet(record_dir / "evidence_1deg.parquet"))
+            for g in GRIDS:
+                grids_all[g].append(pd.read_parquet(grids_dir / f"{g}.parquet"))
+            days, missing = coverage_tables(coverage, data_through=data_through)
+            days_all.append(days.assign(extent=name))
+            missing_all.append(missing.assign(extent=name))
+            for part in parts:
+                pts = pd.read_parquet(part, columns=POINT_COLUMNS + ["excluded_reason"])
+                pts = pts[(pts["excluded_reason"] == "none") & (pts["acq_datetime_utc"].dt.date <= data_through)]
+                pts_all.append(pts.drop(columns="excluded_reason"))
+            inputs[name] = input_manifest(raw_dir)
+        for g in GRIDS:
+            pd.concat(grids_all[g], ignore_index=True).to_parquet(tmp / "grids" / f"{g}.parquet", compression="zstd", index=False)
+        pd.concat(ev_all, ignore_index=True).to_parquet(tmp / "records" / "evidence_1deg.parquet", index=False)
+        pd.concat(days_all, ignore_index=True).to_parquet(tmp / "coverage_days.parquet", index=False)
+        pd.concat(missing_all, ignore_index=True).to_parquet(tmp / "missing_days.parquet", index=False)
+        pts = pd.concat(pts_all, ignore_index=True)
         pts.to_parquet(tmp / "points.parquet", compression="zstd", index=False)
-        manifest = {"record_version": version, "data_through": data_through.isoformat(),
-                    "extent": coverage["extent"], "code_revision": code_revision,
-                    "params_sha256": _sha256(c1_params.PARAMS_FILE), "inputs": input_manifest(raw_dir),
-                    "rows_in_counts": int(len(pts))}
+        manifest = {"record_version": version, "data_through": data_through.isoformat(), "extents": extents,
+                    "code_revision": code_revision, "params_sha256": _sha256(c1_params.PARAMS_FILE),
+                    "inputs": inputs, "rows_in_counts": int(len(pts))}
         (tmp / "manifest.json").write_text(json.dumps(manifest, indent=1))
         os.replace(tmp, final)
     _write_pointer(root, version)
@@ -130,6 +164,8 @@ def publish(record_dir, grids_dir, raw_dir, store_root, *, data_through: date, c
 
 
 if __name__ == "__main__":
-    rev = sys.argv[6] if len(sys.argv) > 6 else subprocess.run(
-        ["git", "rev-parse", "--short=12", "HEAD"], capture_output=True, text=True, check=True).stdout.strip()
-    print(publish(*sys.argv[1:5], data_through=date.fromisoformat(sys.argv[5]), code_revision=rev))
+    # publish <store root> <data_through> <record dir>,<grids dir>,<raw dir> [more extents ...]
+    rev = subprocess.run(["git", "rev-parse", "--short=12", "HEAD"], capture_output=True, text=True,
+                         check=True).stdout.strip()
+    builds = [tuple(arg.split(",")) for arg in sys.argv[3:]]
+    print(publish_many(builds, sys.argv[1], data_through=date.fromisoformat(sys.argv[2]), code_revision=rev))

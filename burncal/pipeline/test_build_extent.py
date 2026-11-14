@@ -40,3 +40,31 @@ def test_2_3_ac3_standard_wins_per_satellite_day(tmp_path):
     days = n21.groupby(n21.acq_datetime_utc.dt.date)["quality"].apply(set).to_dict()
     assert all(len(q) == 1 for q in days.values())  # never both qualities for one satellite-day
     assert sorted(n21["quality"]) == ["NRT", "SP"]  # 2 July standard, 3 July NRT only
+
+
+def _all_at_once(raw, land_path):
+    """The Story 2.3 build, whole extent in memory: the reference the batched build must equal."""
+    from burncal.pipeline import clean, ingest
+    from pathlib import Path
+    df = ingest.prefer_standard(ingest.ingest_csv_files(sorted(Path(raw).glob("*.csv"))))
+    land = clean.load_land(land_path)
+    return clean.clean(df, land, clean.static_from(df, land))
+
+
+def test_2_8_build_one_satellite_year_at_a_time_equals_the_whole_extent(tmp_path):
+    raw, land = _files(tmp_path)
+    # a static cell found in a tuning year (2016, Suomi NPP) must mark rows of other years too
+    days = pd.date_range("2016-01-01", periods=60)
+    (raw / "VIIRS_SNPP_SP_2016.csv").write_text(VIIRS + "".join(
+        f"2.0,2.0,330,0.4,0.4,{d:%Y-%m-%d},1800,N,VIIRS,n,2,290,3,N,0\n" for d in days))
+    (raw / "MODIS_SP_2015.csv").write_text(MODIS + "2.0,2.0,320,1,1,2015-03-01,0600,Aqua,MODIS,80,6.1,300,10,D,0\n"
+                                           "3.0,3.0,320,1,1,2015-03-01,0600,Aqua,MODIS,80,6.1,300,10,D,0\n")
+    summary = build_extent.build(raw, land, tmp_path / "out")
+    got = pd.concat(pd.read_parquet(p) for p in sorted((tmp_path / "out").glob("*.parquet")))
+    want = _all_at_once(raw, land)
+    key = ["satellite", "acq_datetime_utc", "latitude", "longitude"]
+    got, want = (d.sort_values(key).reset_index(drop=True) for d in (got, want))
+    assert len(got) == len(want) == summary["rows_stored"]
+    for c in ["satellite", "quality", "excluded_reason", "daynight", "latitude", "longitude"]:
+        assert got[c].tolist() == want[c].tolist(), c
+    assert got.loc[(got.latitude == 2.0) & (got.satellite == "AQUA"), "excluded_reason"].tolist() == ["static"]

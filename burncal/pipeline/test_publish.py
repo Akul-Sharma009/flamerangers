@@ -60,9 +60,11 @@ def test_2_6_ac1_publish_writes_a_version_and_switches_the_pointer(tmp_path):
     assert v1.startswith("20261113-") and len(v1) == 17
     vdir = root / "versions" / v1
     man = json.loads((vdir / "manifest.json").read_text())
-    assert man["record_version"] == v1 and man["data_through"] == "2026-11-13" and man["extent"] == COVERAGE["extent"]
+    assert man["record_version"] == v1 and man["data_through"] == "2026-11-13"
+    assert man["extents"] == [{"name": "raw", "bbox": COVERAGE["extent"]}]
     assert {"coverage_days.parquet", "missing_days.parquet", "points.parquet", "grids", "records"} <= {p.name for p in vdir.iterdir()}
     assert len(pd.read_parquet(vdir / "points.parquet")) == 1  # only rows that are in a count
+    assert (vdir / "records" / "raw" / "AQUA_2015.parquet").exists() and (vdir / "records" / "evidence_1deg.parquet").exists()
     assert json.loads((root / "CURRENT.json").read_text()) == {"record_version": v1, "previous": None}
     # a new code revision is a new version; the previous one stays on disk and is named in the pointer
     v2 = publish.publish(rec, grids, raw, root, data_through=date(2026, 11, 13), code_revision="def")
@@ -70,3 +72,32 @@ def test_2_6_ac1_publish_writes_a_version_and_switches_the_pointer(tmp_path):
     assert json.loads((root / "CURRENT.json").read_text()) == {"record_version": v2, "previous": v1}
     # the same inputs give the same version
     assert publish.record_version(raw, date(2026, 11, 13), "def") == v2
+
+
+
+def test_2_8_one_version_holds_several_extents(tmp_path):
+    rec, grids, raw = _inputs(tmp_path)
+    other = tmp_path / "other"
+    for d in ("record", "grids", "southern"):
+        (other / d).mkdir(parents=True)
+    rows = pd.read_parquet(rec / "AQUA_2015.parquet").assign(longitude=[25.0, 25.5], latitude=[-10.0, -10.5])
+    rows.to_parquet(other / "record" / "AQUA_2015.parquet")
+    pd.DataFrame({"sw_lon": [25.0], "sw_lat": [-11.0], "evidence_class": ["tested_unseen"]}).to_parquet(other / "record" / "evidence_1deg.parquet")
+    for name in ("cells_1deg", "cells_025deg", "thresholds_1deg", "flags_1deg"):
+        pd.DataFrame({"x": [2]}).to_parquet(other / "grids" / f"{name}.parquet")
+    (other / "southern" / "MODIS_SP_2015.csv").write_text("latitude\n")
+    cov = {"extent": [20.0, -20.0, 35.0, -5.0], "sources": {"MODIS_SP": [["2002-07-01", "2015-12-31"]]}}
+    (other / "southern" / "coverage.json").write_text(json.dumps(cov))
+    root = tmp_path / "store"
+    v = publish.publish_many([(rec, grids, raw), (other / "record", other / "grids", other / "southern")], root,
+                             data_through=date(2026, 11, 13), code_revision="x")
+    vdir = root / "versions" / v
+    man = json.loads((vdir / "manifest.json").read_text())
+    assert [e["name"] for e in man["extents"]] == ["raw", "southern"]
+    assert (vdir / "records" / "southern" / "AQUA_2015.parquet").exists()
+    assert len(pd.read_parquet(vdir / "points.parquet")) == 2
+    assert len(pd.read_parquet(vdir / "records" / "evidence_1deg.parquet")) == 2
+    days = pd.read_parquet(vdir / "coverage_days.parquet")
+    assert set(days["extent"]) == {"raw", "southern"}
+    with pytest.raises(ValueError, match="both named"):
+        publish.publish_many([(rec, grids, raw), (rec, grids, raw)], tmp_path / "s2", data_through=date(2026, 11, 13), code_revision="y")

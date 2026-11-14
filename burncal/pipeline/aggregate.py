@@ -101,13 +101,25 @@ def tuning_thresholds_parity(region: str, record_dir) -> dict:
                         round(float(r.threshold_p90_aqua_2003_2011), 6)) for r in miss.itertuples()]}
 
 
+def _summed(parts):
+    return pd.concat(parts, ignore_index=True).groupby(KEY, as_index=False).sum()
+
+
 def build(record_dir, out_dir, data_through: date | None = None) -> dict:
-    df = read_record(record_dir)
-    data_through = data_through or df["utc_date"].max()
+    """One satellite-year file at a time; the cell-month sums of the files are added together."""
+    paths = sorted(Path(record_dir).glob("[A-Z]*_[0-9]*.parquet"))
+    p1, p025, last = [], [], None
+    for path in paths:
+        df = pd.read_parquet(path, columns=COLUMNS)
+        p1.append(cell_months(df, 1.0))
+        p025.append(cell_months(df, 0.25))
+        if len(df):
+            last = max(last, df["utc_date"].max()) if last else df["utc_date"].max()
+    data_through = data_through or last
     cells = pd.read_parquet(Path(record_dir) / "evidence_1deg.parquet")[["sw_lon", "sw_lat"]]
     out_dir = Path(out_dir)
     out_dir.mkdir(parents=True, exist_ok=True)
-    g1, g025 = cell_months(df, 1.0), cell_months(df, 0.25)
+    g1, g025 = _summed(p1), _summed(p025)
     thr = thresholds_1deg(g1, cells)
     flags = flags_1deg(g1, thr, cells, data_through=data_through)
     for name, t in (("cells_1deg", g1), ("cells_025deg", g025), ("thresholds_1deg", thr), ("flags_1deg", flags)):

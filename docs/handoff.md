@@ -134,6 +134,14 @@ Not in the repo: the Vercel trial used a two-line `index.py` entrypoint and a `r
 | AC3 standard beats NRT per satellite-day | `test_2_3_ac3_*` in `test_ingest.py` and `test_build_extent.py`; 3,949 NRT rows replaced in the Sumatra build |
 | AC4 tuning-year Aqua counts agree, or differences listed with causes | `test_2_3_ac4_*` in `test_compare_tuning.py`; `uv run python -m burncal.pipeline.compare_tuning`; `docs/cleaning-differences.md` |
 
+## Story 2.8: coverage for the six evaluated regions (branch `teammate/2.8-coverage`, in progress)
+
+- Every build extent is whole 5° tiles: Sumatra 90–110°E 10°S–10°N, Australian grassland 125–145°E 25–15°S, Amazon forest 60–50°W 15–5°S, Southern Africa 20–35°E 20–5°S, Siberia 100–135°E 55–70°N, Punjab 70–80°E 25–35°N.
+- The pipeline now runs one satellite-year file at a time (clean, convert, aggregate), equal to the whole-extent run on Sumatra; one version can hold all six extents (`pipeline.publish <store root> <data_through> <record>,<grids>,<raw> ...`).
+- **Size sample** (four 5-day windows of 2024 per region, whole tiles): Southern Africa about 0.7M MODIS and about 2.7M Suomi NPP rows a year; Siberia about 0.24M MODIS a year (the Suomi NPP sample looked incomplete); Punjab 25–32 thousand MODIS rows a year in 2004–2005. For the three new regions the chosen scope is about 70M rows, about 9,000 area-API requests, about 2.5 hours at the measured rate.
+- **Threshold parity**: Amazon forest 672/672; Australian grassland 967/972 (one cell at 136°E 16°S; Suomi NPP 2016 for the static mask still failing to download); Sumatra 899/900 (see Story 2.5).
+- Not done yet: the downloads are running; the global-year measurement and the world run (lead sees the numbers first).
+
 ## Story 4.5: numbers-agree check (branch `teammate/4.5-numbers-agree`, on top of 4.1)
 
 - `uv run python tools/check_numbers.py [store root]` exits 1 on any disagreement. For Sumatra, an Amazon polygon and the Punjab box over the whole record: every analytics CSV row equals its `/calendar` month field by field, and for every complete month up to December 2021 the hotspot CSV's feeding, kept rows number exactly the harmonized count. A search outside the store's coverage is reported as not loaded.

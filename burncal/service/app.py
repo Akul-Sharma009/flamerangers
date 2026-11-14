@@ -164,7 +164,7 @@ def create_app(store_root=None) -> FastAPI:
         if geom is None or geom.is_empty or not geom.is_valid or geom.bounds[2] - geom.bounds[0] > 180:
             return None, None, JSONResponse({**invalid, "status": 400, "detail": "aoi.geometry: not a valid area"},
                                             status_code=400, media_type=PROBLEM)
-        if not shapely.covers(v.extent, geom):
+        if not v.covers(geom):
             return None, None, problem(outside, 404, v)
         return v, geom, None
 

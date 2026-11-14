@@ -36,14 +36,20 @@ class Version:
         self.manifest = json.loads((self.path / "manifest.json").read_text(encoding="utf-8"))
         self.record_version = self.manifest["record_version"]
         self.data_through = date.fromisoformat(self.manifest["data_through"])
-        self.extent = shapely.box(*self.manifest["extent"])
+        ext = self.manifest.get("extents") or [{"name": "", "bbox": self.manifest["extent"]}]
+        self.extents = {e["name"]: shapely.box(*e["bbox"]) for e in ext}
         self.n_months = (self.data_through.year - 2002) * 12 + self.data_through.month
         g = self.path / "grids"
         self.cells_1deg = pd.read_parquet(g / "cells_1deg.parquet")
         self.flags = pd.read_parquet(g / "flags_1deg.parquet")
         self.evidence = pd.read_parquet(self.path / "records" / "evidence_1deg.parquet")
         self.coverage_days = pd.read_parquet(self.path / "coverage_days.parquet")
-        self.missing = set(map(tuple, pd.read_parquet(self.path / "missing_days.parquet").to_numpy().tolist()))
+        miss = pd.read_parquet(self.path / "missing_days.parquet")
+        if "extent" not in miss:
+            miss["extent"] = ""
+        if "extent" not in self.coverage_days:
+            self.coverage_days["extent"] = ""
+        self._missing = {e: set(zip(g["year"], g["month"])) for e, g in miss.groupby("extent")}
         c = pd.read_parquet(g / "cells_025deg.parquet")
         self._c_ix, self._c_iy = _cell_ix(c["sw_lon"] + FINE / 2) , _cell_ix(c["sw_lat"] + FINE / 2)
         self._c_key = _key(self._c_ix, self._c_iy)
@@ -58,6 +64,20 @@ class Version:
         sat = p["satellite"].to_numpy()
         self._p_vals = self._values(np.where(p["feeds_record"].to_numpy(), p["weight"].to_numpy(float), 0.0),
                                     [(sat == s).astype(float) for s in SATELLITES])
+
+    def extent_of(self, geom):
+        """The name of the extent holding the whole area, or None (outside coverage)."""
+        return next((n for n, box in self.extents.items() if shapely.covers(box, geom)), None)
+
+    def covers(self, geom) -> bool:
+        return self.extent_of(geom) is not None
+
+    def missing(self, extent) -> set:
+        return self._missing.get(extent, set())
+
+    def _records(self, extent) -> Path:
+        sub = self.path / "records" / extent
+        return sub if extent and sub.is_dir() else self.path / "records"
 
     @staticmethod
     def _month_index(year, month):
@@ -121,7 +141,7 @@ class Version:
         if year is not None:
             start, end = max(start, date(year, 1, 1)), min(end, date(year, 12, 31))
         sats = SATELLITES if all_satellites else FEEDING_SATELLITES
-        files = [p for p in sorted((self.path / "records").glob("[A-Z]*_[0-9]*.parquet"))
+        files = [p for p in sorted(self._records(self.extent_of(geom) or "").glob("[A-Z]*_[0-9]*.parquet"))
                  if p.stem.rsplit("_", 1)[0] in sats and start.year <= int(p.stem.rsplit("_", 1)[1]) <= end.year]
         if not files or start > end:
             return pd.DataFrame(columns=HOTSPOT_COLUMNS), None
@@ -154,10 +174,11 @@ class Version:
         return (f.assign(strong=f["flag_state"] == "strong", marginal=f["flag_state"] == "marginal")
                 .groupby(["year", "month"])[["strong", "marginal"]].sum())
 
-    def month_inputs(self) -> dict:
+    def month_inputs(self, extent) -> dict:
         out = {}
         order = {s: i for i, s in enumerate(SATELLITES)}
-        for r in sorted(self.coverage_days.itertuples(), key=lambda r: (order[r.satellite], r.quality)):
+        rows = self.coverage_days[self.coverage_days["extent"] == extent]
+        for r in sorted(rows.itertuples(), key=lambda r: (order[r.satellite], r.quality)):
             out.setdefault((r.year, r.month), []).append(
                 {"satellite": r.satellite, "quality": r.quality, "days": int(r.days), "feeds_record": bool(r.feeds_record)})
         return out

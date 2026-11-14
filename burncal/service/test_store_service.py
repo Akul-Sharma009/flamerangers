@@ -308,7 +308,7 @@ def test_2_7_ac1_rows_inside_the_area_and_exact_dates_with_every_column(client, 
     assert r.status_code == 200 and r.headers["content-type"].startswith("text/csv")
     head, cols, rows = _rows(r.text)
     assert cols == HOTSPOT_COLUMNS
-    df = pd.concat(pd.read_parquet(p) for p in sorted((store_root / "versions" / versions[0] / "records").glob("[A-Z]*_[0-9]*.parquet")))
+    df = pd.concat(pd.read_parquet(p) for p in sorted((store_root / "versions" / versions[0] / "records").glob("*/[A-Z]*_[0-9]*.parquet")))
     g = shape(AMAZON)
     d = df["utc_date"].astype(str)
     want = df[shapely.intersects_xy(g, df["longitude"], df["latitude"]) & (d >= "2015-03-10") & (d <= "2016-02-20")]

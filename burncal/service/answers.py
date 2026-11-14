@@ -37,7 +37,7 @@ def meta(v: Version, regions: dict) -> dict:
         "flag_reference_years": {"start_year": grids.HISTORY_YEARS[0], "end_year": grids.HISTORY_YEARS[1]},
         "coverage": {"global": False, "regions": [
             {"region_id": rid, "name": name, "evidence_class": ev,
-             "status": "loaded" if shapely.covers(v.extent, geom) else "not_loaded"}
+             "status": "loaded" if v.covers(geom) else "not_loaded"}
             for rid, (name, ev, geom) in regions.items()]},
         "noaa20_check": None,
     }
@@ -63,14 +63,15 @@ def calendar(v: Version, geom, name, start: date, end: date, regions: dict) -> d
     aoi, cells = _aoi(v, geom, name, regions)
     sums = v.count(geom)
     flags = v.flag_counts(cells)
-    inputs = v.month_inputs()
+    ext = v.extent_of(geom)
+    inputs, missing = v.month_inputs(ext), v.missing(ext)
     dt = v.data_through
     record_months = [(y, m) for y in range(2002, dt.year + 1) for m in range(1, 13)
                      if record.month_state(y, m, data_through=dt)[0] != "null"]
     series = {t: float(sums[(t[0] - 2002) * 12 + t[1] - 1, 0]) for t in record_months}
     complete = {t for t in record_months if not any(
         r in ("record_start", "data_through", "missing_days") for r in record.partial_reasons(
-            t[0], t[1], data_through=dt, missing_days=t in v.missing, start=date(t[0], t[1], 1), end=dt))}
+            t[0], t[1], data_through=dt, missing_days=t in missing, start=date(t[0], t[1], 1), end=dt))}
     shown = [(y, m) for y in range(start.year, end.year + 1) for m in range(1, 13)]
     in_range = {t for t in shown if (t[0], t[1]) >= (start.year, start.month) and (t[0], t[1]) <= (end.year, end.month)}
     ref_years = record.meta_dates(dt)["reference_period"]
@@ -82,7 +83,7 @@ def calendar(v: Version, geom, name, start: date, end: date, regions: dict) -> d
         year, month = t
         k = (year - 2002) * 12 + month - 1
         ins = inputs.get(t, [])
-        reasons = record.partial_reasons(year, month, data_through=dt, missing_days=t in v.missing, start=start, end=end)
+        reasons = record.partial_reasons(year, month, data_through=dt, missing_days=t in missing, start=start, end=end)
         in_record = t in series
         value = series.get(t)
         med, mean = st["reference"][month] if in_record else (None, None)
@@ -144,7 +145,7 @@ def _card(v: Version, geom, complete, ref_years, months) -> dict:
     to_date, by_year = v.same_days(geom, dt.month, dt.day, years)
     cmp = stats.same_days(to_date, by_year)
     now = next((m for m in months if m["month"] == _ym((dt.year, dt.month))), None)
-    ins = v.month_inputs().get((dt.year, dt.month), [])
+    ins = v.month_inputs(v.extent_of(geom)).get((dt.year, dt.month), [])
     flags = v.flag_counts(v.cells_1deg_of(geom))
     fl = flags.loc[(dt.year, dt.month)] if (dt.year, dt.month) in flags.index else None
     return {
