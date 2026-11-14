@@ -580,3 +580,17 @@ Each entry has: a status (**ASSUMED** or **TESTED**), its evidence, and a "revis
 - **Decision:** Under the headline: the figures (ratio, same-days median, difference, same days "1–d Month", reference period, data-through date, flagged 1° cells "n strong · n marginal · of N", and the satellites that fed the month with their served day counts), then the contract's sentences: the quality label (NRT or SP), `validated_satellite_false` when the satellite is not validated, `monthly_validation_only`, and `provisional` (the current month is never complete). When `validated_satellite` is false, `meta.noaa20_check` null gives `noaa20_check_not_run`; once served, `noaa20_check` ("Reported only. …") and the pooled figures (period, bias, mean absolute difference, cell-months). With a median of 0 the card shows the count, the median 0 and `no_typical_activity`, and no ratio, not even a dash. A null `current_month` shows the month and "Not loaded yet."; a null count or median (should one ever be served) shows "–", never 0. The second sentence is the served `statistics.record_high`, which the contract defines over the whole record whatever the range. The card sits in the left column under the locator, before the footnotes.
 - **Evidence:** `card.test.tsx` (24 tests, one block per criterion); built-in browser at 1280 and 375 px.
 - **Revisit if:** Story 2.10 serves per-region figures the lead wants on the card (only the pooled ones are shown), or the lead wants the figure list shorter once the sentences exist.
+
+## Story 6.5: which claims the submission text quotes (15 Nov 2026)
+
+- **Status:** ASSUMED. Needs the lead's OK.
+- **Decision:** The Project Summary quotes two claims, `count-error-vs-b` and `flag-precision-vs-b`, so the failed test sits beside the result in the shortest field. The Project Details quotes the ten claims the storyline puts on slides 5 and 6 (every `used_for_pick` claim plus `comparator-vs-b`). The three reported-only claims are left out of the form, as the storyline keeps them for questions. Each is quoted word for word with its id; the id label is dropped when pasting.
+- **Evidence:** Story 6.5 AC1 (summary and details use the `claims.yaml` sentences); `docs/pitch/storyline.md` slides 5 and 6 and "If a judge asks"; `docs/submission/test_text.py` checks the quotes word for word and that both fields carry the failed test.
+- **Revisit if:** the live form has a limit the details field exceeds (cut order is given under the field), or the lead wants the reported-only results in the form.
+
+## Story 6.5: word counts and product names in the submission text (15 Nov 2026)
+
+- **Status:** ASSUMED
+- **Decision:** No word or character limit is known: Story 6.5 gives none and the brief's field list (organisers' email, judging guide) gives none. Each field states its word count as pasted (claim labels dropped, pending markers counted as they stand), checked by `docs/submission/test_text.py`. The official names of the FIRMS products, which contain the word the project does not use, are left to Story 6.1 and the lead; the draft says "hotspot products".
+- **Evidence:** Story 6.5 criteria; the brief's "Singapore organisers' email" and "Eligibility for global judging" lists in the planning record.
+- **Revisit if:** the live form shows limits, or the lead rules that proper names are exempt from the "hotspots" rule.

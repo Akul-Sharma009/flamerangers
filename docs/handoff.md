@@ -33,6 +33,7 @@ Updated: Sat 14 Nov 2026, late evening SGT (PRs 3 to 11 merged; the lead's revie
 | 2.7 and 4.2 Hotspots and CSV | Done | PR 9, merged 14 Nov; an empty search now gives a header and no rows (was a 500) |
 | 4.1 Analytics CSV | Done | PR 10, merged 14 Nov |
 | 4.5 Numbers-agree check | Done | PR 11, merged 14 Nov |
+| 6.5 Demo assets and submission text | In progress | Text drafted on `claude/6-5-submission-text-43275c` (15 Nov), not committed; demo assets wait for the deployed app. See below. |
 
 `master` holds every story above. The teammate's branches 2.3 to 4.5 are merged; new work branches from `master`.
 
@@ -434,6 +435,15 @@ One year (2024) of FIRMS standard data, MODIS_SP (Aqua and Terra rows) and VIIRS
 | AC3 the sentence reads like the example, using only served values | `card.test.tsx` AC3 block (with the suggested template the card writes "So far this month: 412 hotspots, 2.3× the 2003–2025 median for the same days of November." from served values; 0.3.0 gives no template and the web types none; a template with a missing or null value is not filled; every number on the card is served). **Waits on the template in contract 0.4.0.** |
 | AC4 a median of 0 shows the count and "no typical activity", with no ratio | `card.test.tsx` AC4 block (count and `no_typical_activity` shown, no "×" and no ratio figure, median shown as 0; a null current month says "Not loaded yet." with no 0; a null count or median shows "–") |
 | AC5 NOAA-20: not part of the validation; once 2.10 has run, its comparison with Suomi NPP from served figures, labelled reported only | `card.test.tsx` AC5 block (`validated_satellite_false` on the fixture's NOAA-20 month; "not been run yet" while `noaa20_check` is null; the example meta gives "Reported only." and the pooled figures; a validated satellite gets none of these). **Real figures wait for Story 2.10.** |
+
+## Story 6.5 (text draft) (branch `claude/6-5-submission-text-43275c`)
+
+- `docs/submission/text.md`: one section per form field (project name, challenge, Project Summary, Project Demo, Final Project Link, Project Details, NASA data, References), the Members-tab checklist, and what needs the lead. Each field states its word count; no limit is known (see `DECISIONS.md`).
+- Claims are quoted from `evidence/claims.yaml` word for word with their ids: two in the summary, ten in the details. `uv run pytest docs/submission` checks the quotes, the banned words and the word counts.
+- `docs/submission/demo-assets.md`: the shot list for the 7-slide deck, in deck order, with what each shot waits on, and an optional 30-second Sumatra journey. The evidence-page shots can be taken now from a local build.
+- Pending in the text: the web address and repository address; Story 6.1 (NASA data, References, the haze source, product documentation, links for FIRMS, Worldview, GWIS and INPE); Stories 2.8 and 2.9 (regions, daily current month); 3.6, 3.8, 3.9, 3.10, 4.3, 4.4, 5.5 to 5.7 (listed as still to come).
+- Checks: `uv run python evidence/wording.py docs/submission` passed; `uv run pytest` 307 passed, 10 skipped.
+- For the lead: the list under "Needs the lead" in `docs/submission/text.md`, and the two Story 6.5 entries in `DECISIONS.md`.
 
 ## Contract 0.3.0
 
