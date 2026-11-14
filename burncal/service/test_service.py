@@ -22,6 +22,7 @@ CONTRACT = ROOT / "contract"
 SPEC = yaml.safe_load((CONTRACT / "openapi.yaml").read_text(encoding="utf-8"))
 REGISTRY = Registry().with_resource("urn:contract", Resource(contents=SPEC, specification=DRAFT202012))
 WEB_ORIGIN = "https://web.example.org"
+LOCAL_WEB = "http://localhost:5173"
 
 CAL = {"aoi": "101,-1,103,1", "start": "2002-06", "end": "2026-11"}
 DAYS = {"aoi": "101,-1,103,1", "start": "2014-01-01", "end": "2026-11-13"}
@@ -47,7 +48,7 @@ def assert_valid(body, schema_name):
 
 @pytest.fixture
 def client(monkeypatch):
-    monkeypatch.setenv("WEB_ORIGIN", WEB_ORIGIN)
+    monkeypatch.setenv("CORS_ORIGINS", f"{WEB_ORIGIN}, {LOCAL_WEB}")
     from burncal.service.app import create_app
 
     return TestClient(create_app())
@@ -123,16 +124,25 @@ def test_1_3_ac1_analytics_csv_has_one_line_per_calendar_month(client):
     assert months[0]["count"] is None and first["count"] == ""
 
 
-def test_1_3_ac3_cors_allows_the_web_origin_and_localhost(client):
-    for origin in (WEB_ORIGIN, "http://localhost:5173", "http://127.0.0.1:8000"):
+def test_1_3_ac3_cors_allows_each_listed_origin(client):
+    for origin in (WEB_ORIGIN, LOCAL_WEB):
         r = client.get("/meta", headers={"Origin": origin})
         assert r.headers.get("access-control-allow-origin") == origin, origin
 
 
-def test_1_3_ac3_cors_refuses_other_origins(client):
-    for origin in ("https://evil.example.com", "http://localhost.evil.com", "https://web.example.org.evil.com"):
+def test_1_3_ac3_cors_refuses_unlisted_origins(client):
+    for origin in ("https://evil.example.com", "http://localhost:8000", "https://web.example.org.evil.com"):
         r = client.get("/meta", headers={"Origin": origin})
         assert "access-control-allow-origin" not in r.headers, origin
+
+
+def test_1_3_ac3_cors_defaults_to_local_web_only(monkeypatch):
+    monkeypatch.delenv("CORS_ORIGINS", raising=False)
+    from burncal.service.app import create_app
+
+    c = TestClient(create_app())
+    assert c.get("/meta", headers={"Origin": LOCAL_WEB}).headers.get("access-control-allow-origin") == LOCAL_WEB
+    assert "access-control-allow-origin" not in c.get("/meta", headers={"Origin": WEB_ORIGIN}).headers
 
 
 def test_1_3_ac3_service_reads_no_secret():

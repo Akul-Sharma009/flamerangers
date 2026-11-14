@@ -3,7 +3,6 @@ import csv
 import io
 import json
 from os import environ
-import re
 from pathlib import Path
 
 from fastapi import FastAPI, Query
@@ -12,7 +11,7 @@ from fastapi.responses import JSONResponse, Response
 
 FIXTURE = Path(__file__).resolve().parents[2] / "contract" / "fixture"
 MONTH = r"^\d{4}-\d{2}$"
-LOCAL_ORIGIN = r"https?://(localhost|127\.0\.0\.1)(:\d+)?"
+DEFAULT_ORIGINS = "http://localhost:5173"
 
 
 def _csv(rows, columns):
@@ -29,9 +28,9 @@ def create_app() -> FastAPI:
             for n in ("meta", "calendar", "cells", "hotspot_rows", "superseded")}
     app = FastAPI(title="burncal service (fixture stub)")
 
-    origin = environ.get("WEB_ORIGIN")
-    pattern = LOCAL_ORIGIN + (f"|{re.escape(origin)}" if origin else "")
-    app.add_middleware(CORSMiddleware, allow_origin_regex=f"^(?:{pattern})$", allow_methods=["GET"])
+    # Comma-separated exact origins; not a secret.
+    origins = [o.strip() for o in environ.get("CORS_ORIGINS", DEFAULT_ORIGINS).split(",") if o.strip()]
+    app.add_middleware(CORSMiddleware, allow_origins=origins, allow_methods=["GET"])
 
     def answer(name, record_version):
         if record_version and record_version != data["meta"]["record_version"]:

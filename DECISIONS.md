@@ -94,6 +94,13 @@ Each entry has: a status (**ASSUMED** or **TESTED**), its evidence, and a "revis
 ## Service CORS origins (14 Nov)
 
 - **Status:** ASSUMED
-- **Decision:** The service allows the one origin in the `WEB_ORIGIN` environment variable (not a secret), plus `localhost` and `127.0.0.1` on any port. GET only.
-- **Evidence:** Story 1.3 AC3. Tests `test_1_3_ac3_*` in `burncal/service/test_service.py`.
-- **Revisit if:** the web is served from more than one origin.
+- **Decision:** The service allows the exact origins listed in `CORS_ORIGINS` (comma-separated, not a secret). Unset means `http://localhost:5173` only. GET only. Set by the lead on 14 Nov.
+- **Evidence:** Story 1.3 AC3. Tests `test_1_3_ac3_*` in `burncal/service/test_service.py`; checked on the hosted trial.
+- **Revisit if:** the web's public origin is known (add it to `CORS_ORIGINS` on the host), or the contract moves to POST (allow POST then).
+
+## Hosted trial for the stub (14 Nov)
+
+- **Status:** TESTED
+- **Decision:** The Story 1.3 trial runs on Vercel Hobby (free) as a Python function. Hugging Face Docker Spaces were refused: they now need a paid plan. The lead chooses the final host.
+- **Evidence:** Measurements in `docs/handoff.md` (Story 1.3, hosted trial).
+- **Revisit if:** the real store needs a local disk. Vercel's writable disk is `/tmp` only, with about 158 MB free.
