@@ -235,7 +235,10 @@ The points where the plan left room are listed in `DECISIONS.md` ("Contract 0.2.
 
 ## Next
 
-1. Data owner: Stories 1.3 and 2.2 are merged; next is Story 2.3 (ingest and cleaning for one extent).
+1. Data owner: Story 2.3 is PR 3 and Story 2.4 is PR 4 (stacked on PR 3). The lead reviewed both on 14 Nov: tests, the import check, gitleaks and full C1 parity pass. Before merging:
+   - PR 3: rebase onto master (conflict only in `DECISIONS.md`; keep both sides; take master's `contract/` files).
+   - PR 4, the five C1 per-row choices: 1 (rules strictly inside the polygon), 2 (a footprint's 1A term uses its anchor's area) and 4 (ties broken by satellite, time, latitude, longitude) are confirmed. 3 (5° season tiles) is confirmed, with each build extent widened to whole 5° tiles so a tile's season does not depend on where the extent is cut. 5 changes: a 1° cell's `evidence_class` is the class covering most of its area, with any part outside every region counted as `not_evaluated` and a tie going to the weaker class (over the six regions: 225 tuned, 570 tested_unseen, 14 reported_only, 30 not_evaluated). `region_caveat` is computed from the AOI's shape against the region boundaries, not from cell classes. The data owner records these in `DECISIONS.md` ("Story 2.4") with the lead's call noted.
+   - Then the lead rechecks the tests and parity and merges PR 3, then PR 4.
 2. Lead: Story 3.4 adds the dates tab to the same picker; Stories 5.5 and 5.6 go below the head-to-head table on the evidence page.
 
 ## Checkpoints (flags, not deadlines; times in SGT)
