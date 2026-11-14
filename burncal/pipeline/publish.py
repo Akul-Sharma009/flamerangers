@@ -15,6 +15,7 @@ import sys
 from datetime import date, timedelta
 from pathlib import Path
 
+import duckdb
 import numpy as np
 import pandas as pd
 import shapely
@@ -25,6 +26,7 @@ from burncal.pipeline import aggregate, c1_params, parity
 SOURCE_SATELLITES = {"MODIS": ("AQUA", "TERRA"), "VIIRS_SNPP": ("SNPP",), "VIIRS_NOAA20": ("NOAA20",),
                      "VIIRS_NOAA21": ("NOAA21",)}
 GRIDS = ("cells_1deg", "cells_025deg", "thresholds_1deg", "flags_1deg")
+FINE = 0.25  # the fine grid the service reads points by
 POINT_COLUMNS = ["longitude", "latitude", "acq_datetime_utc", "satellite", "feeds_record", "weight"]
 
 
@@ -72,7 +74,7 @@ def coverage_tables(coverage: dict, *, data_through: date) -> tuple[pd.DataFrame
     in_record = pd.DataFrame({"year": rec.year, "month": rec.month}).groupby(["year", "month"]).size()
     missing = gaps.rename("gap_days").reset_index()
     # uncovered: no feeding day of the month (inside the record) was loaded, so its count is null, not 0
-    missing["uncovered"] = [g == in_record[(y, m)] for y, m, g in zip(missing["year"], missing["month"], missing["gap_days"])]
+    missing["uncovered"] = np.array([g == in_record[(y, m)] for y, m, g in zip(missing["year"], missing["month"], missing["gap_days"])], dtype=bool)
     return days, missing.drop(columns="gap_days")
 
 
@@ -114,6 +116,26 @@ def publish(record_dir, grids_dir, raw_dir, store_root, *, data_through: date, c
     """One extent: see publish_many."""
     return publish_many([(record_dir, grids_dir, raw_dir)], store_root, data_through=data_through,
                         code_revision=code_revision, parity_check=parity_check)
+
+
+def write_points(record_files, out: Path, data_through: date) -> int:
+    """The rows in any count (excluded_reason none, up to data_through), sorted by 0.25-degree cell key,
+    with the key, month index and day stored, so the service reads only the cells a request needs.
+    DuckDB sorts out of core, so this works for extents larger than memory."""
+    con = duckdb.connect()
+    con.execute("SET TimeZone = 'UTC'")
+    if not record_files:
+        pd.DataFrame(columns=["key", "k", "day"] + POINT_COLUMNS).to_parquet(out, index=False)
+        return 0
+    files = ", ".join(f"'{Path(f).as_posix()}'" for f in record_files)
+    q = f"""SELECT (floor(longitude / {FINE} + 1e-9)::BIGINT + 1000) * 10000 + (floor(latitude / {FINE} + 1e-9)::BIGINT + 1000) AS key,
+                   ((year(acq_datetime_utc) - 2002) * 12 + month(acq_datetime_utc) - 1)::INTEGER AS k,
+                   day(acq_datetime_utc)::TINYINT AS day, {", ".join(POINT_COLUMNS)}
+            FROM read_parquet([{files}], union_by_name = true)
+            WHERE excluded_reason = 'none' AND acq_datetime_utc::DATE <= DATE '{data_through.isoformat()}'
+            ORDER BY key, k"""
+    con.execute(f"COPY ({q}) TO '{out.as_posix()}' (FORMAT parquet, COMPRESSION zstd, ROW_GROUP_SIZE 100000)")
+    return int(con.execute(f"SELECT count(*) FROM read_parquet('{out.as_posix()}')").fetchone()[0])
 
 
 def _parity_gate(data_through: date, parity_check) -> dict:
@@ -162,21 +184,17 @@ def publish_many(builds, store_root, *, data_through: date, code_revision: str, 
                 grids_all[g].append(aggregate.null_uncovered(t, uncovered) if g == "flags_1deg" else t)
             days_all.append(days.assign(extent=name))
             missing_all.append(missing.assign(extent=name))
-            for part in parts:
-                pts = pd.read_parquet(part, columns=POINT_COLUMNS + ["excluded_reason"])
-                pts = pts[(pts["excluded_reason"] == "none") & (pts["acq_datetime_utc"].dt.date <= data_through)]
-                pts_all.append(pts.drop(columns="excluded_reason"))
+            pts_all += [tmp / "records" / name / part.name for part in parts]
             inputs[name] = input_manifest(raw_dir)
         for g in GRIDS:
             pd.concat(grids_all[g], ignore_index=True).to_parquet(tmp / "grids" / f"{g}.parquet", compression="zstd", index=False)
         pd.concat(ev_all, ignore_index=True).to_parquet(tmp / "records" / "evidence_1deg.parquet", index=False)
         pd.concat(days_all, ignore_index=True).to_parquet(tmp / "coverage_days.parquet", index=False)
         pd.concat(missing_all, ignore_index=True).to_parquet(tmp / "missing_days.parquet", index=False)
-        pts = pd.concat(pts_all, ignore_index=True)
-        pts.to_parquet(tmp / "points.parquet", compression="zstd", index=False)
+        n_points = write_points(pts_all, tmp / "points.parquet", data_through)
         manifest = {"record_version": version, "data_through": data_through.isoformat(), "extents": extents,
                     "code_revision": code_revision, "params_sha256": _sha256(c1_params.PARAMS_FILE),
-                    "inputs": inputs, "rows_in_counts": int(len(pts)), "parity": gate}
+                    "inputs": inputs, "rows_in_counts": n_points, "parity": gate}
         (tmp / "manifest.json").write_text(json.dumps(manifest, indent=1))
         os.replace(tmp, final)
     _write_pointer(root, version)

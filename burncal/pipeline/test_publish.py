@@ -64,7 +64,9 @@ def test_2_6_ac1_publish_writes_a_version_and_switches_the_pointer(tmp_path):
     assert man["record_version"] == v1 and man["data_through"] == "2026-11-13"
     assert man["extents"] == [{"name": "raw", "bbox": COVERAGE["extent"]}]
     assert {"coverage_days.parquet", "missing_days.parquet", "points.parquet", "grids", "records"} <= {p.name for p in vdir.iterdir()}
-    assert len(pd.read_parquet(vdir / "points.parquet")) == 1  # only rows that are in a count
+    pts = pd.read_parquet(vdir / "points.parquet")
+    assert len(pts) == 1  # only rows that are in a count
+    assert {"key", "k", "day"} <= set(pts.columns) and pts["key"].is_monotonic_increasing
     assert (vdir / "records" / "raw" / "AQUA_2015.parquet").exists() and (vdir / "records" / "evidence_1deg.parquet").exists()
     assert json.loads((root / "CURRENT.json").read_text()) == {"record_version": v1, "previous": None}
     # a new code revision is a new version; the previous one stays on disk and is named in the pointer

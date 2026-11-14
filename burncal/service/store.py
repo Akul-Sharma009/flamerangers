@@ -8,8 +8,11 @@ import logging
 from datetime import date
 from pathlib import Path
 
+import duckdb
 import numpy as np
 import pandas as pd
+import pyarrow as pa
+import pyarrow.parquet as pq
 import shapely
 
 from burncal.core import grids
@@ -55,22 +58,34 @@ class Version:
         if "uncovered" not in miss:
             miss["uncovered"] = False
         self._missing = {e: set(zip(g["year"], g["month"])) for e, g in miss.groupby("extent")}
-        unc = miss[miss["uncovered"]]
+        unc = miss[miss["uncovered"].astype(bool).to_numpy()]  # an empty object column would select columns
         self._uncovered = {e: set(zip(g["year"], g["month"])) for e, g in unc.groupby("extent")}
-        c = pd.read_parquet(g / "cells_025deg.parquet")
-        self._c_ix, self._c_iy = _cell_ix(c["sw_lon"] + FINE / 2) , _cell_ix(c["sw_lat"] + FINE / 2)
-        self._c_key = _key(self._c_ix, self._c_iy)
-        self._c_k = self._month_index(c["year"], c["month"])
-        self._c_vals = self._values(c["count"].to_numpy(float), [c[f"raw_{s.lower()}"].to_numpy() for s in SATELLITES])
-        p = pd.read_parquet(self.path / "points.parquet")
-        self._p_lon, self._p_lat = p["longitude"].to_numpy(float), p["latitude"].to_numpy(float)
-        self._p_key = _key(_cell_ix(self._p_lon), _cell_ix(self._p_lat))
-        t = p["acq_datetime_utc"]
-        self._p_k = self._month_index(t.dt.year, t.dt.month)
-        self._p_day = t.dt.day.to_numpy()
-        sat = p["satellite"].to_numpy()
-        self._p_vals = self._values(np.where(p["feeds_record"].to_numpy(), p["weight"].to_numpy(float), 0.0),
-                                    [(sat == s).astype(float) for s in SATELLITES])
+        # Fine grid and points stay on disk; DuckDB reads them per request (memory does not grow with area).
+        self._db = duckdb.connect()
+        self._db.execute("SET threads = 2")
+        self._db.execute("SET memory_limit = '512MB'")
+        self._db.execute("SET TimeZone = 'UTC'")
+        cells = (self.path / "grids" / "cells_025deg.parquet").as_posix()
+        raws = ", ".join(f"raw_{s.lower()}::DOUBLE AS r_{s.lower()}" for s in SATELLITES)
+        self._db.execute(f"""CREATE VIEW cells AS SELECT
+            round(sw_lon / {FINE})::BIGINT AS ix, round(sw_lat / {FINE})::BIGINT AS iy,
+            (round(sw_lon / {FINE})::BIGINT + 1000) * 10000 + (round(sw_lat / {FINE})::BIGINT + 1000) AS key,
+            (year - 2002) * 12 + month - 1 AS k, "count"::DOUBLE AS cnt, {raws}
+            FROM read_parquet('{cells}')""")
+        pts = (self.path / "points.parquet").as_posix()
+        cols = set(pq.read_schema(pts).names)
+        if {"key", "k", "day"} <= cols:  # published since 15 Nov: sorted by key
+            derived = "key, k, day"
+        else:
+            derived = (f"(floor(longitude / {FINE} + 1e-9)::BIGINT + 1000) * 10000 + "
+                       f"(floor(latitude / {FINE} + 1e-9)::BIGINT + 1000) AS key, "
+                       "(year(acq_datetime_utc) - 2002) * 12 + month(acq_datetime_utc) - 1 AS k, "
+                       "day(acq_datetime_utc) AS day")
+        sats = ", ".join(f"(satellite = '{s}')::DOUBLE AS r_{s.lower()}" for s in SATELLITES)
+        self._db.execute(f"""CREATE VIEW pts AS SELECT {derived}, longitude AS lon, latitude AS lat,
+            CASE WHEN feeds_record THEN weight ELSE 0 END AS cnt, {sats} FROM read_parquet('{pts}')""")
+        keys = self._db.execute("SELECT DISTINCT key, ix, iy FROM cells").fetchnumpy()
+        self._c_key, self._c_ix, self._c_iy = (np.asarray(keys[c], np.int64) for c in ("key", "ix", "iy"))
 
     def extent_of(self, geom):
         """The name of the extent holding the whole area, or None (outside coverage)."""
@@ -98,24 +113,32 @@ class Version:
         want = [d / f"{s}_{y}.parquet" for s in sats for y in range(y0, y1 + 1)]
         return [p for p in want if p.exists() or self._fetch(p)]
 
-    @staticmethod
-    def _month_index(year, month):
-        return (np.asarray(year, np.int64) - 2002) * 12 + np.asarray(month, np.int64) - 1
-
-    @staticmethod
-    def _values(count, raws):
-        return np.column_stack([count] + list(raws))
+    VALUE_COLUMNS = ["cnt"] + [f"r_{s.lower()}" for s in SATELLITES]
 
     def _sum(self, k, vals):
         """[n_months, 1 + len(SATELLITES)]: column 0 the harmonized count, then raw counts."""
+        k = np.asarray(k, np.int64)
         ok = (k >= 0) & (k < self.n_months)
         return np.column_stack([np.bincount(k[ok], weights=vals[ok, j], minlength=self.n_months)
                                 for j in range(vals.shape[1])])
 
-    def count_points(self, geom) -> np.ndarray:
-        """Brute force: every point row inside the area (edge counts as inside)."""
-        inside = shapely.intersects_xy(geom, self._p_lon, self._p_lat)
-        return self._sum(self._p_k[inside], self._p_vals[inside])
+    def _query(self, sql, **tables):
+        con = self._db.cursor()
+        con.execute("SET TimeZone = 'UTC'")  # a session setting: each cursor needs it, or months shift near midnight
+        for name, keys in tables.items():
+            con.register(name, pa.table({"key": pa.array(np.asarray(keys, np.int64))}))
+        return con.execute(sql).fetchnumpy()
+
+    def _points(self, keys=None, bbox=None, where="TRUE"):
+        """Point rows of the given fine cells (or inside a bounding box), as numpy columns."""
+        cols = ", ".join(["k", "lon", "lat", "day"] + self.VALUE_COLUMNS)
+        if keys is not None:
+            return self._query(f"SELECT {cols} FROM pts JOIN wanted USING (key) WHERE {where}", wanted=keys)
+        x0, y0, x1, y1 = bbox
+        return self._query(f"SELECT {cols} FROM pts WHERE lon BETWEEN {x0} AND {x1} AND lat BETWEEN {y0} AND {y1} AND {where}")
+
+    def _vals(self, r):
+        return np.column_stack([np.asarray(r[c], float) for c in self.VALUE_COLUMNS]) if len(r["k"]) else np.zeros((0, 6))
 
     def _cells_split(self, geom):
         """Keys of the fine cells wholly inside the area and of the cells its edge cuts."""
@@ -123,35 +146,46 @@ class Version:
         x0, y0, x1, y1 = geom.bounds
         near = ((self._c_ix >= _cell_ix(x0)) & (self._c_ix <= _cell_ix(x1))
                 & (self._c_iy >= _cell_ix(y0)) & (self._c_iy <= _cell_ix(y1)))
-        keys, first = np.unique(self._c_key[near], return_index=True)
-        ix, iy = self._c_ix[near][first], self._c_iy[near][first]
+        keys, ix, iy = self._c_key[near], self._c_ix[near], self._c_iy[near]
         boxes = shapely.box(ix * FINE, iy * FINE, (ix + 1) * FINE, (iy + 1) * FINE)
         covered = shapely.covers(geom, boxes)
         return keys[covered], keys[~covered & shapely.intersects(geom, boxes)]
 
-    def inside(self, geom) -> np.ndarray:
-        """Point rows inside the area: every point of a covered cell, and points of cut cells tested one by one."""
-        whole, cut = self._cells_split(geom)
-        mask = np.isin(self._p_key, whole)
-        edge = np.isin(self._p_key, cut)
-        edge[edge] = shapely.intersects_xy(geom, self._p_lon[edge], self._p_lat[edge])
-        return mask | edge
+    def _inside(self, geom, r):
+        return shapely.intersects_xy(geom, np.asarray(r["lon"], float), np.asarray(r["lat"], float))
 
-    def same_days(self, geom, month: int, day: int, years, mask=None) -> tuple[float, list[float]]:
-        """(count for days 1 to day of `month` in the data-through year, the same days in each of `years`)."""
-        m = self.inside(geom) if mask is None else mask
-        sel = m & (self._p_day <= day) & ((self._p_k % 12) == month - 1)
-        by_k = np.bincount(self._p_k[sel], weights=self._p_vals[sel, 0], minlength=self.n_months)
-        k = lambda y: (y - 2002) * 12 + month - 1  # noqa: E731
-        return float(by_k[k(self.data_through.year)]), [float(by_k[k(y)]) for y in years]
+    def count_points(self, geom) -> np.ndarray:
+        """Brute force: every point row inside the area (edge counts as inside)."""
+        r = self._points(bbox=geom.bounds)
+        m = self._inside(geom, r)
+        return self._sum(np.asarray(r["k"])[m], self._vals(r)[m])
 
     def count(self, geom) -> np.ndarray:
         """Fast path: whole fine cells inside the area from the grid, cut cells from the points."""
         whole, cut = self._cells_split(geom)
-        g = np.isin(self._c_key, whole)
-        edge = np.isin(self._p_key, cut)
-        edge[edge] = shapely.intersects_xy(geom, self._p_lon[edge], self._p_lat[edge])
-        return self._sum(self._c_k[g], self._c_vals[g]) + self._sum(self._p_k[edge], self._p_vals[edge])
+        cols = ", ".join(f"sum({c}) AS {c}" for c in self.VALUE_COLUMNS)
+        g = self._query(f"SELECT k, {cols} FROM cells JOIN wanted USING (key) GROUP BY k", wanted=whole)
+        e = self._points(keys=cut)
+        m = self._inside(geom, e)
+        return self._sum(g["k"], self._vals(g)) + self._sum(np.asarray(e["k"])[m], self._vals(e)[m])
+
+    def same_days(self, geom, month: int, day: int, years, brute: bool = False) -> tuple[float, list[float]]:
+        """(count for days 1 to day of `month` in the data-through year, the same days in each of `years`).
+        brute=True tests every point in the area's bounding box instead of using whole fine cells."""
+        where = f"k % 12 = {month - 1} AND day <= {day}"
+        if brute:
+            r = self._points(bbox=geom.bounds, where=where)
+            m = self._inside(geom, r)
+            k, w = np.asarray(r["k"])[m], self._vals(r)[m, 0]
+        else:
+            whole, cut = self._cells_split(geom)
+            a, e = self._points(keys=whole, where=where), self._points(keys=cut, where=where)
+            m = self._inside(geom, e)
+            k = np.concatenate([np.asarray(a["k"]), np.asarray(e["k"])[m]]).astype(np.int64)
+            w = np.concatenate([self._vals(a)[:, 0], self._vals(e)[m, 0]])
+        by_k = np.bincount(k, weights=w, minlength=self.n_months) if len(k) else np.zeros(self.n_months)
+        kk = lambda y: (y - 2002) * 12 + month - 1  # noqa: E731
+        return float(by_k[kk(self.data_through.year)]), [float(by_k[kk(y)]) for y in years]
 
     def hotspots(self, geom, start: date, end: date, *, all_satellites: bool, year: int | None):
         """Rows inside the area and the exact dates (every row, excluded ones too), or the years and

@@ -489,3 +489,10 @@ Each entry has: a status (**ASSUMED** or **TESTED**), its evidence, and a "revis
   - **AD-11.** If the pointer names a version that fails to load, the service keeps answering from the last good versions and keeps the error; it does not retry on every request.
 - **Evidence:** `test_2_6_ad2_*` in `burncal/pipeline/test_publish.py` (the real case passes with `BURNCAL_PARITY_CASE_DIR` set), `test_2_6_null_is_not_zero_*`, `test_2_5_static_mask_build_fails_without_every_tuning_year_file`, `test_2_6_ad11_*`.
 - **Revisit if:** the lead wants publishing allowed on a machine without the case (for example a hosted daily refresh, Story 2.9); then the gate needs a recorded pass the refresh can check instead.
+
+## The service reads hotspots from disk, not memory (15 Nov)
+
+- **Status:** TESTED
+- **Decision:** The service no longer loads a version's points into memory. `publish` writes `points.parquet` sorted by 0.25° cell key, with the key, month index and day stored (DuckDB, sorting out of core). The service keeps only small tables in memory (flags, evidence, coverage, the list of fine cells) and reads the fine grid and the points with DuckDB per request: whole cells from the grid, cut cells and the current-month card from the points of those cells only. Versions published before this compute the key in the query, which is slower but correct. DuckDB is limited to 512 MB and 2 threads.
+- **Evidence:** All tests pass, including fast path against brute force on three areas and the same-days check. Real Sumatra: fast path equals the point sum (largest difference 9.5e-10). Two Sumatra versions loaded: 217 MB steady, 273 MB peak after requests (was 1,025 and 1,172 MB). 20 local Sumatra calendars: p95 0.10 s (was 0.04 s).
+- **Revisit if:** a continental area is slower than the 10 s target; then add a per-area cache or a coarser pre-summed grid.

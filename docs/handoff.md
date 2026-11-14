@@ -147,7 +147,7 @@ Not in the repo: the Vercel trial used a two-line `index.py` entrypoint and a `r
 | Cold start | 8.3 s for the first request to a new deployment (inside: imports 1.3 s, store sync 1.0–1.2 s, loading 1.5 s; the rest is the dependency install on a new instance) |
 | **2.6 AC6**: 20 Sumatra calendars | p50 0.82 s, **p95 1.09 s** against 3 s; max 1.11 s |
 
-- **Six regions will not fit as built.** The service holds every hotspot of a version in memory, about 167 bytes each (435 MB per Sumatra version). Six regions are about 75M hotspots, about 12 GB per version. Before Story 2.8 publishes, either the service reads hotspots from disk (DuckDB) or the lead picks a fallback from `DECISIONS.md`.
+- **Six regions: fixed.** The service now reads hotspots from disk with DuckDB (`DECISIONS.md`, 15 Nov), so memory no longer grows with the area: two Sumatra versions take 217 MB steady (was 1,025 MB). Not yet deployed: the next deploy needs `duckdb` in the deploy requirements and a version published in the new format.
 
 ## Story 2.8: coverage for the six evaluated regions (branch `teammate/2.8-coverage`, in progress)
 

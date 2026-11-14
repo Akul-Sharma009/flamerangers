@@ -281,8 +281,8 @@ def test_3_2_ac3_same_days_fast_path_equals_brute_force(store_root):
     for geom in AREAS.values():
         g = shape(geom)
         fast = v.same_days(g, 11, 13, range(2003, 2026))
-        inside = shapely.intersects_xy(g, v._p_lon, v._p_lat)
-        assert np.allclose(fast[1], v.same_days(g, 11, 13, range(2003, 2026), mask=inside)[1], atol=1e-9)
+        brute = v.same_days(g, 11, 13, range(2003, 2026), brute=True)
+        assert abs(fast[0] - brute[0]) < 1e-9 and np.allclose(fast[1], brute[1], atol=1e-9)
 
 
 # --- Stories 2.7 and 4.2: hotspots for any search, as CSV ---------------------------
