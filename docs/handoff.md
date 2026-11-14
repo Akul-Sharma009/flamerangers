@@ -134,6 +134,21 @@ Not in the repo: the Vercel trial used a two-line `index.py` entrypoint and a `r
 | AC3 standard beats NRT per satellite-day | `test_2_3_ac3_*` in `test_ingest.py` and `test_build_extent.py`; 3,949 NRT rows replaced in the Sumatra build |
 | AC4 tuning-year Aqua counts agree, or differences listed with causes | `test_2_3_ac4_*` in `test_compare_tuning.py`; `uv run python -m burncal.pipeline.compare_tuning`; `docs/cleaning-differences.md` |
 
+## Story 2.6 AC6 and hosting: the real service on Vercel (15 Nov)
+
+- Live at `https://burncal-stub.vercel.app` (Vercel Hobby, Python 3.14, the lead's choice). Serving version `20261113-3d2a8f8c` (Sumatra, built before the 15 Nov review fixes; the whole-tile rebuild replaces it). No environment variables yet: `CORS_ORIGINS` waits for the web's origin.
+- **How the store gets there:** copied from a public Hugging Face dataset into `/tmp` when an instance starts (`burncal/service/remote.py`): the pointer, then for the current and previous versions everything a calendar needs (31 MB for Sumatra). Hotspot record files (81 MB for Sumatra) are fetched the first time a request needs them. The deployment itself carries only code and contract files; its entry point (`index.py`, which names the dataset URL) and `requirements.txt` live outside the repo.
+- **Measured (15 Nov, from Singapore; the function ran in sin1):**
+
+| Measure | Result |
+| --- | --- |
+| Memory, current version loaded | 643 MB steady, 880 MB peak (runtime log). Two Sumatra versions locally: 1,025 MB steady, 1,172 MB peak; on Vercel expected about 1.1 GB and 1.3 GB, under the 2 GB limit. |
+| `/tmp` free after sync | 194 MB |
+| Cold start | 8.3 s for the first request to a new deployment (inside: imports 1.3 s, store sync 1.0–1.2 s, loading 1.5 s; the rest is the dependency install on a new instance) |
+| **2.6 AC6**: 20 Sumatra calendars | p50 0.82 s, **p95 1.09 s** against 3 s; max 1.11 s |
+
+- **Six regions will not fit as built.** The service holds every hotspot of a version in memory, about 167 bytes each (435 MB per Sumatra version). Six regions are about 75M hotspots, about 12 GB per version. Before Story 2.8 publishes, either the service reads hotspots from disk (DuckDB) or the lead picks a fallback from `DECISIONS.md`.
+
 ## Story 2.8: coverage for the six evaluated regions (branch `teammate/2.8-coverage`, in progress)
 
 - Every build extent is whole 5° tiles: Sumatra 90–110°E 10°S–10°N, Australian grassland 125–145°E 25–15°S, Amazon forest 60–50°W 15–5°S, Southern Africa 20–35°E 20–5°S, Siberia 100–135°E 55–70°N, Punjab 70–80°E 25–35°N.

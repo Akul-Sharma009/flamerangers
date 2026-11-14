@@ -484,3 +484,22 @@ def test_2_6_ad11_a_version_that_fails_to_load_leaves_the_last_good_one_serving(
     m = app.get("/meta")
     assert m.status_code == 200 and m.json()["record_version"] == versions[0]
     assert app.post("/calendar", json=_body(versions[0], PUNJAB, name=None)).status_code == 200
+
+
+# --- hosting: the store copied from public storage into local disk ---------------------
+def test_2_6_store_synced_from_a_url_answers_the_same(store_root, versions, tmp_path):
+    from burncal.service import remote
+    local = remote.sync(store_root.as_uri(), tmp_path / "tmpstore")
+    v = versions[0]
+    vdir = local / "versions" / v
+    assert (vdir / "points.parquet").exists() and (vdir / "grids" / "flags_1deg.parquet").exists()
+    assert not list((vdir / "records").glob("*/[A-Z]*_[0-9]*.parquet"))  # hotspot files wait until needed
+    synced = TestClient(create_app(local, fetch=remote.fetcher(store_root.as_uri(), local)))
+    direct = TestClient(create_app(store_root))
+    body = _body(v, AMAZON, name=None)
+    assert synced.post("/calendar", json=body).json() == direct.post("/calendar", json=body).json()
+    hot = {**body, "start": "2015-01-01", "end": "2015-12-31", "all_satellites": True}
+    assert synced.post("/hotspots.csv", json=hot).text == direct.post("/hotspots.csv", json=hot).text
+    assert list((vdir / "records").glob("*/[A-Z]*_2015.parquet"))  # fetched on first use
+    # a second sync downloads nothing new
+    assert remote.sync(store_root.as_uri(), tmp_path / "tmpstore") == local

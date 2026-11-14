@@ -33,8 +33,9 @@ def _cell_ix(x):
 
 
 class Version:
-    def __init__(self, path):
+    def __init__(self, path, fetch=None):
         self.path = Path(path)
+        self._fetch = fetch  # downloads a record file on first use when the store was synced from a URL
         self.manifest = json.loads((self.path / "manifest.json").read_text(encoding="utf-8"))
         self.record_version = self.manifest["record_version"]
         self.data_through = date.fromisoformat(self.manifest["data_through"])
@@ -86,8 +87,16 @@ class Version:
         return self._uncovered.get(extent, set())
 
     def _records(self, extent) -> Path:
-        sub = self.path / "records" / extent
-        return sub if extent and sub.is_dir() else self.path / "records"
+        named = extent and "extents" in self.manifest
+        return self.path / "records" / extent if named else self.path / "records"
+
+    def _record_files(self, extent, sats, y0, y1) -> list:
+        d = self._records(extent)
+        if self._fetch is None:
+            return [p for p in sorted(d.glob("[A-Z]*_[0-9]*.parquet"))
+                    if p.stem.rsplit("_", 1)[0] in sats and y0 <= int(p.stem.rsplit("_", 1)[1]) <= y1]
+        want = [d / f"{s}_{y}.parquet" for s in sats for y in range(y0, y1 + 1)]
+        return [p for p in want if p.exists() or self._fetch(p)]
 
     @staticmethod
     def _month_index(year, month):
@@ -151,8 +160,7 @@ class Version:
         if year is not None:
             start, end = max(start, date(year, 1, 1)), min(end, date(year, 12, 31))
         sats = SATELLITES if all_satellites else FEEDING_SATELLITES
-        files = [p for p in sorted(self._records(self.extent_of(geom) or "").glob("[A-Z]*_[0-9]*.parquet"))
-                 if p.stem.rsplit("_", 1)[0] in sats and start.year <= int(p.stem.rsplit("_", 1)[1]) <= end.year]
+        files = self._record_files(self.extent_of(geom) or "", sats, start.year, end.year)
         if not files or start > end:
             return pd.DataFrame(columns=HOTSPOT_COLUMNS), None
         x0, y0, x1, y1 = geom.bounds
@@ -197,8 +205,9 @@ class Version:
 class Store:
     """The pointer file names the current version and the previous one; both are answered."""
 
-    def __init__(self, root):
+    def __init__(self, root, fetch=None):
         self.root = Path(root)
+        self._fetch_file = fetch
         self.pointer = self.root / "CURRENT.json"
         self._mtime, self._versions, self.current, self.previous = None, {}, None, None
         self.load_error = None
@@ -213,7 +222,7 @@ class Store:
                 return
             p = json.loads(self.pointer.read_text(encoding="utf-8"))
             keep = {p["record_version"], p["previous"]} - {None}
-            versions = {v: self._versions.get(v) or Version(self.root / "versions" / v) for v in keep}
+            versions = {v: self._versions.get(v) or Version(self.root / "versions" / v, self._fetch_file) for v in keep}
         except Exception as exc:  # noqa: BLE001
             self._mtime = mtime if "mtime" in locals() else self._mtime  # do not retry a broken pointer on every request
             self.load_error = f"{type(exc).__name__}: {exc}"
