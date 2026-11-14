@@ -22,8 +22,8 @@ Updated: Sat 14 Nov 2026, late evening SGT (PRs 3 to 11 merged; the lead's revie
 | 5.4 Head-to-head table | Done | Reviewed by the lead and merged to master. See below. |
 | 3.3 Select an area | Done | Reviewed by the lead and merged to master. See below. |
 | 3.5 The burning activity calendar | Done | Merged 14 Nov. See below. |
-| 3.4 Select a date range | Done | Merged 14 Nov. Sentences for refused ranges and the reference-period note wait for contract 0.4.0 (see below). |
-| 3.7 Current-month card | Done | Merged 14 Nov. Sentences wait for contract 0.4.0; the NOAA-20 comparison waits for Story 2.10 (see below). |
+| 3.4 Select a date range | Done | Merged 14 Nov. Sentences for refused ranges and the reference-period note are in contract 0.4.0 (drafted on `lead/contract-0.4.0`, waiting for the data owner). |
+| 3.7 Current-month card | Done | Merged 14 Nov. Sentences and the missing-days note are in contract 0.4.0 (drafted on `lead/contract-0.4.0`, waiting for the data owner); the NOAA-20 comparison waits for Story 2.10 (see below). |
 | 2.3 Ingest and cleaning | Done | PR 3, merged 14 Nov |
 | 2.4 Weights and the record | Done | PR 4, merged 14 Nov, with the weaker-class tie rule (225 / 570 / 6 / 38); full C1 parity PASS |
 | 2.5 Grids, thresholds, flags | In progress | PR 5, merged 14 Nov. Open: AC2 results for Australia and Amazon not recorded; static-input check (Next) |
@@ -470,8 +470,8 @@ Checks on the merged master: `uv run pytest` 310 passed, 1 skipped (Sumatra reco
    - **Memory.** `Store.refresh()` builds a `Version` for the current and the previous version at start-up, each holding all of `points.parquet` and the 0.25° grid. Loading the previous one lazily (above) roughly halves cold-start memory on Vercel's 2 GB. Measure peak memory with Sumatra, then with six regions, before 2.8 publishes.
    - **Sep 2006, 105E 6S.** The harness history has 39 Aqua rows for that cell-month, from the FIRMS Indonesia country archive file, none dropped by its cleaning (all day, type 0). Diff the product's 41 against them and record the cause in `docs/cleaning-differences.md` (country archive versus area API is the likeliest).
 2. Data owner: deploy the real service to Vercel (the lead's choice, 14 Nov; see `DECISIONS.md`). Measure, in this order: memory with Sumatra's current and previous versions loaded (the limit is 2 GB); how the store version gets to the function (inside the deployment, or copied from public object storage into `/tmp`, about 158 MB free); cold start; then 2.6 AC6, the p95 of 20 Sumatra calendars against 3 s. The service loads the current and the previous version wholly into memory at start-up, so memory, not bundle size, is the likely limit for six regions.
-3. Lead, for a contract 0.4.0 if wanted: `cells_flagged_strong` and `cells_flagged_marginal` are non-null integers, so months outside the record show 0 in `/calendar` and the analytics CSV.
-4. Low items from the reviews, not yet acted on: `share_of_max` can use a part-year as the 100% bar; the current-month card gives no caution when days 1 to *d* have missing days; a null `frp` would be written as `nan`; `validated_satellite` is true for months outside the record; `anomaly_count` can be `-0.0`; with `year` set, `/hotspots.csv` has no row limit; `/cells` serves threshold 0.0 after `data_through`; `compare_tuning` prints "fire days".
+3. Data owner: agree contract 0.4.0 (branch `lead/contract-0.4.0`; `DECISIONS.md`, "Contract 0.4.0 drafted by the lead"). It adds the card and refused-date sentences, makes `Month.cells_flagged_*` null outside the record, and adds `CurrentMonth.missing_days_to_date`. It touches `burncal/service/answers.py`, which 2.8 also edits.
+4. Low items from the reviews, not yet acted on: `share_of_max` can use a part-year as the 100% bar; a null `frp` would be written as `nan`; `validated_satellite` is true for months outside the record; `anomaly_count` can be `-0.0`; with `year` set, `/hotspots.csv` has no row limit; `/cells` serves threshold 0.0 after `data_through`; `compare_tuning` prints "fire days".
 5. Lead: Story 3.4 (the dates tab) is at review on `claude/3-4-dates-ac58f0`, with sentences to add in a contract bump; Stories 5.5 and 5.6 go below the head-to-head table on the evidence page.
 
 ## Checkpoints (flags, not deadlines; times in SGT)

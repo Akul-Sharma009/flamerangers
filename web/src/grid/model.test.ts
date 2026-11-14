@@ -36,7 +36,7 @@ describe("buildGridModel", () => {
       for (const c of r.cells) {
         const m = served.get(c.month)!;
         expect(c.count).toBe(m.count);
-        if (m.cells_flagged_strong > 0) expect(c.flag).toBe("strong");
+        if ((m.cells_flagged_strong ?? 0) > 0) expect(c.flag).toBe("strong");
       }
   });
   it("builds medians and classes", () => {

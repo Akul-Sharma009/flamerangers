@@ -40,6 +40,8 @@ export interface Messages {
     | "provisional"
     | "noaa20_check"
     | "noaa20_check_not_run"
+    | "range_and_reference"
+    | "missing_days_to_date"
   >;
   client: Table<
     | "coordinates_out_of_range"
@@ -47,7 +49,13 @@ export interface Messages {
     | "polygon_not_closed"
     | "service_unreachable"
     | "evidence_unavailable"
+    | "date_unreadable"
+    | "date_before_record"
+    | "date_after_data_through"
+    | "dates_out_of_order"
   >;
+  /** Card templates with {placeholders} (0.4.0). src/card/words.ts reads them. */
+  sentences?: Record<string, string>;
 }
 
 export const messages = raw as Messages;

@@ -13,7 +13,7 @@ from burncal.core import regions as core_regions
 from burncal.core import grids, record, stats
 from burncal.service.store import SATELLITES, Version
 
-CONTRACT_VERSION = "0.3.0"  # must equal info.version in contract/openapi.yaml (tested)
+CONTRACT_VERSION = "0.4.0"  # must equal info.version in contract/openapi.yaml (tested)
 UNIT_LABEL = "hotspots, Aqua MODIS units"
 EVIDENCE = ("tuned", "tested_unseen", "reported_only", "not_evaluated")
 
@@ -107,8 +107,9 @@ def calendar(v: Version, geom, name, start: date, end: date, regions: dict) -> d
             "anomaly_pct": r2(cmp["anomaly_pct"]),
             "colour_class": stats.class_index(r1(value), breaks),
             "anomaly_class": stats.class_index(r2(cmp["anomaly_pct"]), stats.ANOMALY_BREAKS),
-            "cells_flagged_strong": int(fl["strong"]) if fl is not None else 0,
-            "cells_flagged_marginal": int(fl["marginal"]) if fl is not None else 0,
+            # null outside the record (missing is not zero); 0 inside it when no cell is flagged
+            "cells_flagged_strong": None if not in_record else int(fl["strong"]) if fl is not None else 0,
+            "cells_flagged_marginal": None if not in_record else int(fl["marginal"]) if fl is not None else 0,
             "cells_total": len(cells),
             "rank": st["month_rank"].get(t),
         })
@@ -150,6 +151,8 @@ def _card(v: Version, geom, complete, ref_years, months) -> dict:
     return {
         "month": _ym((dt.year, dt.month)), "day": dt.day,
         "count_to_date": r1(to_date),
+        # The month holds only days 1 to d, so a month with missing input days is missing some of days 1 to d.
+        "missing_days_to_date": (dt.year, dt.month) in v.missing,
         "same_days_median": r1(cmp["same_days_median"]) if cmp["same_days_median"] is not None else 0.0,
         "no_typical_activity": cmp["no_typical_activity"],
         "ratio": r2(cmp["ratio"]),

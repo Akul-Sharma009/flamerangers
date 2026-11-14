@@ -1,4 +1,4 @@
-"""The service (contract 0.3.0).
+"""The service (contract 0.4.0).
 
 With a published store (BURNCAL_STORE_ROOT, default store/published, holding CURRENT.json), /meta,
 /calendar, /cells and both CSVs answer from the record (Stories 2.6, 2.7, 4.1). Without one, every endpoint answers from the

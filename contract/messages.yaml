@@ -6,7 +6,7 @@
 # Results and figures (for example how the conversion did in a region) are NOT
 # here. They come from evidence/claims.yaml and evidence.json, so that no result
 # is typed twice. Hotspots are never called "fires".
-version: 0.3.0
+version: 0.4.0
 
 problems:
   invalid_aoi: "This area can't be used. Check that the coordinates are in range, in order and form a closed shape."
@@ -83,12 +83,29 @@ notes:
   provisional: "Provisional: this month is not complete, so its flags may change."
   noaa20_check: "Reported only. This compares converted NOAA-20 counts with converted Suomi NPP counts and is not a validation against Aqua."
   noaa20_check_not_run: "The NOAA-20 comparison has not been run yet."
+  range_and_reference: "Rankings cover the dates you chose. Medians and anomalies always use the reference period."
+  missing_days_to_date: "Some days of input data are missing so far this month, so the count to date may be low."
+
+# Card sentences with {placeholders}. The service fills no words; the web fills
+# each placeholder with a served value, formatted only (0.4.0).
+sentences:
+  current_month: "So far this month: {count} hotspots, {ratio}× the {reference_start}–{reference_end} median for the same days of {month_name}."
+  current_month_count: "So far this month: {count} hotspots."
+  current_month_usual: "Usual = the {reference_start}–{reference_end} median for days 1 to {day} of {month_name}: {median} hotspots. This month differs by {difference}. Data through {data_through}."
+  cells_flagged: "{strong} of {total} one-degree cells are flagged strong and {marginal} marginal, a caution and not an alarm."
+  ruler_caption: "Days 1 to {day} of {month_name} in each year from {reference_start} to {reference_end}."
+  record_high: "The highest month on record here is {month}, with {count} hotspots."
+  noaa20_compared: "From {period_start} to {period_end}, converted NOAA-20 counts differed from converted Suomi NPP counts by {bias_pct}% overall, with a mean absolute difference of {mean_abs_difference} per one-degree cell-month."
 
 # States the web finds itself, before or instead of a service answer. The
-# service never sends these; they are here so the web types no words (0.3.0).
+# service never sends these; they are here so the web types no words (0.3.0; date sentences 0.4.0).
 client:
   coordinates_out_of_range: "A longitude must be between -180 and 180, and a latitude between -90 and 90."
   latitude_out_of_order: "The south edge must be less than the north edge."
   polygon_not_closed: "The last vertex must repeat the first, so the shape is closed."
   service_unreachable: "The service could not be reached. Please try again in a moment."
   evidence_unavailable: "The evidence could not be loaded. Please reload the page."
+  date_unreadable: "Enter each date as a day, month and year."
+  date_before_record: "The record starts in July 2002. Choose a later first date."
+  date_after_data_through: "The record runs only to the data-through date. Choose an earlier last date."
+  dates_out_of_order: "The first date must be on or before the last date."

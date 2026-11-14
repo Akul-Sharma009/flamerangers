@@ -134,6 +134,10 @@ def test_2_6_ac3_calendar_counts_raw_and_provenance(client, versions):
     assert months["2002-06"]["count"] is None and months["2002-06"]["null_reason"] == "outside_record"
     assert months["2002-07"]["partial_reasons"] == ["record_start"] and not months["2002-07"]["complete"]
     assert months["2026-12"]["count"] is None
+    # 0.4.0: flag counts are null outside the record (missing is not zero), integers inside it
+    for k in ("cells_flagged_strong", "cells_flagged_marginal"):
+        assert months["2002-06"][k] is None and months["2026-12"][k] is None and isinstance(months["2015-01"][k], int)
+    assert c["current_month"]["missing_days_to_date"] is False  # the test store's November has no missing days
     assert months["2015-01"]["source"] == "aqua_real" and months["2023-01"]["source"] == "viirs_converted"
     assert months["2024-02"]["partial_reasons"] == ["missing_days"]
     nov = months["2026-11"]
