@@ -84,3 +84,16 @@ Each entry has: a status (**ASSUMED** or **TESTED**), its evidence, and a "revis
 - **Decision:** The calendar page shows the area name, size, cautions and standing notes on the left, and not the current-month sentence or ruler.
 - **Evidence:** The sentence template and the "usual =" line are UI copy with no entry in `messages.yaml`. Writing them is Story 3.7's job, with the lead deciding the words.
 - **Revisit if:** the lead wants the sentence for the Saturday demo.
+## Stub CSV columns before the CSV spec exists (14 Nov)
+
+- **Status:** ASSUMED
+- **Decision:** Until `contract/CSV_SPEC.md` is written (Story 1.2), the stub's `/hotspots.csv` uses the keys of `contract/fixture/hotspot_rows.json` as columns, and `/analytics.csv` writes one line per fixture calendar month with that month's top-level scalar fields. A `null` is an empty cell, never `0`.
+- **Evidence:** Story 1.3 needs every contract endpoint to answer; the contract has no CSV column list yet.
+- **Revisit if:** `CSV_SPEC.md` is agreed. The stub then follows it.
+
+## Service CORS origins (14 Nov)
+
+- **Status:** ASSUMED
+- **Decision:** The service allows the one origin in the `WEB_ORIGIN` environment variable (not a secret), plus `localhost` and `127.0.0.1` on any port. GET only.
+- **Evidence:** Story 1.3 AC3. Tests `test_1_3_ac3_*` in `burncal/service/test_service.py`.
+- **Revisit if:** the web is served from more than one origin.

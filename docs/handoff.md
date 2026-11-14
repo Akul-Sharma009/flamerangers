@@ -32,6 +32,25 @@ uv run pytest
 uv run python tools/check_imports.py
 cd web && npm install && npm run typecheck && npm run test && npm run build
 ```
+## Story 1.3: service stub (branch `teammate/1.3-service-stub`, on top of `lead/1.1-setup`, NOT DEPLOYED)
+
+- `burncal/service/app.py` answers every contract endpoint from `contract/fixture/` when there is no store. Run: `uv run uvicorn burncal.service.app:app --port 8000`, then open `http://localhost:8000/meta`.
+- An old `record_version` on `/calendar` or `/cells` gets `410` with the `version_superseded` answer.
+- CORS: only the origin in `WEB_ORIGIN` (not a secret) plus `localhost` / `127.0.0.1`, GET only. The service reads no other environment variable.
+- CSV columns are a stand-in until `contract/CSV_SPEC.md` exists (see `DECISIONS.md`).
+- Checks: `uv run pytest` 24 passed (12 contract, 12 service); import check passed; gitleaks: no leaks.
+- **Not done: deploy and hosted measurements (AC2).** Waiting on the lead's choice of host and account. The Sat 12:00 checkpoint was missed.
+- Local baseline only (laptop, not a host): start to first `200` 1.4 s, warm `/calendar` about 1 ms, memory 67 MB RSS, `.venv` 275 MB.
+
+| Criterion | Test or evidence |
+| --- | --- |
+| AC1 answers every endpoint from the fixture | `test_1_3_ac1_every_contract_path_is_answered`, `..._meta_is_the_fixture_and_a_placeholder`, `..._calendar_is_the_fixture_and_valid`, `..._cells_is_the_fixture_and_valid`, `..._hotspots_csv_has_one_line_per_fixture_row`, `..._analytics_csv_has_one_line_per_calendar_month` |
+| AC1 contract tests pass | `uv run pytest contract`, plus schema checks inside the service tests; `..._current_record_version_is_accepted`, `..._old_record_version_gets_410_superseded`, `..._missing_required_parameter_is_rejected` |
+| AC2 cold start, memory, disk on a host | NOT DONE: needs a host |
+| AC3 CORS web origin and localhost only | `test_1_3_ac3_cors_allows_the_web_origin_and_localhost`, `test_1_3_ac3_cors_refuses_other_origins` |
+| AC3 no secret on the host | `test_1_3_ac3_service_reads_no_secret` (source check); host check NOT DONE |
+
+## Still open in Story 1.1
 
 ## Story 1.5: the web shell
 
