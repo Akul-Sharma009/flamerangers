@@ -125,6 +125,19 @@ Not in the repo: the Vercel trial used a two-line `index.py` entrypoint and a `r
 | AC3 standard beats NRT per satellite-day | `test_2_3_ac3_*` in `test_ingest.py` and `test_build_extent.py`; 3,949 NRT rows replaced in the Sumatra build |
 | AC4 tuning-year Aqua counts agree, or differences listed with causes | `test_2_3_ac4_*` in `test_compare_tuning.py`; `uv run python -m burncal.pipeline.compare_tuning`; `docs/cleaning-differences.md` |
 
+## Story 3.2: flags per area and the current-month card (branch `teammate/3.2-flags-current-month`, on top of 3.1)
+
+- `/calendar` serves `current_month`: days 1 to *d* against the median of the same days in each complete reference year, with the ratio (none when the median is 0), the difference, *d*, the reference period, each year's same-days count for the ruler, `quality`, `validated_satellite` and `monthly_validation_only: true`.
+- Area flags (`cells_flagged_strong`, `cells_flagged_marginal`, `cells_total`) and `/cells` came with Story 2.6; this story adds their tests.
+- Sumatra, data through 13 Nov 2026: 231.4 to date, same-days median 77.0, ratio 3.01, 2 strong cells of 113; NRT, not validated (NOAA-20 feeds from 3 Nov). Calendar p95 locally 0.079 s over 20 requests.
+- Checks: `uv run pytest` 243 passed, 9 skipped; import check passed.
+
+| Criterion | Test or evidence |
+| --- | --- |
+| AC1 strong, marginal and total over every overlapping 1° cell; no flag on the total | `test_3_2_ac1_*` in `burncal/service/test_store_service.py` |
+| AC2 `/cells`: flag state, count, threshold, partly inside, evidence class | `test_3_2_ac2_*`, `test_2_6_cells_answer_from_the_store` |
+| AC3 days 1 to *d* against the same-days median; *d*, ratio, difference, monthly-only; each reference year's count | `test_3_2_ac3_*` in `burncal/core/test_stats.py` and `test_store_service.py` |
+
 ## Story 3.1: statistics for the calendar (branch `teammate/3.1-statistics`, on top of 2.6)
 
 - `burncal/core/stats.py`: reference median and mean per calendar month (complete months of the reference period only), ratio to the median (none when the median is 0, with `no_typical_activity`), anomaly as a count and a percentage, per-area colour breaks, fixed anomaly breaks, competition ranks with ties, top 5 months and years, busiest calendar months, year totals and the record high. Methods are those of the frozen fixture (`DECISIONS.md`, Story 3.1).

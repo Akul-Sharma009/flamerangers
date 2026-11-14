@@ -73,3 +73,10 @@ def test_3_1_ac1_top_months_keep_every_tie_at_rank_5():
     s = dict(zip(months, [9.0, 8.0, 7.0, 6.0, 5.0, 5.0, 1.0]))
     out = stats.summarize(s, set(months), months, in_range=set(months), reference_years=REF)
     assert [t["rank"] for t in out["top_months"]] == [1, 2, 3, 4, 5, 5]
+
+
+def test_3_2_ac3_same_days_comparison():
+    got = stats.same_days(30.0, [10.0, 20.0, 40.0])
+    assert got == {"same_days_median": 20.0, "ratio": 1.5, "difference": 10.0, "no_typical_activity": False}
+    zero = stats.same_days(5.0, [0.0, 0.0, 3.0])
+    assert zero == {"same_days_median": 0.0, "ratio": None, "difference": 5.0, "no_typical_activity": True}
