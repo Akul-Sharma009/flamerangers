@@ -11,7 +11,7 @@ Updated: Sat 14 Nov 2026, afternoon SGT (Story 1.5).
 | 1.1 Repo scaffold | Done | Reviewed by the lead |
 | 1.2 Contract and fixture | Done | Contract 0.2.0 is frozen (14 Nov). A change needs both owners and a version bump. |
 | 1.4 UI concept | Done | `UI-CONCEPT.md` in the planning record |
-| 1.3 Service stub | In progress | Trial on Vercel measured (see below); moving to contract 0.2.0 |
+| 1.3 Service stub | Review | On contract 0.2.0; Vercel trial measured (see below) |
 | 2.1 C1 parameters | Done | In `burncal/core/params/`; Story 2.2 is unblocked |
 | 1.5 Web shell | Review | Draws Sumatra from the fixture; not committed yet. See below. |
 
@@ -35,13 +35,13 @@ cd web && npm install && npm run typecheck && npm run test && npm run build
 
 ## Story 1.3: service stub (branch `teammate/1.3-service-stub`, on top of `lead/1.1-setup`)
 
-- `burncal/service/app.py` answers every contract endpoint from `contract/fixture/` when there is no store. Run: `uv run uvicorn burncal.service.app:app --port 8000`, then open `http://localhost:8000/meta`.
-- An old `record_version` on `/calendar` or `/cells` gets `410` with the `version_superseded` answer.
-- CORS: exact origins from `CORS_ORIGINS` (comma-separated, not a secret), default `http://localhost:5173`, GET only. The service reads no other environment variable.
-- CSV columns are a stand-in until `contract/CSV_SPEC.md` exists (see `DECISIONS.md`).
+- `burncal/service/app.py` answers every contract 0.2.0 endpoint from `contract/fixture/` when there is no store: `GET /meta`, and `POST /calendar`, `/cells`, `/hotspots.csv`, `/analytics.csv` with JSON bodies. Run: `uv run uvicorn burncal.service.app:app --port 8000`, then open `http://localhost:8000/meta`.
+- An old `record_version` gets `410` with `problems/version_superseded.json`. A malformed body gets `400` problem+json, never `422` (see `DECISIONS.md`).
+- Both CSVs follow `contract/CSV_SPEC.md`: header block, column line, rows; `null` is an empty cell. `counting_limits` and `citation` are stand-ins until Stories 5.7 and 6.1 (see `DECISIONS.md`).
+- CORS: exact origins from `CORS_ORIGINS` (comma-separated, not a secret), default `http://localhost:5173`, GET and POST. The service reads no other environment variable.
 - `Dockerfile` for a container host: non-root user, listens on `$PORT` (default 7860), `.env` kept out by `.dockerignore`.
-- Checks: `uv run pytest` 25 passed (12 contract, 13 service); import check passed; gitleaks: no leaks.
-- The stub follows contract v0.1.0 (draft). The lead's v0.2.0 rewrite (POST endpoints, problem+json) will change its routes; the PR waits for that.
+- Checks: `uv run pytest` 56 passed (13 of them service tests); import check passed.
+- The hosted trial below still runs the contract 0.1.0 stub.
 
 ### Hosted trial: Vercel (Hobby, free), 14 Nov
 
@@ -64,8 +64,8 @@ Not in the repo: the Vercel trial used a two-line `index.py` entrypoint and a `r
 
 | Criterion | Test or evidence |
 | --- | --- |
-| AC1 answers every endpoint from the fixture | `test_1_3_ac1_every_contract_path_is_answered`, `..._meta_is_the_fixture_and_a_placeholder`, `..._calendar_is_the_fixture_and_valid`, `..._cells_is_the_fixture_and_valid`, `..._hotspots_csv_has_one_line_per_fixture_row`, `..._analytics_csv_has_one_line_per_calendar_month` |
-| AC1 contract tests pass | `uv run pytest contract`, plus schema checks inside the service tests; `..._current_record_version_is_accepted`, `..._old_record_version_gets_410_superseded`, `..._missing_required_parameter_is_rejected` |
+| AC1 answers every endpoint from the fixture | `test_1_3_ac1_every_contract_path_is_answered`, `..._meta_is_the_fixture_and_a_placeholder`, `..._calendar_is_the_fixture_and_valid`, `..._cells_is_the_fixture_and_valid`, `..._analytics_csv_follows_the_spec`, `..._hotspots_csv_follows_the_spec` |
+| AC1 contract tests pass | `uv run pytest contract`, plus schema checks inside the service tests; `..._old_record_version_gets_410_problem`, `..._malformed_request_gets_400_problem_not_422` |
 | AC2 cold start, memory, disk on a host | Hosted trial table above (Vercel) |
 | AC3 CORS web origin and localhost only | `test_1_3_ac3_cors_allows_each_listed_origin`, `..._cors_refuses_unlisted_origins`, `..._cors_defaults_to_local_web_only`; checked on the hosted URL |
 | AC3 no secret on the host | `test_1_3_ac3_service_reads_no_secret`; hosted project has no environment variables |
