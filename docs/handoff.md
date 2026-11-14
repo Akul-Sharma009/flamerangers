@@ -134,6 +134,22 @@ Not in the repo: the Vercel trial used a two-line `index.py` entrypoint and a `r
 | AC3 standard beats NRT per satellite-day | `test_2_3_ac3_*` in `test_ingest.py` and `test_build_extent.py`; 3,949 NRT rows replaced in the Sumatra build |
 | AC4 tuning-year Aqua counts agree, or differences listed with causes | `test_2_3_ac4_*` in `test_compare_tuning.py`; `uv run python -m burncal.pipeline.compare_tuning`; `docs/cleaning-differences.md` |
 
+## Story 6.3: data-side security checks (15 Nov; Story 6.3 is the lead's)
+
+| Check | Result |
+| --- | --- |
+| gitleaks, full history (`gitleaks git . --log-opts=--all`) | 54 commits, all branches: no leaks |
+| gitleaks, working tree (`gitleaks dir .`) | 1 hit: `.env` (the FIRMS key), git-ignored and never committed |
+| `pip-audit` on every pinned Python package (`uv export --all-groups`) | No known vulnerabilities |
+| `npm audit` in `web/` | 0 vulnerabilities (with and without dev dependencies) |
+| Notebooks | None in the repo |
+| Local paths (`/Users/`, `/private/tmp`, `/home/`) in any pushed branch | None |
+| Keys | `FIRMS_MAP_KEY` appears only empty in `.env.example` and as a dummy in a test |
+| Hosted service (Vercel `burncal-stub`) | No environment variables; the service reads no secret |
+
+- For the lead before the repo goes public: the data owner's Hugging Face account name appears in old, already-merged story branches (`teammate/1.3`, `2.3` to `2.7`) and so in git history, in the trial dataset's name; not in master or any current file. `LICENSE` names the lead's account as copyright holder. Deleting the merged branches, or leaving history as it is, is the lead's call.
+- Not run by the data owner (the lead runs reviews): `/security-review`, `/codex:review`, copying the three planning files, ticking `GUARDRAILS.md`.
+
 ## Story 2.6 AC6 and hosting: the real service on Vercel (15 Nov)
 
 - Live at `https://burncal-stub.vercel.app` (Vercel Hobby, Python 3.14, the lead's choice). Serving version `20261113-3d2a8f8c` (Sumatra, built before the 15 Nov review fixes; the whole-tile rebuild replaces it). No environment variables yet: `CORS_ORIGINS` waits for the web's origin.
