@@ -1,7 +1,8 @@
 """C1: the frozen blend of 4A (Aqua-equivalent transfer table) and 1A (virtual Aqua).
 
 Every number comes from params/c1_params.json and is never refitted. Pure numpy:
-it reads no clock, no network and no other file.
+it reads no file, no clock and no network. The pipeline reads the parameter file
+(burncal/pipeline/c1_params.py) and passes the parsed JSON to load_params.
 
 Row weight of a VIIRS row = (1 - w) * r4A + w * (k * p + miss if the row anchors
 its 1A footprint else 0), where w is the season weight of the row's UTC month.
@@ -9,12 +10,7 @@ Summing the weights of the rows in a cell and month gives the gridded prediction
 """
 from __future__ import annotations
 
-import json
-from pathlib import Path
-
 import numpy as np
-
-PARAMS_FILE = Path(__file__).parent / "params" / "c1_params.json"
 
 # Orbit geometry and footprint constants (sensor physics, not fitted).
 R_EARTH = 6371.0
@@ -35,8 +31,8 @@ def _arrays(obj):
     return obj
 
 
-def load_params() -> dict:
-    raw = json.loads(PARAMS_FILE.read_text(encoding="utf-8"))
+def load_params(raw: dict) -> dict:
+    """C1's working parameters from the parsed contents of params/c1_params.json."""
     c1 = _arrays(raw["C1"])
     m1 = c1["m1"]
     lk = m1["angle_lookup"]
@@ -162,21 +158,10 @@ def _footprints(params, time_utc, lat, lon, frp_mw, scan_km, track_km, include):
     return fp_id, anchor, theta, frp_sum
 
 
-def footprints(time_utc, lat, lon, frp_mw, scan_km, track_km, include=None, *, params=None):
+def footprints(time_utc, lat, lon, frp_mw, scan_km, track_km, include=None, *, params):
     """(fp_id, anchor): fp_id is -1 for excluded rows; anchor marks each footprint's representative row."""
-    fp_id, anchor, _, _ = _footprints(params if params is not None else _default_params(),
-                                      time_utc, lat, lon, frp_mw, scan_km, track_km, include)
+    fp_id, anchor, _, _ = _footprints(params, time_utc, lat, lon, frp_mw, scan_km, track_km, include)
     return fp_id, anchor
-
-
-_PARAMS = None
-
-
-def _default_params():
-    global _PARAMS
-    if _PARAMS is None:
-        _PARAMS = load_params()
-    return _PARAMS
 
 
 # --- 1A -------------------------------------------------------------------------

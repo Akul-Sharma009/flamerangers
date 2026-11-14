@@ -20,6 +20,7 @@ import pandas as pd
 ROOT = Path(__file__).resolve().parents[1]
 sys.path.insert(0, str(ROOT))
 from burncal.core import c1  # noqa: E402
+from burncal.pipeline.c1_params import read_c1_params  # noqa: E402
 
 PARITY = ROOT / "burncal" / "core" / "params" / "parity"
 REGIONS = ("sumatra", "australia_grassland", "amazon_forest")
@@ -57,7 +58,7 @@ def main(argv=None) -> int:
     ap.add_argument("--only", help="YYYY-MM: compare one month only (plumbing check)")
     args = ap.parse_args(argv)
 
-    params = c1.load_params()
+    params = read_c1_params()
     targets = {m: np.load(PARITY / f"{m}_selection_main.npz", allow_pickle=False) for m in METHODS}
     report, ok = {}, True
     for region in args.regions:
@@ -66,6 +67,8 @@ def main(argv=None) -> int:
                  lat=v["latitude"].to_numpy(float), lon=v["longitude"].to_numpy(float),
                  frp_mw=v["frp"].to_numpy(float), scan_km=v["scan"].to_numpy(float),
                  track_km=v["track"].to_numpy(float), night=(v["daynight"] == "N").to_numpy())
+        if not np.isin(v["year"].to_numpy(int), YEARS).all():
+            raise SystemExit(f"{region}: rows from years other than {YEARS}")
         year_ix = np.searchsorted(YEARS, v["year"].to_numpy(int))
         month_ix = v["month"].to_numpy(int) - 1
         report[region] = {"rows": int(len(v))}

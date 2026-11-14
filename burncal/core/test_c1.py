@@ -5,6 +5,7 @@ inputs, so it is never copied into this repo. Point BURNCAL_PARITY_CASE_DIR at
 the planning record's exports/c1/out/intermediate folder to run those tests.
 """
 import ast
+import json
 import os
 from pathlib import Path
 
@@ -23,7 +24,8 @@ YEAR_AXIS, MONTH_AXIS = 0, 8  # 2015, September
 
 @pytest.fixture(scope="module")
 def params():
-    return c1.load_params()
+    # Tests may read files; c1 itself may not.
+    return c1.load_params(json.loads((PARAMS_DIR / "c1_params.json").read_text(encoding="utf-8")))
 
 
 @pytest.fixture(scope="module")
@@ -118,15 +120,15 @@ def test_2_2_ac3_weights_of_a_region_month_sum_to_the_gridded_prediction(params,
     assert abs(w.sum() - total) <= TOL * max(1.0, total)
 
 
-def test_2_2_ac4_c1_imports_no_tests_and_reads_only_the_param_file():
+def test_2_2_ac4_c1_imports_no_tests_and_reads_no_file():
     src = (Path(__file__).parent / "c1.py").read_text(encoding="utf-8")
     tree = ast.parse(src)
     mods = {a.name for n in ast.walk(tree) if isinstance(n, ast.Import) for a in n.names}
     mods |= {n.module or "" for n in ast.walk(tree) if isinstance(n, ast.ImportFrom)}
     assert not any(m.split(".")[0] in ("tests", "burncal") and not m.startswith("burncal.core") for m in mods), mods
-    for banned in ("read_csv", "read_parquet", "np.load", "urlopen", "requests", "environ", "datetime.now", "time.time"):
+    for banned in ("read_csv", "read_parquet", "np.load", "urlopen", "requests", "environ", "datetime.now",
+                   "time.time", "open(", "read_text(", "read_bytes(", "json.load"):
         assert banned not in src, banned
-    assert src.count("open(") + src.count("read_text(") <= 1, "only the parameter file may be read"
 
 
 def test_2_2_season_rule_reproduces_the_stored_seasons(params):

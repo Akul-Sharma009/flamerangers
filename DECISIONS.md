@@ -84,3 +84,10 @@ Each entry has: a status (**ASSUMED** or **TESTED**), its evidence, and a "revis
 - **Decision:** The calendar page shows the area name, size, cautions and standing notes on the left, and not the current-month sentence or ruler.
 - **Evidence:** The sentence template and the "usual =" line are UI copy with no entry in `messages.yaml`. Writing them is Story 3.7's job, with the lead deciding the words.
 - **Revisit if:** the lead wants the sentence for the Saturday demo.
+
+## C1's parameter file is read by the pipeline, not by core (14 Nov 2026)
+
+- **Status:** TESTED
+- **Decision:** `burncal.core.c1.load_params(raw)` takes the parsed contents of `c1_params.json`; `burncal/pipeline/c1_params.py` reads the file, checks it against `c1_params.sha256` and passes it in. `core` reads no file (CLAUDE.md layout rule).
+- **Evidence:** All C1 tests pass, including the Sumatra 2015-09 case, and the full parity run gives the same misses as before (worst 2.1e-9, tolerance 1e-6). A test refuses a parameter file whose hash differs.
+- **Revisit if:** the service needs the parameters without the pipeline; then it reads them the same way.
