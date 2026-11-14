@@ -16,7 +16,7 @@ Updated: Sat 14 Nov 2026, evening SGT (Story 6.6).
 | 2.2 C1 in core | Done | Full parity PASS on the lead's machine (worst miss 2.1e-9). Merged (PR 2) |
 | 1.5 Web shell | Review | Draws Sumatra from the fixture; committed. See below. |
 | 5.1 Scoring files and claims | Done | `evidence/claims.yaml` written and checked; the lead approved the wording. See below. |
-| 6.6 Pitch storyline | Review | Drafted in `docs/pitch/storyline.md` as a 7-slide deck. See below. |
+| 6.6 Pitch storyline | Done | Drafted in `docs/pitch/storyline.md` as a 7-slide deck. See below. |
 
 `master` holds Stories 1.1 to 1.5, 2.1, 2.2 and 5.1. New work branches from `master`.
 
