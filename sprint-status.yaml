@@ -29,7 +29,7 @@
 # - Dev moves story to 'review', then runs code-review (fresh context, different LLM recommended)
 # - Retrospective appends its action items to action_items; the status view surfaces open ones
 generated: 11-14-2026 02:21
-last_updated: 11-14-2026 (Stories 3.4 and 3.5 merged)
+last_updated: 11-14-2026 (Story 3.7 merged)
 project: SpaceApps
 project_key: NOKEY
 tracking_system: file-system
@@ -63,7 +63,7 @@ development_status:
   3-4-select-a-date-range-a: done
   3-5-the-burning-activity-calendar-a: done
   3-6-provenance-and-evidence-caveats-on-every-cell-a: backlog
-  3-7-current-month-card-a: review
+  3-7-current-month-card-a: done
   3-8-anomaly-view-and-flags-a: backlog
   3-9-most-active-months-and-years-a: backlog
   3-10-accessibility-and-phone-width-pass-a: backlog

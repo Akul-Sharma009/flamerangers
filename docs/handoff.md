@@ -23,7 +23,7 @@ Updated: Sat 14 Nov 2026, late evening SGT (PRs 3 to 11 merged; the lead's revie
 | 3.3 Select an area | Done | Reviewed by the lead and merged to master. See below. |
 | 3.5 The burning activity calendar | Done | Merged 14 Nov. See below. |
 | 3.4 Select a date range | Done | Merged 14 Nov. Sentences for refused ranges and the reference-period note wait for contract 0.4.0 (see below). |
-| 3.7 Current-month card | Review | Branch `claude/3-7-current-month-3e4431`. Sentences wait for contract 0.4.0; the NOAA-20 comparison waits for Story 2.10 (see below). |
+| 3.7 Current-month card | Done | Merged 14 Nov. Sentences wait for contract 0.4.0; the NOAA-20 comparison waits for Story 2.10 (see below). |
 | 2.3 Ingest and cleaning | Done | PR 3, merged 14 Nov |
 | 2.4 Weights and the record | Done | PR 4, merged 14 Nov, with the weaker-class tie rule (225 / 570 / 6 / 38); full C1 parity PASS |
 | 2.5 Grids, thresholds, flags | In progress | PR 5, merged 14 Nov. Open: AC2 results for Australia and Amazon not recorded; static-input check (Next) |
