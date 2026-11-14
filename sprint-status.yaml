@@ -48,7 +48,7 @@ development_status:
   2-2-c1-in-core-matching-the-scored-predictions-t: done
   2-3-ingest-and-cleaning-for-one-extent-t: review
   2-4-weights-and-the-harmonized-record-t: review
-  2-5-grids-thresholds-and-flags-t: backlog
+  2-5-grids-thresholds-and-flags-t: in-progress
   2-6-publish-a-version-and-serve-real-counts-t: backlog
   2-7-hotspots-for-any-search-t: backlog
   2-8-coverage-for-the-evaluated-regions-then-the-world-t: backlog

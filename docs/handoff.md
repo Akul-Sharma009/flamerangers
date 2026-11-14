@@ -123,6 +123,20 @@ Not in the repo: the Vercel trial used a two-line `index.py` entrypoint and a `r
 | AC3 standard beats NRT per satellite-day | `test_2_3_ac3_*` in `test_ingest.py` and `test_build_extent.py`; 3,949 NRT rows replaced in the Sumatra build |
 | AC4 tuning-year Aqua counts agree, or differences listed with causes | `test_2_3_ac4_*` in `test_compare_tuning.py`; `uv run python -m burncal.pipeline.compare_tuning`; `docs/cleaning-differences.md` |
 
+## Story 2.5: grids, thresholds and flags (branch `teammate/2.5-grids-flags`, on top of 2.4)
+
+- Run: `uv run python -m burncal.pipeline.aggregate <record dir> <out dir> [data_through]`. Prints counts only. Writes `cells_1deg`, `cells_025deg`, `thresholds_1deg` and `flags_1deg`.
+- `burncal/core/grids.py`: cell corners, the 90th-percentile threshold (linear interpolation over 2003–2011), and `flag_state` (strictly above the threshold and at least 10, both rounded to 6 decimals; strong at 1.5 × the threshold, display tier only).
+- **Sumatra grids** (data through 13 Nov 2026), built in 2 s, 0.8 MB: 196 1° cells, 21,530 1° and 129,782 0.25° cell-months with hotspots. The grid totals equal the record's weight sum (404,146.653) at both scales. Flag states: strong 681, marginal 614, none 3,850, not_flaggable 52,283, outside_record 1,372.
+- **Threshold parity:** Sumatra matches in 899 of 900 cell-months. The miss (September, 105°E 6°S, 21.0 against 20.6) comes from two Aqua rows that FIRMS has for September 2006 and the harness history does not; open with the lead (`DECISIONS.md`). Australian grassland and Amazon forest need their 2003–2011 Aqua data first.
+- Checks: `uv run pytest` 210 passed, 9 skipped; import check passed.
+
+| Criterion | Test or evidence |
+| --- | --- |
+| AC1 0.25° and 1° cell-month sums for the count and each satellite's raw count | `test_2_5_ac1_*` in `burncal/core/test_grids.py`, `burncal/pipeline/test_aggregate.py`; Sumatra totals above |
+| AC2 linear 90th percentile of nine years; tuning-region thresholds match the parity targets | `test_2_5_ac2_*`; Sumatra 899/900 (one known miss); Australia and Amazon not yet run |
+| AC3 flag rule, five states, `provisional` and `reference_year` | `test_2_5_ac3_*` |
+
 ## Story 2.4: weights and the harmonized record (branch `teammate/2.4-weights`, on top of 2.3)
 
 - Run: `uv run python -m burncal.pipeline.convert <clean dir> <out dir>`. Prints counts only.
