@@ -175,3 +175,10 @@ Each entry has: a status (**ASSUMED** or **TESTED**), its evidence, and a "revis
 - **Decision:** the pitch uses Singapore haze only as the reason the question matters, sourced externally, and never says hotspots measure, cause, predict or attribute haze, never names bad haze years from the record, and never says the record sees all burning. The may and may-not lists are in the storyline.
 - **Evidence:** the record holds no smoke, haze, air quality, wind or burned area (UI concept, section 1); the planning record lists cloud, smoke and smouldering peat bias for this region as an open, unquantified question.
 - **Revisit if:** a checked source quantifies detection under smoke and peat for Sumatra, or the lead adds an air-quality dataset.
+
+## Story 6.6: two more fixed claims, the comparator and the margin (14 Nov 2026)
+
+- **Status:** TESTED (each figure resolves to the final scoring file and matches its sentence, `uv run pytest evidence`). Wording approved by the project lead on 14 Nov.
+- **Decision:** `evidence/claims.yaml` gains `comparator-vs-b` (the region-month comparator, never eligible, passed the (b) test that C1 failed; C1 still has lower count error than it) and `margin-vs-4a` (C1's error against 4A fell short of the margin fixed beforehand, so the rule preferred 4A, which also failed against (b)). Slide 5 quotes both. The margin sentence does not quote the margin's size, because the scoring file holds only the check's result, not the value, and every number in a claim must point at a value.
+- **Evidence:** `/comparisons/cmp vs b`, `/comparisons/C1 vs cmp`, `/comparisons/C1 vs 4A`, `/decisions/final/margin` and `/decisions/not used for the pick/beats_b/cmp` in `evidence/scoring/final_20261113T172020Z.json`. A judge opening the evidence page would see both results with no sentence to answer them.
+- **Revisit if:** the lead wants the margin's size in the sentence; then add a figure source for it (for example the planning record's test plan, copied with Story 6.3) rather than typing the number.

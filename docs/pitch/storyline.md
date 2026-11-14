@@ -95,7 +95,11 @@ Speaker line: beat 4.
 
 > **[best-of-three]** The final-set score is slightly optimistic because C1 is the best of three.
 
-- Pending: the comparator and margin results (see "Needs the lead"). Slide 5 is not final until they have fixed sentences.
+- What a simpler method and the margin rule showed:
+
+> **[margin-vs-4a]** On the final set C1 had 3.9% lower count error than 4A, 95% interval 1.7% to 5.8%, short of the margin fixed beforehand, so under that rule the simpler 4A was preferred; 4A also failed the flag-precision test against (b).
+
+> **[comparator-vs-b]** On the final set, the region-month comparator, one factor per region and calendar month that was never eligible for the pick, passed the test against (b): 10.3% lower count error, 95% interval 4.1% to 10.8%, and higher flag precision (0.756 against 0.736). C1 has 18.4% lower count error than the comparator, 95% interval 8.2% to 22.8%, and lower flag precision (0.704 against 0.756), both beyond noise.
 
 Speaker line: read the claims as written. On the deviation, point to the recorded decision (`docs/planning/`, Story 6.3); do not argue it.
 
@@ -166,13 +170,14 @@ The statements about FIRMS, Worldview, GWIS and INPE come from the planning reco
 
 ## Needs the lead
 
-- **The comparator and margin results** have no fixed sentence yet. Both are in `evidence/scoring/final_20261113T172020Z.json`. Draft sentences are with the lead; once approved they go into `evidence/claims.yaml` with pointers, and slide 5 quotes them.
+- Nothing open in the storyline itself. Slide 5 is the densest slide; check it reads at slide size when Story 6.5 lays it out.
 
 ## Decided
 
 - Deck, not video (lead, 14 Nov).
 - On the "recorded deviation" sentence, the pitch points to the recorded decision and does not argue it (lead, 14 Nov).
 - Q8 is argued against existing tools and methods (lead, 14 Nov).
+- Slide 5 states the comparator and margin results, with the sentences `comparator-vs-b` and `margin-vs-4a` added to `claims.yaml` (lead, 14 Nov).
 
 ## Not checked yet
 

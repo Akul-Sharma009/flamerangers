@@ -106,6 +106,71 @@ claims:
         expect: "C1"
         source: {file: final, pointer: "/decisions/not used for the pick/best_single/best"}
 
+  - id: comparator-vs-b
+    used_for_pick: false
+    # The region-month comparator was shown beside the candidates and never eligible
+    # for the pick (planning record, selection rule). Added in Story 6.6.
+    text: >-
+      On the final set, the region-month comparator, one factor per region and calendar
+      month that was never eligible for the pick, passed the test against (b): 10.3% lower
+      count error, 95% interval 4.1% to 10.8%, and higher flag precision (0.756 against
+      0.736). C1 has 18.4% lower count error than the comparator, 95% interval 8.2% to
+      22.8%, and lower flag precision (0.704 against 0.756), both beyond noise.
+    figures:
+      - name: comparator passed the test against (b), final set
+        display: "true"
+        format: bool
+        expect: true
+        source: {file: final, pointer: "/decisions/not used for the pick/beats_b/cmp/pass"}
+      - name: error reduction, comparator against (b), final set
+        display: "10.3%"
+        format: pct1
+        source: {file: final, pointer: "/comparisons/cmp vs b/error/diff"}
+        interval:
+          display: "4.1% to 10.8%"
+          lo: {file: final, pointer: "/comparisons/cmp vs b/error/lo"}
+          hi: {file: final, pointer: "/comparisons/cmp vs b/error/hi"}
+        beyond_noise: {file: final, pointer: "/comparisons/cmp vs b/error/beyond_noise"}
+      - {name: "comparator flag precision, final set", display: "0.756", format: fix3, source: {file: final, pointer: "/approaches/cmp/1/pooled/flags/precision"}}
+      - {name: "(b) flag precision, final set", display: "0.736", format: fix3, source: {file: final, pointer: "/approaches/b/1/pooled/flags/precision"}}
+      - {name: "comparator minus (b) precision is beyond noise", display: "true", format: bool, expect: true, source: {file: final, pointer: "/comparisons/cmp vs b/precision/beyond_noise"}}
+      - name: error reduction, C1 against the comparator, final set
+        display: "18.4%"
+        format: pct1
+        source: {file: final, pointer: "/comparisons/C1 vs cmp/error/diff"}
+        interval:
+          display: "8.2% to 22.8%"
+          lo: {file: final, pointer: "/comparisons/C1 vs cmp/error/lo"}
+          hi: {file: final, pointer: "/comparisons/C1 vs cmp/error/hi"}
+        beyond_noise: {file: final, pointer: "/comparisons/C1 vs cmp/error/beyond_noise"}
+      - {name: "C1 flag precision, final set", display: "0.704", format: fix3, source: {file: final, pointer: "/approaches/C1/1/pooled/flags/precision"}}
+      - {name: "C1 minus the comparator precision is beyond noise", display: "true", format: bool, expect: true, source: {file: final, pointer: "/comparisons/C1 vs cmp/precision/beyond_noise"}}
+
+  - id: margin-vs-4a
+    used_for_pick: true
+    # The margin test is the combination rule fixed before scoring: a combination must
+    # beat the best single approach by the fixed margin, or the simpler one wins. The
+    # margin's size is stated in the planning record, not in the scoring file, so the
+    # sentence does not quote it. Added in Story 6.6.
+    text: >-
+      On the final set C1 had 3.9% lower count error than 4A, 95% interval 1.7% to 5.8%,
+      short of the margin fixed beforehand, so under that rule the simpler 4A was
+      preferred; 4A also failed the flag-precision test against (b).
+    figures:
+      - name: error reduction, C1 against 4A, final set
+        display: "3.9%"
+        format: pct1
+        source: {file: final, pointer: "/comparisons/C1 vs 4A/error/diff"}
+        interval:
+          display: "1.7% to 5.8%"
+          lo: {file: final, pointer: "/comparisons/C1 vs 4A/error/lo"}
+          hi: {file: final, pointer: "/comparisons/C1 vs 4A/error/hi"}
+        beyond_noise: {file: final, pointer: "/comparisons/C1 vs 4A/error/beyond_noise"}
+      - {name: "C1 passed the margin against 4A", display: "false", format: bool, expect: false, source: {file: final, pointer: "/decisions/final/margin/pass"}}
+      - {name: "C1's error was not lower by the margin", display: "false", format: bool, expect: false, source: {file: final, pointer: "/decisions/final/margin/checks/error_at_least_5pct_lower"}}
+      - {name: "the single approach the margin was tested against", display: "4A", format: string, expect: "4A", source: {file: final, pointer: "/decisions/final/margin/single"}}
+      - {name: "4A passed the test against (b), final set", display: "false", format: bool, expect: false, source: {file: final, pointer: "/decisions/final/beats_b/4A/pass"}}
+
   - id: aqua-through-2021
     used_for_pick: true
     text: >-

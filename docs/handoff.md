@@ -16,7 +16,7 @@ Updated: Sat 14 Nov 2026, evening SGT (Story 6.6).
 | 2.2 C1 in core | Done | Full parity PASS on the lead's machine (worst miss 2.1e-9). Merged (PR 2) |
 | 1.5 Web shell | Review | Draws Sumatra from the fixture; committed. See below. |
 | 5.1 Scoring files and claims | Done | `evidence/claims.yaml` written and checked; the lead approved the wording. See below. |
-| 6.6 Pitch storyline | Review | Drafted in `docs/pitch/storyline.md` as a 7-slide deck. Slide 5 waits on two fixed sentences. See below. |
+| 6.6 Pitch storyline | Review | Drafted in `docs/pitch/storyline.md` as a 7-slide deck. See below. |
 
 `master` holds Stories 1.1 to 1.5, 2.1, 2.2 and 5.1. New work branches from `master`.
 
@@ -113,7 +113,7 @@ Not in the repo: the Vercel trial used a two-line `index.py` entrypoint and a `r
 ## Story 5.1: scoring files and fixed claims
 
 - `evidence/scoring/` was already copied and committed with Story 2.1's inputs. Rechecked: all eight files match the planning record byte for byte and their manifest hashes, and hold aggregate scores only (no coordinates, no per-cell rows).
-- `evidence/claims.yaml` holds the eleven fixed sentences. Each number in a sentence is a figure with a pointer into a scoring file; no value is typed in. Format and fields are described at the top of the file.
+- `evidence/claims.yaml` holds the fixed sentences (eleven from Story 5.1, two added in Story 6.6). Each number in a sentence is a figure with a pointer into a scoring file; no value is typed in. Format and fields are described at the top of the file.
 - `evidence/test_claims.py` resolves every pointer and checks the formatted value against the sentence, the banned wording, the manifest and the reported-only labelling. Story 5.2's build should reuse the same figure list.
 - Two of the story's sentences were wrong against the files and were corrected (see `DECISIONS.md`): Punjab 1A is 29.45, not 29.46; and southern Africa flags were under half right for the candidates and baselines, but the region-month comparator reached 0.510.
 - For the lead: on the final set the comparator (`cmp`) passed the (b) test, and C1 missed the fixed margin against 4A (3.9% lower error, below the 5% bar). No claim mentions either. Stories 5.3 to 5.5 will need to.
@@ -125,7 +125,8 @@ Not in the repo: the Vercel trial used a two-line `index.py` entrypoint and a `r
 - Q8 (Creativity) is answered in direction: argued against existing tools (FIRMS, Worldview, GWIS, INPE's rule), not other teams. Their links are still needed (Story 6.1).
 - Claims are quoted from `evidence/claims.yaml` with their ids; `uv run pytest docs/pitch` checks them word for word.
 - It holds no numbers from the app. Counts and standout years are to be read from the live app after Story 2.6.
-- Open: two final-set results have no fixed sentence yet, and both are in `evidence/scoring/final_20261113T172020Z.json`: the region-month comparator passed the (b) test that C1 failed, and C1's error against 4A fell short of the 5% margin, so the rule preferred 4A. Slide 5 is not final until `claims.yaml` has approved sentences for both.
+- Two claims added to `evidence/claims.yaml` with the lead's approval: `comparator-vs-b` (the region-month comparator passed the (b) test that C1 failed) and `margin-vs-4a` (C1's error against 4A fell short of the margin, so the rule preferred 4A). Slide 5 quotes both. The margin's size is not in the scoring file, so the sentence does not quote it.
+- Story 5.2 onwards: the evidence page should show these two as well; `claims.yaml` now has thirteen sentences.
 
 | Criterion | Where it is met |
 | --- | --- |
