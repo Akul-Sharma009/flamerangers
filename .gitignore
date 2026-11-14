@@ -1,0 +1,25 @@
+# Secrets
+.env
+.env.*
+!.env.example
+
+# Data (too large for git; re-downloadable from FIRMS)
+data/
+*.parquet
+*.duckdb
+
+# Python
+__pycache__/
+*.pyc
+.venv/
+venv/
+.pytest_cache/
+
+# Node
+node_modules/
+dist/
+build/
+
+# OS and local settings
+.DS_Store
+.claude/settings.local.json

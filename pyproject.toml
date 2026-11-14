@@ -1,0 +1,20 @@
+[project]
+name = "burncal"
+version = "0.1.0"
+description = "Harmonized burning activity calendar: data pipeline, core maths and service"
+requires-python = ">=3.14,<3.15"
+dependencies = [
+  "fastapi==0.162.7",
+  "uvicorn==0.54.0",
+  "duckdb==2.0.0",
+  "pyarrow==26.0.1",
+  "shapely==2.2.0",
+  "numpy==2.5.4",
+  "pandas==3.1.1",
+]
+
+[dependency-groups]
+dev = ["pytest"]
+
+[tool.uv]
+package = false
