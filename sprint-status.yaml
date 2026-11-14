@@ -29,7 +29,7 @@
 # - Dev moves story to 'review', then runs code-review (fresh context, different LLM recommended)
 # - Retrospective appends its action items to action_items; the status view surfaces open ones
 generated: 11-14-2026 02:21
-last_updated: 11-14-2026 (after plan reviews)
+last_updated: 11-14-2026 (Story 6.6 drafted)
 project: SpaceApps
 project_key: NOKEY
 tracking_system: file-system
@@ -87,13 +87,13 @@ development_status:
   5-7-about-the-data-page-a: backlog
   epic-5-retrospective: optional
 
-  epic-6: backlog
+  epic-6: in-progress
   6-1-nasa-datasets-and-references-t-drafts-a-reviews: backlog
   6-2-readme-and-fresh-clone-run-both-t-runs-the-clone: backlog
   6-3-security-and-readiness-checks-a: backlog
   6-4-the-link-stays-up-through-judging-t: backlog
   6-5-demo-assets-and-submission-text-a: backlog
-  6-6-pitch-storyline-drafted-on-saturday-a: backlog
+  6-6-pitch-storyline-drafted-on-saturday-a: review
   epic-6-retrospective: optional
 
   epic-7: backlog

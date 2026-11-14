@@ -2,7 +2,7 @@
 
 Short running status for the next session. Facts only; decisions and their status are in `DECISIONS.md`, story status in `sprint-status.yaml`.
 
-Updated: Sat 14 Nov 2026, evening SGT (Story 5.1).
+Updated: Sat 14 Nov 2026, evening SGT (Story 6.6).
 
 ## Where things stand
 
@@ -16,8 +16,9 @@ Updated: Sat 14 Nov 2026, evening SGT (Story 5.1).
 | 2.2 C1 in core | Done | Full parity PASS on the lead's machine (worst miss 2.1e-9). Merged (PR 2) |
 | 1.5 Web shell | Review | Draws Sumatra from the fixture; committed. See below. |
 | 5.1 Scoring files and claims | Done | `evidence/claims.yaml` written and checked; the lead approved the wording. See below. |
+| 6.6 Pitch storyline | Review | Drafted in `docs/pitch/storyline.md` as a 7-slide deck. Slide 5 waits on two fixed sentences. See below. |
 
-Branches: `teammate/1.1-scaffold`, then `teammate/1.2-contract`, then `lead/1.1-setup` on top. Stories 1.3 (PR 1) and 2.2 (PR 2) are merged into `lead/1.1-setup`. Nothing is merged to `master` yet.
+`master` holds Stories 1.1 to 1.5, 2.1, 2.2 and 5.1. New work branches from `master`.
 
 ## What exists
 
@@ -117,6 +118,22 @@ Not in the repo: the Vercel trial used a two-line `index.py` entrypoint and a `r
 - Two of the story's sentences were wrong against the files and were corrected (see `DECISIONS.md`): Punjab 1A is 29.45, not 29.46; and southern Africa flags were under half right for the candidates and baselines, but the region-month comparator reached 0.510.
 - For the lead: on the final set the comparator (`cmp`) passed the (b) test, and C1 missed the fixed margin against 4A (3.9% lower error, below the 5% bar). No claim mentions either. Stories 5.3 to 5.5 will need to.
 
+## Story 6.6: pitch storyline
+
+- `docs/pitch/storyline.md`: one line per judging criterion, the five-beat story, the 7-slide deck (content and speaker line per slide), the haze may and may-not lists, PRD Q8, and what is still open.
+- The lead chose the deck over the 30-second video on 14 Nov, which narrows Story 6.6 AC1 and Story 6.5's 30-second recording (see `DECISIONS.md`).
+- Q8 (Creativity) is answered in direction: argued against existing tools (FIRMS, Worldview, GWIS, INPE's rule), not other teams. Their links are still needed (Story 6.1).
+- Claims are quoted from `evidence/claims.yaml` with their ids; `uv run pytest docs/pitch` checks them word for word.
+- It holds no numbers from the app. Counts and standout years are to be read from the live app after Story 2.6.
+- Open: two final-set results have no fixed sentence yet, and both are in `evidence/scoring/final_20261113T172020Z.json`: the region-month comparator passed the (b) test that C1 failed, and C1's error against 4A fell short of the 5% margin, so the rule preferred 4A. Slide 5 is not final until `claims.yaml` has approved sentences for both.
+
+| Criterion | Where it is met |
+| --- | --- |
+| AC1 one line per judging criterion (deck only, by the lead's choice) | "One line per judging criterion" table, slide per line; `test_6_6_one_line_per_judging_criterion` |
+| AC2 Sumatra and Singapore haze framing, no unsupported haze claim | Beat 1, slide 1; "Haze: what we may and may not say" |
+| AC3 result in `claims.yaml` sentences, with the failed flag-precision test and the savanna weakness | Slides 5 and 6; `test_6_6_every_quoted_claim_is_word_for_word`, `test_6_6_failed_test_and_savanna_weakness_are_stated`, `test_6_6_no_banned_wording` |
+| AC4 PRD Q8 answered or listed as open | "Creativity: PRD Q8": answered in direction by the lead, wording ASSUMED |
+
 ## Contract 0.2.0: what changed from the first draft
 
 The first draft passed its tests but an independent review found it could not carry the product. The rewrite:
@@ -135,7 +152,7 @@ The points where the plan left room are listed in `DECISIONS.md` ("Contract 0.2.
 ## Next
 
 1. Data owner: Stories 1.3 and 2.2 are merged; next is Story 2.3 (ingest and cleaning for one extent).
-2. Lead: Story 5.2 (evidence build and its checks).
+2. Lead: Story 5.2 (evidence build and its checks), and the open points in Story 6.6's storyline.
 
 ## Checkpoints (flags, not deadlines; times in SGT)
 

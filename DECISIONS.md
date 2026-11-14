@@ -147,3 +147,31 @@ Each entry has: a status (**ASSUMED** or **TESTED**), its evidence, and a "revis
 - **Decision:** The lead's name in the kept-C1 sentence is written as "the project lead" (no names in committed files). "Story 2.10's comparison" is written as "the comparison of NOAA-20 with Suomi NPP" (no story numbers in public sentences). "The tiers" is written as "the two flag tiers".
 - **Evidence:** CLAUDE.md rules for the public repo; the sentences are shown to judges.
 - **Revisit if:** the lead wants the original words.
+
+## Story 6.6: the pitch storyline lives in `docs/pitch/` (14 Nov 2026)
+
+- **Status:** ASSUMED
+- **Decision:** the storyline is `docs/pitch/storyline.md`, with `docs/pitch/test_storyline.py` checking that every quoted claim matches `evidence/claims.yaml` word for word, that the failed flag-precision test and the southern Africa (savanna) sentence are quoted, that there is one line per judging criterion, and that no banned wording appears outside the quotes. The story names no path; this keeps it in the product repo beside the claims it quotes.
+- **Evidence:** Story 6.6's acceptance criteria; the 4 checks pass. Not compared against keeping it in the submission text only.
+- **Revisit if:** Story 6.5 wants the storyline inside the submission folder, or the lead wants it kept out of the public repo.
+
+## Story 6.6: the demo is a 7-slide deck, not a 30-second video (14 Nov 2026)
+
+- **Status:** ASSUMED. Chosen by the project lead on 14 Nov.
+- **Decision:** the demo is the 7-slide deck. The storyline drops the video script. This narrows Story 6.6's first criterion ("works for both") and Story 6.5's 30-second recording to the deck only.
+- **Evidence:** the fixed claim sentences run well past 30 seconds read aloud and cannot be shortened, so a video could only flash them on screen. The organisers accept either format. Not tested with a judge or a timed run of the deck.
+- **Revisit if:** the organisers require a video, or the deck cannot hold the evidence legibly on seven slides.
+
+## Story 6.6: Creativity is argued against existing tools, not other teams (14 Nov 2026)
+
+- **Status:** ASSUMED. Direction set by the project lead on 14 Nov (answers PRD Q8 in direction); wording drafted by the lead session.
+- **Decision:** the Creativity line compares the project with what exists today (FIRMS and Worldview hotspot maps, GWIS burned area, INPE's single reference satellite) and says what it does differently: one record in Aqua units across the instrument change, a method chosen by a rule fixed in advance with its failures published, and a one-sentence reading against each past year. It never ranks other teams' repos.
+- **Evidence:** the statements about other tools come from the planning record's checks (FIRMS resource check 13 Nov, GWIS check D5, the incumbent entry naming INPE's rule). None is linked yet; Story 6.1 lists the sources.
+- **Revisit if:** a checked source shows one of those tools does harmonize the sensors, or offers a climatology of hotspot counts.
+
+## Story 6.6: haze is framing, never a measurement (14 Nov 2026)
+
+- **Status:** ASSUMED
+- **Decision:** the pitch uses Singapore haze only as the reason the question matters, sourced externally, and never says hotspots measure, cause, predict or attribute haze, never names bad haze years from the record, and never says the record sees all burning. The may and may-not lists are in the storyline.
+- **Evidence:** the record holds no smoke, haze, air quality, wind or burned area (UI concept, section 1); the planning record lists cloud, smoke and smouldering peat bias for this region as an open, unquantified question.
+- **Revisit if:** a checked source quantifies detection under smoke and peat for Sumatra, or the lead adds an air-quality dataset.
