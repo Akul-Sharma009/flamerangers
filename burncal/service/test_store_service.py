@@ -43,6 +43,14 @@ def _synthetic_record(rng):
     from burncal.core import record
     df["feeds_record"] = record.feeds_record(df["satellite"], df["utc_date"])
     df["weight"] = record.weights(df["satellite"], df["utc_date"], df["excluded_reason"], rng.uniform(0, 2, len(df)))
+    modis = df["satellite"].isin(["AQUA", "TERRA"]).to_numpy()
+    df["instrument"] = np.where(modis, "MODIS", "VIIRS")
+    df["confidence"] = np.where(modis, rng.integers(0, 101, len(df)).astype(str), rng.choice(["l", "n", "h"], len(df)))
+    df["frp"] = rng.uniform(1, 80, len(df)).round(1)
+    df["daynight"] = rng.choice(["D", "N"], len(df))
+    df["quality"] = np.where(df["acq_datetime_utc"] >= pd.Timestamp("2026-08-01", tz="UTC"), "NRT", "SP")
+    df["type"] = pd.array(np.where(df["quality"] == "SP", 0, -1), dtype="Int64")
+    df.loc[df["quality"] == "NRT", "type"] = pd.NA
     return df
 
 
@@ -61,7 +69,8 @@ def store_root(tmp_path_factory):
     for d in (rec, grids_dir, raw):
         d.mkdir()
     df = _synthetic_record(np.random.default_rng(7))
-    df.to_parquet(rec / "ALL_2000.parquet")
+    from burncal.pipeline import ingest
+    ingest.write_partitions(df, rec)
     cells = _cells_around(AREAS.values())
     cells.assign(evidence_class="not_evaluated").to_parquet(rec / "evidence_1deg.parquet")
     g1, g025 = aggregate.cell_months(df, 1.0), aggregate.cell_months(df, 0.25)
@@ -273,3 +282,83 @@ def test_3_2_ac3_same_days_fast_path_equals_brute_force(store_root):
         fast = v.same_days(g, 11, 13, range(2003, 2026))
         inside = shapely.intersects_xy(g, v._p_lon, v._p_lat)
         assert np.allclose(fast[1], v.same_days(g, 11, 13, range(2003, 2026), mask=inside)[1], atol=1e-9)
+
+
+# --- Stories 2.7 and 4.2: hotspots for any search, as CSV ---------------------------
+import csv  # noqa: E402
+import io  # noqa: E402
+
+from burncal.service.test_service import split_csv  # noqa: E402
+
+HOTSPOT_COLUMNS = ["latitude", "longitude", "acq_datetime_utc", "satellite", "instrument", "confidence", "frp",
+                   "daynight", "type", "quality", "feeds_record", "excluded_reason", "weight"]
+
+
+def _hot(client, version, geom, start, end, **kw):
+    return client.post("/hotspots.csv", json={**_body(version, geom, start, end, name=None), **kw})
+
+
+def _rows(text):
+    keys, head, cols, rows = split_csv(text)
+    return head, cols, rows
+
+
+def test_2_7_ac1_rows_inside_the_area_and_exact_dates_with_every_column(client, versions, store_root):
+    r = _hot(client, versions[0], AMAZON, "2015-03-10", "2016-02-20", all_satellites=True)
+    assert r.status_code == 200 and r.headers["content-type"].startswith("text/csv")
+    head, cols, rows = _rows(r.text)
+    assert cols == HOTSPOT_COLUMNS
+    df = pd.concat(pd.read_parquet(p) for p in sorted((store_root / "versions" / versions[0] / "records").glob("[A-Z]*_[0-9]*.parquet")))
+    g = shape(AMAZON)
+    d = df["utc_date"].astype(str)
+    want = df[shapely.intersects_xy(g, df["longitude"], df["latitude"]) & (d >= "2015-03-10") & (d <= "2016-02-20")]
+    assert len(rows) == len(want) > 0
+    got_days = sorted(x["acq_datetime_utc"][:10] for x in rows)
+    assert got_days[0] >= "2015-03-10" and got_days[-1] <= "2016-02-20"
+    assert {x["excluded_reason"] for x in rows} == {"none", "static", "offshore"}
+    assert all(x["weight"] == "0.0" for x in rows if x["excluded_reason"] != "none")
+    assert all(x["acq_datetime_utc"].endswith("Z") and "T" in x["acq_datetime_utc"] for x in rows)
+
+
+def test_2_7_ac2_feeding_kept_rows_of_a_complete_month_equal_its_count(client, versions):
+    cal = {m["month"]: m for m in client.post("/calendar", json=_body(versions[0], PUNJAB, name=None)).json()["months"]}
+    for month, end in (("2009-06", "2009-06-30"), ("2018-02", "2018-02-28"), ("2021-12", "2021-12-31")):
+        _, _, rows = _rows(_hot(client, versions[0], PUNJAB, f"{month}-01", end).text)
+        n = sum(x["feeds_record"] == "true" and x["excluded_reason"] == "none" for x in rows)
+        assert cal[month]["complete"] and n == cal[month]["count"]
+
+
+def test_4_2_ac1_default_rows_feed_the_record_option_for_every_satellite(client, versions):
+    _, _, feed = _rows(_hot(client, versions[0], SUMATRA, "2026-01-01", "2026-11-13").text)
+    _, _, every = _rows(_hot(client, versions[0], SUMATRA, "2026-01-01", "2026-11-13", all_satellites=True).text)
+    assert feed and all(x["feeds_record"] == "true" for x in feed)
+    assert {x["satellite"] for x in feed} == {"SNPP", "NOAA20"}
+    assert {x["satellite"] for x in every} == {"AQUA", "TERRA", "SNPP", "NOAA20", "NOAA21"}
+    assert len(every) > len(feed)
+    w = sum(float(x["weight"]) for x in feed if x["excluded_reason"] == "none")
+    assert w > 0
+
+
+def test_4_2_ac2_large_search_gets_an_estimate_and_years(client, versions, monkeypatch):
+    from burncal.service import store as store_mod
+    monkeypatch.setattr(store_mod, "MAX_SYNC_ROWS", 500)
+    r = _hot(client, versions[0], SUMATRA, "2010-01-01", "2014-12-31", all_satellites=True)
+    assert r.status_code == 413
+    p = r.json()
+    valid(p, "Problem")
+    assert p["code"] == "too_large_for_sync" and p["estimated_rows"] > 500 and p["estimated_megabytes"] > 0
+    assert p["years"] == [2010, 2011, 2012, 2013, 2014]
+    one = _hot(client, versions[0], SUMATRA, "2010-01-01", "2014-12-31", all_satellites=True, year=2012)
+    assert one.status_code == 200
+    _, _, rows = _rows(one.text)
+    assert rows and all(x["acq_datetime_utc"].startswith("2012-") for x in rows)
+
+
+def test_4_2_ac3_header_explains_the_row_count_and_limits(client, versions):
+    text = _hot(client, versions[0], PUNJAB, "2023-01-01", "2023-12-31").text
+    keys, head, _, _ = split_csv(text)
+    from burncal.service.test_service import HOTSPOT_KEYS
+    assert keys == HOTSPOT_KEYS
+    assert head["record_version"] == versions[0] and head["data_through"] == "2026-11-13"
+    assert "weight" in head["row_count_note"] and "December 2021" in head["row_count_note"]
+    assert text.count("\n# counting_limits: ") == 3 and head["row_filter"] == "rows that feed the record"

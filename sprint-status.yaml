@@ -50,7 +50,7 @@ development_status:
   2-4-weights-and-the-harmonized-record-t: review
   2-5-grids-thresholds-and-flags-t: review
   2-6-publish-a-version-and-serve-real-counts-t: review
-  2-7-hotspots-for-any-search-t: backlog
+  2-7-hotspots-for-any-search-t: review
   2-8-coverage-for-the-evaluated-regions-then-the-world-t: backlog
   2-9-the-current-month-refreshed-daily-t: backlog
   2-10-noaa-20-against-suomi-npp-reported-only-t: backlog
@@ -71,7 +71,7 @@ development_status:
 
   epic-4: backlog
   4-1-analytics-csv-t: backlog
-  4-2-hotspot-csv-t: backlog
+  4-2-hotspot-csv-t: review
   4-3-picture-downloads-a: backlog
   4-4-download-controls-a: backlog
   4-5-numbers-agree-check-t: backlog

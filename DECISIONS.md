@@ -338,3 +338,10 @@ Each entry has: a status (**ASSUMED** or **TESTED**), its evidence, and a "revis
 - **Decision:** The card compares days 1 to *d* of the current month with the same days of each reference year whose month is complete (AD-15). It counts point rows inside the area, with the same edge-cell shortcut as the monthly fast path. `quality` is NRT when any feeding input of the month is NRT. The card's flag counts are the current month's whole-cell flags, which are provisional. The card is always served; the date range does not hide it.
 - **Evidence:** `uv run pytest burncal/core/test_stats.py burncal/service/test_store_service.py` (the shortcut equals the brute-force same-days sum on three areas). Sumatra, 13 Nov 2026: 231.4 to date against a same-days median of 77.0.
 - **Revisit if:** the lead wants the card hidden when the range ends before the current month.
+
+## Stories 2.7 and 4.2: the hotspot export (14 Nov)
+
+- **Status:** ASSUMED (lead to confirm the size limit)
+- **Decision:** `/hotspots.csv` reads the version's record rows by satellite-year file. Rows are inside the area (edge counts as inside) and inside the exact UTC dates, sorted by time. The default gives rows of feeding satellites with `feeds_record` true; `all_satellites` gives every row, excluded ones included with weight 0. Above 250,000 rows, without `year`, the answer is `413 too_large_for_sync` with the exact row count, an estimate at 110 bytes per row, and the years that hold rows. `weight` is written unrounded, `type` is empty for NRT rows, and the time is ISO 8601 with `Z`.
+- **Evidence:** `uv run pytest burncal/service/test_store_service.py`. Sumatra September 2015: 12,147 rows, of which 12,120 feed and are kept, equal to the calendar's 12,120.0. The whole record with all satellites gives 2,409,453 rows and 413 in 0.25 s; 2019 alone is 24.5 MB in 1.0 s.
+- **Revisit if:** the host limits response size or time below these figures.

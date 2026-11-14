@@ -14,7 +14,12 @@ import shapely
 from burncal.core import grids
 
 SATELLITES = ("AQUA", "TERRA", "SNPP", "NOAA20", "NOAA21")
+FEEDING_SATELLITES = ("AQUA", "SNPP", "NOAA20")
 FINE = 0.25
+MAX_SYNC_ROWS = 250_000      # above this, /hotspots.csv answers too_large_for_sync with an estimate
+CSV_BYTES_PER_ROW = 110      # measured on Sumatra rows; only used for the estimate
+HOTSPOT_COLUMNS = ["latitude", "longitude", "acq_datetime_utc", "satellite", "instrument", "confidence", "frp",
+                   "daynight", "type", "quality", "feeds_record", "excluded_reason", "weight"]
 
 
 def _key(ix, iy):
@@ -108,6 +113,33 @@ class Version:
         edge = np.isin(self._p_key, cut)
         edge[edge] = shapely.intersects_xy(geom, self._p_lon[edge], self._p_lat[edge])
         return self._sum(self._c_k[g], self._c_vals[g]) + self._sum(self._p_k[edge], self._p_vals[edge])
+
+    def hotspots(self, geom, start: date, end: date, *, all_satellites: bool, year: int | None):
+        """Rows inside the area and the exact dates (every row, excluded ones too), or the years and
+        row estimate when there are more than MAX_SYNC_ROWS and no single year was asked for."""
+        import pyarrow.dataset as pads
+        if year is not None:
+            start, end = max(start, date(year, 1, 1)), min(end, date(year, 12, 31))
+        sats = SATELLITES if all_satellites else FEEDING_SATELLITES
+        files = [p for p in sorted((self.path / "records").glob("[A-Z]*_[0-9]*.parquet"))
+                 if p.stem.rsplit("_", 1)[0] in sats and start.year <= int(p.stem.rsplit("_", 1)[1]) <= end.year]
+        if not files or start > end:
+            return pd.DataFrame(columns=HOTSPOT_COLUMNS), None
+        x0, y0, x1, y1 = geom.bounds
+        f = ((pads.field("utc_date") >= start) & (pads.field("utc_date") <= end)
+             & (pads.field("longitude") >= x0) & (pads.field("longitude") <= x1)
+             & (pads.field("latitude") >= y0) & (pads.field("latitude") <= y1))
+        if not all_satellites:
+            f = f & (pads.field("feeds_record") == True)  # noqa: E712
+        ds = pads.dataset(files, format="parquet")
+        pos = ds.to_table(columns=["longitude", "latitude", "utc_date"], filter=f).to_pandas()
+        inside = shapely.intersects_xy(geom, pos["longitude"].to_numpy(), pos["latitude"].to_numpy())
+        n = int(inside.sum())
+        if n > MAX_SYNC_ROWS and year is None:
+            years = sorted({d.year for d in pos["utc_date"][inside]})
+            return None, {"estimated_rows": n, "estimated_megabytes": round(n * CSV_BYTES_PER_ROW / 1e6, 1), "years": years}
+        rows = ds.to_table(columns=HOTSPOT_COLUMNS, filter=f).to_pandas()[inside]
+        return rows.sort_values("acq_datetime_utc", kind="stable").reset_index(drop=True), None
 
     def cells_1deg_of(self, geom) -> pd.DataFrame:
         """The 1-degree cells of the extent that the area overlaps with positive area."""

@@ -17,6 +17,7 @@ from fastapi import FastAPI, Request
 from fastapi.exceptions import RequestValidationError
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import JSONResponse, Response
+import pandas as pd
 import shapely
 from shapely.geometry import shape
 from pydantic import BaseModel, ConfigDict, Field, StrictBool, StrictInt, field_validator
@@ -99,6 +100,18 @@ def _open_store(root):
     return Store(root) if (root / "CURRENT.json").exists() else None
 
 
+def _hotspot_cells(rows):
+    """CSV cells of the hotspot rows: ISO UTC time with Z, empty type for NRT, unrounded weight."""
+    t = rows["acq_datetime_utc"].dt.strftime("%Y-%m-%dT%H:%M:%SZ").to_numpy()
+    typ = rows["type"].astype("Int64")
+    cols = {c: rows[c].to_numpy() for c in HOTSPOT_COLUMNS}
+    cols["acq_datetime_utc"], cols["type"] = t, [None if x is pd.NA else int(x) for x in typ]
+    cols["weight"] = [repr(float(w)) for w in rows["weight"]]
+    cols["feeds_record"] = [bool(x) for x in rows["feeds_record"]]
+    cols["frp"] = [float(x) for x in rows["frp"]]
+    return list(zip(*(cols[c] for c in HOTSPOT_COLUMNS)))
+
+
 def create_app(store_root=None) -> FastAPI:
     store, regions = _open_store(store_root), _regions()
     load = lambda p: json.loads((CONTRACT / "fixture" / p).read_text(encoding="utf-8"))  # noqa: E731
@@ -109,7 +122,7 @@ def create_app(store_root=None) -> FastAPI:
     notes = dict(re.findall(r'^  (\w+): "(.*)"$', text, re.M))
     limits = [("counting_limits", notes[k]) for k in ("hotspot_definition", "monthly_validation_only", "flag_scale")]
 
-    outside = load("problems/outside_coverage.json")
+    outside, too_large = load("problems/outside_coverage.json"), load("problems/too_large_for_sync.json")
     app = FastAPI(title="burncal service")
     # Comma-separated exact origins; not a secret.
     origins = [o.strip() for o in environ.get("CORS_ORIGINS", DEFAULT_ORIGINS).split(",") if o.strip()]
@@ -148,14 +161,19 @@ def create_app(store_root=None) -> FastAPI:
             return None, None, problem(outside, 404, v)
         return v, geom, None
 
-    def header(req, title, extra):
-        aoi, rs = calendar["aoi"], meta["record_switch"]
+    def header(req, title, extra, v=None, geom=None):
+        if v is None:
+            aoi, rs = calendar["aoi"], meta["record_switch"]
+            rv, dt = calendar["record_version"], calendar["data_through"]
+        else:
+            aoi = {"aoi_id": answers.core_aoi.aoi_id(geom), "area_km2": answers.r1(answers.core_aoi.area_km2(geom))}
+            rs, rv, dt = answers.meta(v, regions)["record_switch"], v.record_version, v.data_through.isoformat()
         span = lambda p: f'{p["start_year"]} to {p["end_year"]}'  # noqa: E731
         common = [("title", f"Harmonized burning activity calendar: {title}"), ("aoi_id", aoi["aoi_id"]),
                   ("aoi_name", req.aoi.name or ""), ("aoi_area_km2", aoi["area_km2"]),
                   ("aoi_geometry", json.dumps(req.aoi.geometry.model_dump(), separators=(",", ":"))),
-                  ("date_range", f"{req.start} to {req.end}"), ("record_version", calendar["record_version"]),
-                  ("data_through", calendar["data_through"]),
+                  ("date_range", f"{req.start} to {req.end}"), ("record_version", rv),
+                  ("data_through", dt),
                   ("record_switch", f'Aqua MODIS counts through {rs["aqua_through"]}; '
                                     f'converted VIIRS counts from {rs["viirs_from"]}'),
                   ("count_unit", meta["unit_label"])]
@@ -207,6 +225,18 @@ def create_app(store_root=None) -> FastAPI:
 
     @app.post("/hotspots.csv")
     def hotspots(req: HotspotsRequest):
+        if store:
+            v, geom, bad = version_and_area(req)
+            if bad:
+                return bad
+            rows, large = v.hotspots(geom, date.fromisoformat(req.start), date.fromisoformat(req.end),
+                                     all_satellites=req.all_satellites, year=req.year)
+            if large:
+                return problem(too_large, 413, v, **large)
+            head = header(req, "hotspots", lambda span: [
+                ("row_filter", "all satellites" if req.all_satellites else "rows that feed the record"),
+                ("row_count_note", ROW_COUNT_NOTE)], v, geom)
+            return _csv(head, HOTSPOT_COLUMNS, _hotspot_cells(rows))
         if (bad := stale(req)):
             return bad
         rows = [r for r in hotspot_rows if req.all_satellites or r["feeds_record"]]
