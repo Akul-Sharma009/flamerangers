@@ -134,6 +134,13 @@ Not in the repo: the Vercel trial used a two-line `index.py` entrypoint and a `r
 | AC3 standard beats NRT per satellite-day | `test_2_3_ac3_*` in `test_ingest.py` and `test_build_extent.py`; 3,949 NRT rows replaced in the Sumatra build |
 | AC4 tuning-year Aqua counts agree, or differences listed with causes | `test_2_3_ac4_*` in `test_compare_tuning.py`; `uv run python -m burncal.pipeline.compare_tuning`; `docs/cleaning-differences.md` |
 
+## Story 6.2: README and fresh-clone run, data side (15 Nov)
+
+- README gains "Run the service" and "Rebuild the store for one region" (land layer, download, clean, convert, aggregate, publish, check). New `burncal/pipeline/download.py` (`uv run python -m burncal.pipeline.download <region_id> <raw dir> <data_through>`) downloads one region on whole tiles, resumably, and writes `coverage.json`; before this the download lived only in throwaway scripts.
+- **Fresh clone on the data owner's machine (15 Nov):** `uv sync`, import check, `uv run pytest` (317 passed, 13 skipped for want of a local store); the service in fixture mode answered `/meta`; the land layer downloaded with the stated hash; clean, convert, aggregate, publish and `tools/check_numbers.py` ran for Amazon forest from its downloaded files (Aqua through 2020, so no parity case needed): 1,316,333 rows, 0 disagreements over 228 months; `web/`: `npm ci`, 71 tests passed, build passed (npm notes that some packages' install scripts were not run).
+- Not checked from the clone: the download step itself (its plan and coverage file are unit-tested; a whole region takes hours), and publishing converted counts (needs the parity case from the planning record).
+- The web-against-fixture and evidence-rebuild sections are the lead's.
+
 ## Story 6.3: data-side security checks (15 Nov; Story 6.3 is the lead's)
 
 | Check | Result |
