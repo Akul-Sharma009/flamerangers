@@ -25,3 +25,9 @@ export function formatYearMonth(ym: string): string {
   const { year, monthIndex } = parseYearMonth(ym);
   return `${MONTH_NAMES[monthIndex]} ${year}`;
 }
+
+/** "2026-11-13" -> "13 November 2026". String parsing only. */
+export function formatDay(day: string): string {
+  const { year, monthIndex } = parseYearMonth(day.slice(0, 7));
+  return `${Number(day.slice(8, 10))} ${MONTH_NAMES[monthIndex]} ${year}`;
+}

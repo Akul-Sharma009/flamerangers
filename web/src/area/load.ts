@@ -1,7 +1,9 @@
 // Loading the calendar for a chosen area. A problem answer (no_land,
 // outside_coverage, ...) is kept as a problem and never turned into an empty
 // calendar: missing is not zero.
-import { ProblemError, type Calendar, type Meta, type ProblemCode, type ServiceClient } from "../api/client";
+import {
+  ProblemError, rangeRequest, type Calendar, type DateRange, type Meta, type ProblemCode, type ServiceClient,
+} from "../api/client";
 import type { AoiInput } from "./featured";
 
 export type AreaResult =
@@ -9,20 +11,16 @@ export type AreaResult =
   | { status: "problem"; meta: Meta; code: ProblemCode }
   | { status: "failed"; meta: Meta | null };
 
-function request(meta: Meta, aoi: AoiInput) {
-  return {
-    record_version: meta.record_version,
-    aoi,
-    start: meta.record_start + "-01",
-    end: meta.data_through,
-  };
-}
-
 /**
- * Asks for the calendar of `aoi` over the whole record. With version_superseded
- * it reloads /meta once and asks again, as the contract says.
+ * Asks for the calendar of `aoi` over `range`, or over the whole record when
+ * `range` is null (July 2002 to the served data_through). With
+ * version_superseded it reloads /meta once and asks again, as the contract
+ * says; a null range then follows the new data_through.
  */
-export async function loadArea(client: ServiceClient, aoi: AoiInput, known?: Meta): Promise<AreaResult> {
+export async function loadArea(
+  client: ServiceClient, aoi: AoiInput, known?: Meta, range: DateRange | null = null,
+): Promise<AreaResult> {
+  const request = (m: Meta, a: AoiInput) => rangeRequest(m, a, range);
   let meta: Meta | null = known ?? null;
   try {
     meta ??= await client.getMeta();

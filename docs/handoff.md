@@ -21,7 +21,8 @@ Updated: Sat 14 Nov 2026, late evening SGT (PRs 3 to 11 merged; the lead's revie
 | 5.3 The outcome in plain words | Done | Merged to `master`. See below. |
 | 5.4 Head-to-head table | Done | Reviewed by the lead and merged to master. See below. |
 | 3.3 Select an area | Done | Reviewed by the lead and merged to master. See below. |
-| 3.5 The burning activity calendar | Review | On branch `claude/3-5-calendar-472072`, not merged. See below. |
+| 3.5 The burning activity calendar | Done | Merged 14 Nov. See below. |
+| 3.4 Select a date range | Done | Merged 14 Nov. Sentences for refused ranges and the reference-period note wait for contract 0.4.0 (see below). |
 | 2.3 Ingest and cleaning | Done | PR 3, merged 14 Nov |
 | 2.4 Weights and the record | Done | PR 4, merged 14 Nov, with the weaker-class tie rule (225 / 570 / 6 / 38); full C1 parity PASS |
 | 2.5 Grids, thresholds, flags | In progress | PR 5, merged 14 Nov. Open: AC2 results for Australia and Amazon not recorded; static-input check (Next) |
@@ -397,6 +398,26 @@ One year (2024) of FIRMS standard data, MODIS_SP (Aqua and Terra rows) and VIIRS
 | AC5 year totals end each row, medians foot each column; every number on screen is served | `grid.test.tsx` AC5 block (served totals and medians at both widths; a 0 median shows "0"; every number in the grid, table and legend is a served value or a number inside a contract sentence) |
 | AC6 look and layout follow UI-CONCEPT.md | `grid.test.tsx` AC6 block (rank rings on the top years, hollow bar for incomplete years, no red); screenshots at 1280 and 375 px against the concept: paper ground, one sepia ramp, newest year on top, labelled rule, totals column with rank marks, medians row. Compared side by side with the concept's mockup at 1280 px: same structure (newest year on top, ruled switch, totals with bars and rank rings, medians row, hatching, dashed month to date). Differences: a Grid/Table switch where the mockup has a "show as plain table" link; a longer legend, because it explains more marks; the switch note is the contract's full sentence. |
 
+## Story 3.4: select a date range (branch `claude/3-4-dates-ac58f0`)
+
+- The picker gains a fourth tab, "Dates": From and To date fields, the record's served bounds, the served reference period, "Show these dates" and "Whole record". The control now reads "Change area or dates". The locator shows the served `range` under the area's name; the grid's heading names the served range's first and last months.
+- Code: `web/src/area/DatesPanel.tsx` (the tab), `web/src/area/dates.ts` (checks typed days against the served bounds; string comparison only), `rangeRequest` / `wholeRecord` / `DateRange` in `web/src/api/client.ts`, `loadArea(client, aoi, known, range)` in `load.ts`. `CalendarPage.tsx` keeps `range` (null = whole record) beside the area; changing one keeps the other.
+- The range is days, sent as typed. First load is the first day of the served `record_start` month to the served `data_through`. `/calendar`, `/analytics.csv` and `/hotspots.csv` all build their body with `rangeRequest`; the client now has `postAnalyticsCsv` and `postHotspotsCsv` (no download control yet: Story 4.4). In fixture mode these two reject, because the fixture holds no CSV. `/cells` takes one month and no range (contract).
+- Fixture mode answers the same whole-record calendar for any range, so on the fixture a changed range reloads but the page still shows the fixture's served range. That is correct: the page shows what is served.
+- Refused ranges (empty or unreadable day, before the record, after `data_through`, From after To): the browser's own date checks stop them before submit and say why; `checkRange` marks the fields if one gets through. No sentence exists in `messages.yaml` for these, so the page types none (`TODO(label)`).
+- Missing sentences, for the lead's next contract bump (suggested words in `DECISIONS.md`, Story 3.4): four refused-range cases, and one note that rankings follow the dates while medians and anomalies keep the reference period.
+- Not this story: the service accepts a reversed or out-of-record range (it checks only that each is a real date). For the data owner.
+- The "cut" mark on the grid is Story 3.5's (its own session, `web/src/grid/`). Nothing in `web/src/grid/` was edited here.
+- Browser check (built-in browser, 14 Nov): built site (`vite preview`) at 1280 px and 375 px. Opened the picker, the Dates tab, defaults 1 July 2002 and 13 November 2026; From 10 June 2012 and To 15 March 2010 were refused by the browser with its message on both fields; From 15 March 2010 and To 10 June 2012 closed the picker and reloaded. Against the local service (`uvicorn`, no store, so fixture answers) with `VITE_SERVICE_BASE_URL` set: the submit sent a new `POST /calendar` (body content is covered by the unit test). At 375 px: no horizontal scroll (scroll width 375), the four tabs and Close wrap onto two lines, the date fields fit. No console errors at either width.
+- Checks: `npm run typecheck`, `npm run test` (90 passed, 19 of them Story 3.4), `npm run build`, `uv run python evidence/wording.py` and `tools/check_imports.py` passed; `uv run pytest` 302 passed, 10 skipped (9 need `BURNCAL_PARITY_CASE_DIR`, 1 needs a local `store/`; neither is set up in this worktree).
+
+| Criterion | Test or evidence |
+| --- | --- |
+| AC1 first load is July 2002 to the served data-through date | `dates.test.tsx` AC1 block: first request is `2002-07-01` to `meta.data_through`; the Dates tab opens on those days with them as `min` / `max`; the locator shows the served range; nothing before `/meta` is served. Browser check: defaults shown. |
+| AC2 a range that cuts a month shows each touched month's whole-month count, and cut months are labelled cut | Service: `test_3_1_ac2_cut_and_partial_months_whole_counts_never_ranked` (cut month keeps the full count, carries `range_cut`). Web: `dates.test.tsx` AC2 block: the range is sent as typed, not snapped; the grid model keeps whole years and the served count; each cut month's cell title carries the `range_cut` sentence; the heading names the served range. **The visible "cut" mark on the grid depends on Story 3.5.** |
+| AC3 rankings follow the range; median and anomalies keep the stated reference period | Service: `test_3_4_ac3_rankings_follow_the_range_median_and_anomalies_keep_the_reference_period` (same `reference_period`, medians, means, ratios and anomalies for every month; rankings only inside the range and different from the whole record's; record high unchanged). Web: `dates.test.tsx` AC3 block (rank marks are the served ones; the served reference period is stated in the Dates tab); "every request" block (`/calendar` and both CSVs carry the range). |
+| Refused ranges get a clear message | Browser message for now (see above); `dates.test.tsx` refused-ranges block for the four cases and the field marks. **Waits on `messages.yaml` sentences.** |
+
 ## Contract 0.3.0
 
 - Merged to master: six new sentences in `contract/messages.yaml` (`notes.year_incomplete` and a `client` section), the version moved to 0.3.0, the fixtures regenerated, and the web's four `TODO(label)` stand-ins replaced. No endpoint, field or number changes.
@@ -433,7 +454,7 @@ Checks on the merged master: `uv run pytest` 310 passed, 1 skipped (Sumatra reco
 2. Data owner: deploy the real service to Vercel (the lead's choice, 14 Nov; see `DECISIONS.md`). Measure, in this order: memory with Sumatra's current and previous versions loaded (the limit is 2 GB); how the store version gets to the function (inside the deployment, or copied from public object storage into `/tmp`, about 158 MB free); cold start; then 2.6 AC6, the p95 of 20 Sumatra calendars against 3 s. The service loads the current and the previous version wholly into memory at start-up, so memory, not bundle size, is the likely limit for six regions.
 3. Lead, for a contract 0.4.0 if wanted: `cells_flagged_strong` and `cells_flagged_marginal` are non-null integers, so months outside the record show 0 in `/calendar` and the analytics CSV.
 4. Low items from the reviews, not yet acted on: `share_of_max` can use a part-year as the 100% bar; the current-month card gives no caution when days 1 to *d* have missing days; a null `frp` would be written as `nan`; `validated_satellite` is true for months outside the record; `anomaly_count` can be `-0.0`; with `year` set, `/hotspots.csv` has no row limit; `/cells` serves threshold 0.0 after `data_through`; `compare_tuning` prints "fire days".
-5. Lead: Story 3.4 adds the dates tab to the same picker; Stories 5.5 and 5.6 go below the head-to-head table on the evidence page.
+5. Lead: Story 3.4 (the dates tab) is at review on `claude/3-4-dates-ac58f0`, with sentences to add in a contract bump; Stories 5.5 and 5.6 go below the head-to-head table on the evidence page.
 
 ## Checkpoints (flags, not deadlines; times in SGT)
 

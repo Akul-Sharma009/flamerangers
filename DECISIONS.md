@@ -358,6 +358,41 @@ Each entry has: a status (**ASSUMED** or **TESTED**), its evidence, and a "revis
 - **Evidence:** `area.test.tsx` (32 tests); the browser run: rectangle and polygon drawn, typed refusals shown, picking Punjab, no horizontal scroll at 375 px.
 - **Revisit if:** Story 3.10 adds Playwright end-to-end tests; the script's steps are written up in `docs/handoff.md` to port.
 
+## Story 3.4: a refused date range uses the browser's own message until messages.yaml has one (14 Nov 2026)
+
+- **Status:** ASSUMED. Flag to the lead: `contract/messages.yaml` 0.3.0 has no sentence for a refused date range, and no problem code covers one.
+- **Decision:** the two date fields are `<input type="date">` with `required`, `min` and `max` set from the served bounds (first day of `record_start` to `data_through`), and each field's limit tied to the other (From's max is To, To's min is From). The browser then refuses an empty, unreadable, too early, too late or reversed range before submit and says why in its own words ("Value must be 15/03/2010 or earlier."). `web/src/area/dates.ts` `checkRange` checks the same four cases (`unreadable`, `before_record`, `after_data_through`, `out_of_order`) on submit, marks the fields at fault (`aria-invalid`, heavier rule, † mark) and keeps the case in `data-problem`, so a sentence can drop in by case. Marked `TODO(label)`. The web types no sentence of its own.
+- **Evidence:** `web/src/area/dates.test.tsx` (refused-ranges block); built-in browser check at 1280 px: From 10 June 2012, To 15 March 2010 is not submitted and both fields carry the browser's message.
+- **Revisit if:** the lead adds sentences in a contract bump. Suggested `client` keys and words: `date_unreadable` "Enter each date as a day, month and year.", `date_before_record` "The record starts in July 2002. Choose a later first date.", `date_after_data_through` "The record runs only to the data-through date. Choose an earlier last date.", `dates_out_of_order` "The first date must be on or before the last date." Also: the service does not refuse a reversed or out-of-record range itself (`burncal/service/app.py` checks only that each is a real date); that is the data owner's to decide.
+
+## Story 3.4: the range is days, sent as typed; null means the whole record (14 Nov 2026)
+
+- **Status:** TESTED
+- **Decision:** the range is a first and last day, sent unchanged as `start` and `end` (never snapped to months: AC2 needs a range that starts or ends inside a month, and the service labels such months `range_cut` and serves their whole count). `CalendarPage` keeps `range: DateRange | null`; null is the whole record, built from the served `/meta` as the first day of `record_start` to `data_through`, so after a `version_superseded` reload it follows the new `data_through`. "Whole record" sends null. The area and the range are kept apart: changing one keeps the other. Every request that takes a range builds its body with `rangeRequest` in `web/src/api/client.ts`; the client gains `postAnalyticsCsv` and `postHotspotsCsv` for Story 4.4 to call. `/cells` takes one month and no range (`CellsRequest`, closed schema), so nothing is added to it.
+- **Evidence:** `dates.test.tsx` (AC1, "every request", AC2 blocks); `test_3_4_ac3_...` in `burncal/service/test_store_service.py`.
+- **Revisit if:** the lead wants month-only pickers, or the range should reset when the area changes.
+
+## Story 3.4: fixture mode serves no CSV (14 Nov 2026)
+
+- **Status:** ASSUMED
+- **Decision:** in fixture mode (`VITE_SERVICE_BASE_URL` unset) `postAnalyticsCsv` and `postHotspotsCsv` reject with an error, because `contract/fixture/` holds no CSV. No download control exists yet.
+- **Evidence:** `contract/fixture/` contents.
+- **Revisit if:** Story 4.4 needs downloads to work on the fixture (then a fixture CSV is a contract change, or the controls are hidden in fixture mode).
+
+## Story 3.4: the reference period is shown as a labelled served value (14 Nov 2026)
+
+- **Status:** ASSUMED. Flag to the lead: no sentence says that rankings follow the dates while medians and anomalies keep the reference period.
+- **Decision:** AC3 asks that the median and anomalies "still use the stated reference period". The service already does this (rankings are over complete months and years inside the range; `median`, `reference_mean`, `ratio_to_median`, anomalies and `calendar_month_medians` are over `reference_period` whatever the range). The dates tab states the served `reference_period` as a label and value ("Reference period 2003 to 2025") beside the record's bounds; the locator shows the served `range` under the area's name, and the grid's heading names the served range's first and last months. No explaining sentence is typed.
+- **Evidence:** `test_3_4_ac3_rankings_follow_the_range_median_and_anomalies_keep_the_reference_period` (service); `dates.test.tsx` AC3 block (rank marks are the served ones; the period is the served one).
+- **Revisit if:** the lead adds a note, for example `notes.range_and_reference` "Rankings cover the dates you chose. Medians and anomalies always use the reference period.", or Story 3.7's line defining "usual" covers it.
+
+## Story 3.4: how the criteria are tested (14 Nov 2026)
+
+- **Status:** ASSUMED
+- **Decision:** as in Story 3.3: Vitest on the logic and static renders, a service test for AC3, and a built-in browser check. The "cut" mark on the grid is Story 3.5's; this story's evidence for AC2 is the request sent as typed, the served whole-month count, and the `range_cut` sentence in each cut month's cell title (the grid model as it stands on master).
+- **Evidence:** `dates.test.tsx` (19 tests); browser check in `docs/handoff.md`, Story 3.4.
+- **Revisit if:** Story 3.5 changes how partial reasons reach the cell title, or Story 3.10 adds end-to-end tests.
+
 ## Contract 0.3.0: six sentences the web needed (14 Nov 2026)
 
 - **Status:** TESTED (agreed by both owners, 14 Nov; checks below).

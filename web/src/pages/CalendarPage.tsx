@@ -1,5 +1,5 @@
 import { useEffect, useRef, useState } from "react";
-import { client, type ServiceClient } from "../api/client";
+import { client, type DateRange, type ServiceClient } from "../api/client";
 import { messages } from "../api/messages";
 import { AreaLocator } from "../area/AreaLocator";
 import { defaultArea, type AoiInput } from "../area/featured";
@@ -13,38 +13,48 @@ const UNREACHABLE = messages.client.service_unreachable;
 
 interface View {
   selected: AoiInput;
+  /** The range asked for; null is the whole record (July 2002 to the served data_through). */
+  range: DateRange | null;
   /** null while the calendar for `selected` loads. */
   result: AreaResult | null;
 }
 
 export function CalendarPage({ service = client }: { service?: ServiceClient }) {
   // Sumatra (the default in regions.geojson) is selected on first load.
-  const [view, setView] = useState<View>(() => ({ selected: defaultArea().aoi, result: null }));
+  const [view, setView] = useState<View>(() => ({ selected: defaultArea().aoi, range: null, result: null }));
   const ask = useRef(0);
 
-  const select = (aoi: AoiInput) => {
+  // Every request carries the area and the range together (Story 3.4).
+  const show = (aoi: AoiInput, range: DateRange | null) => {
     const n = ++ask.current;
     const known = view.result?.meta ?? undefined;
-    setView({ selected: aoi, result: null });
-    loadArea(service, aoi, known).then((result) => {
-      if (n === ask.current) setView({ selected: aoi, result });
+    setView({ selected: aoi, range, result: null });
+    loadArea(service, aoi, known, range).then((result) => {
+      if (n === ask.current) setView({ selected: aoi, range, result });
     });
   };
 
   useEffect(() => {
-    select(view.selected);
+    show(view.selected, view.range);
     // First load only; later loads come from the picker.
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
-  return <CalendarView view={view} onSelect={select} />;
+  return (
+    <CalendarView view={view} onSelect={(aoi) => show(aoi, view.range)} onSelectRange={(r) => show(view.selected, r)} />
+  );
 }
 
 /** The page for one state of the view. Exported so tests can render each state. */
 export function CalendarView({
-  view, onSelect, initialOpen,
-}: { view: View; onSelect: (aoi: AoiInput) => void; initialOpen?: boolean }) {
-  const { selected, result } = view;
+  view, onSelect, onSelectRange, initialOpen,
+}: {
+  view: View;
+  onSelect: (aoi: AoiInput) => void;
+  onSelectRange?: (range: DateRange | null) => void;
+  initialOpen?: boolean;
+}) {
+  const { selected, range, result } = view;
   const ready = result?.status === "ready" ? result : null;
   const calendar = ready?.calendar ?? null;
   const problemText =
@@ -60,6 +70,9 @@ export function CalendarView({
           problemText={problemText}
           loading={result === null}
           onSelect={onSelect}
+          meta={result?.meta ?? null}
+          range={range}
+          onSelectRange={onSelectRange}
           initialOpen={initialOpen}
         />
         {calendar ? (
@@ -76,7 +89,8 @@ export function CalendarView({
         <section aria-label="Calendar">
           <div className="gridhead">
             <h2>
-              Hotspots per month, {formatYearMonth(ready.meta.record_start)} to {formatYearMonth(ready.meta.current_month)}
+              Hotspots per month, {formatYearMonth(ready.calendar.range.start.slice(0, 7))} to{" "}
+              {formatYearMonth(ready.calendar.range.end.slice(0, 7))}
             </h2>
             <span>{ready.calendar.unit_label} · record {ready.calendar.record_version}</span>
           </div>
