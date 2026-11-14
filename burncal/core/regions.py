@@ -35,22 +35,19 @@ def tile_id(lon, lat) -> np.ndarray:
 def evidence_class(sw_lon, sw_lat, geoms: dict, classes: dict) -> np.ndarray:
     """Per 1-degree cell: the class covering most of its area (lead's call, 14 Nov).
 
-    The part of the cell outside every region counts as not_evaluated. A tie between two region
-    classes goes to the weaker one; a tie between a region class and the outside part goes to the
-    region class (this reproduces the lead's counts for the six regions). Areas are planar, in
-    square degrees.
+    The part of the cell outside every region counts as not_evaluated, the weakest class. An exact
+    tie goes to the weaker class, so a cell exactly half inside a region is not_evaluated. Areas
+    are planar, in square degrees.
     """
     lon, lat = np.asarray(sw_lon, float), np.asarray(sw_lat, float)
     cells = shapely.box(lon, lat, lon + 1.0, lat + 1.0)
     share = np.zeros((len(cells), len(EVIDENCE_ORDER)))
     for rid, g in geoms.items():
         share[:, EVIDENCE_ORDER.index(classes[rid])] += shapely.area(shapely.intersection(cells, g))
-    outside = np.clip(1.0 - share.sum(axis=1), 0.0, None)
-    regional = share[:, :-1]
-    top = regional.max(axis=1)
-    # among region classes, the weaker one wins a tie
-    weakest_top = regional.shape[1] - 1 - np.argmax(regional[:, ::-1] >= top[:, None] - 1e-12, axis=1)
-    best = np.where((top > 0) & (top >= outside - 1e-12), weakest_top, len(EVIDENCE_ORDER) - 1)
+    share[:, -1] += np.clip(1.0 - share.sum(axis=1), 0.0, None)
+    # largest share; on a tie the weaker class (later in EVIDENCE_ORDER) wins
+    top = share.max(axis=1, keepdims=True)
+    best = share.shape[1] - 1 - np.argmax(share[:, ::-1] >= top - 1e-12, axis=1)
     return np.array(EVIDENCE_ORDER, dtype=object)[best]
 
 

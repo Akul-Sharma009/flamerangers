@@ -30,8 +30,8 @@ def test_2_4_ac3_evidence_class_per_1deg_cell():
     sw_lon = np.array([100.0, 101.0, 25.0, 76.0, 76.0, 50.0, 102.0])
     sw_lat = np.array([-2.0, -1.0, -10.0, 31.0, 32.0, 0.0, -1.0])
     got = regions.evidence_class(sw_lon, sw_lat, GEOMS, CLASSES)
-    # (76, 32) is half inside Punjab: a tie with the outside part goes to the region's class
-    assert list(got) == ["tuned", "tuned", "tested_unseen", "reported_only", "reported_only", "not_evaluated", "not_evaluated"]
+    # (76, 32) is half inside Punjab: the tie with the outside part goes to the weaker class
+    assert list(got) == ["tuned", "tuned", "tested_unseen", "reported_only", "not_evaluated", "not_evaluated", "not_evaluated"]
 
 
 def test_2_4_ac3_evidence_class_is_the_class_covering_most_of_the_cell():
@@ -66,7 +66,8 @@ def test_2_4_ac3_six_regions_give_the_leads_counts():
     lon, lat = (np.array(v, float) for v in zip(*sorted(cells)))
     got = regions.evidence_class(lon, lat, geoms, classes)
     counts = {k: int((got == k).sum()) for k in regions.EVIDENCE_ORDER}
-    assert counts == {"tuned": 225, "tested_unseen": 570, "reported_only": 14, "not_evaluated": 30}
+    # the lead's corrected counts (14 Nov): half-inside Punjab cells are not_evaluated
+    assert counts == {"tuned": 225, "tested_unseen": 570, "reported_only": 6, "not_evaluated": 38}
 
 
 def test_2_4_ac3_build_extent_snaps_to_whole_5deg_tiles():
