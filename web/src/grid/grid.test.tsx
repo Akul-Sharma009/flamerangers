@@ -8,7 +8,7 @@ import { formatCount } from "../format";
 import { CalendarGrid } from "./CalendarGrid";
 import { GridLegend } from "./GridLegend";
 import { layoutGrid, move } from "./layout";
-import { MARKS, buildGridModel, detailAt, type Calendar, type Meta } from "./model";
+import { MARKS, buildGridModel, detailAt, qualityTag, type Calendar, type Meta } from "./model";
 
 const meta = metaJson as unknown as Meta;
 const fixture = calendarJson as unknown as Calendar;
@@ -204,9 +204,10 @@ describe("AC4: hover, focus or tap shows the exact count and provenance; a table
       }
       expect(lines[1]).toBe(`${formatCount(m.count)} ${fixture.unit_label}`);
       expect(lines).toContain(messages.labels.source[m.source!]);
+      // Story 3.6 lists each feeding input with its own quality; the NRT sentence follows once.
       for (const i of m.inputs.filter((x) => x.feeds_record)) {
-        expect(lines.join(" ")).toContain(messages.labels.satellite[i.satellite]);
-        expect(lines).toContain(messages.labels.quality[i.quality]);
+        expect(lines.join(" ")).toContain(`${messages.labels.satellite[i.satellite]}, ${i.days} days, ${qualityTag(i.quality)}`);
+        if (i.quality === "NRT") expect(lines).toContain(messages.labels.quality.NRT);
       }
       for (const p of m.partial_reasons) expect(lines).toContain(messages.labels.partial_reason[p]);
     }

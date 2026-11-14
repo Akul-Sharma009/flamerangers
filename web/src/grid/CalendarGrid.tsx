@@ -149,6 +149,7 @@ function GridSvg({ model, layout: L, initialActive }: { model: GridModel; layout
                   data-flag={c.flag ?? undefined}
                   data-mtd={c.monthToDate || undefined}
                   data-marks={c.marks || undefined}
+                  data-satswitch={c.satelliteSwitch || undefined}
                   {...focusable({ r: ri, c: ci }, asSentence(c.detail))}
                 >
                   <Cell c={c} w={w} h={h} showNums={L.showNums} />
@@ -249,6 +250,9 @@ function Cell({ c, w, h, showNums }: { c: CellModel; w: number; h: number; showN
       {c.monthToDate ? <rect className="mtd" x={1} y={1} width={w - 2} height={h - 2} /> : null}
       {c.flag === "strong" ? <path className="flag-strong" d="M1.5,1.5 L7,1.5 L1.5,7 Z" /> : null}
       {c.flag === "marginal" ? <circle className="flag-marginal" cx={4.5} cy={4.5} r={2.4} /> : null}
+      {/* The 3 November 2026 change of feeding satellite: a short rule on the month's left edge,
+          the same ink rule as the sensor change but one cell high (Story 3.6). */}
+      {c.satelliteSwitch ? <line className="satswitch" x1={-1} x2={-1} y1={-2} y2={h + 2} /> : null}
       {c.marks ? <text className="marks" x={w - 2} y={showNums ? h / 2 + 0.5 : 7.5}>{c.marks}</text> : null}
     </>
   );

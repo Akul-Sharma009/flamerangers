@@ -1,0 +1,15 @@
+/* Story 3.6: the region caveat. A ruled margin note on the paper, no card. */
+.caveat { margin: 14px 0 0; padding: 2px 0 2px 12px; border-left: 3px solid var(--ink); font-size: 13px; line-height: 1.45; color: var(--ink); }
+.caveat p { margin: 0 0 6px; }
+.caveat .caveat-lead { font-family: var(--serif); font-size: 15px; }
+.caveat .caveat-claim { color: var(--muted); }
+
+.evmap { margin: 8px 0 0; }
+.evmap svg { display: block; max-width: 100%; height: auto; }
+.evcell { stroke: var(--ink); stroke-width: 0.8; }
+.ev-line { stroke: var(--ink); stroke-width: 0.9; }
+.evkey { list-style: none; margin: 6px 0 0; padding: 0; font-size: 11.5px; color: var(--muted); }
+.evkey li { display: flex; align-items: flex-start; gap: 6px; margin-bottom: 3px; }
+.evkey svg { flex: none; margin-top: 1px; }
+
+.caveat-line { margin: 0 0 6px; padding-left: 8px; border-left: 3px solid var(--ink); font-size: 12px; color: var(--ink); }

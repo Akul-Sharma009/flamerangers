@@ -9,6 +9,7 @@ import { CurrentMonthCard } from "../card/CurrentMonthCard";
 import { formatYearMonth } from "../format";
 import { CalendarGrid } from "../grid/CalendarGrid";
 import { GridLegend } from "../grid/GridLegend";
+import { CaveatLine, RegionCaveat } from "../provenance/RegionCaveat";
 
 const UNREACHABLE = messages.client.service_unreachable;
 
@@ -60,7 +61,6 @@ export function CalendarView({
   const calendar = ready?.calendar ?? null;
   const problemText =
     result?.status === "problem" ? areaProblemText(result.code) : result?.status === "failed" ? UNREACHABLE : null;
-  const caveat = calendar ? messages.labels.region_caveat[calendar.aoi.region_caveat] : "";
 
   return (
     <main className="page ledger">
@@ -76,6 +76,8 @@ export function CalendarView({
           onSelectRange={onSelectRange}
           initialOpen={initialOpen}
         />
+        {/* The region caveat sits beside the map, not only on the evidence page (Story 3.6). */}
+        {ready ? <RegionCaveat calendar={ready.calendar} meta={ready.meta} aoi={selected} /> : null}
         {/* The headline sentence and ruler sit under the locator (UI-CONCEPT.md, left column). */}
         {ready ? <CurrentMonthCard calendar={ready.calendar} meta={ready.meta} /> : null}
         {calendar ? (
@@ -83,7 +85,6 @@ export function CalendarView({
             <li>{messages.notes.hotspot_definition}</li>
             <li>{messages.notes.record_switch}</li>
             <li>{messages.notes.satellite_switch}</li>
-            {caveat ? <li>{caveat}</li> : null}
           </ol>
         ) : null}
       </div>
@@ -97,6 +98,7 @@ export function CalendarView({
             </h2>
             <span>{ready.calendar.unit_label} · record {ready.calendar.record_version}</span>
           </div>
+          <CaveatLine calendar={ready.calendar} />
           <CalendarGrid calendar={ready.calendar} meta={ready.meta} />
           <GridLegend calendar={ready.calendar} />
         </section>
