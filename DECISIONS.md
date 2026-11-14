@@ -260,8 +260,6 @@ Each entry has: a status (**ASSUMED** or **TESTED**), its evidence, and a "revis
 - **Evidence:** the repository address contains an account name, and no committed file holds it so far; the hosted site is not served from the repository, so relative links would not reach the files. `outcome.test.tsx` covers both modes. Checked in the browser with the variable set.
 - **Revisit if:** the lead prefers the address committed in one place (a one-line change in `web/src/config.ts`), or the files move. The links 404 until Story 6.3 copies the three files in.
 
-## Static mask: product rule versus the scored rule (14 Nov)
-
 ## Static mask: the scored rule (14 Nov)
 
 - **Status:** TESTED (lead's decision, 14 Nov)
