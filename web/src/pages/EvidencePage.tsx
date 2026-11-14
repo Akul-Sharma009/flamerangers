@@ -1,5 +1,6 @@
-import { useEffect, useState } from "react";
+import { useEffect, useState, type ReactNode } from "react";
 import { messages } from "../api/messages";
+import { HeadToHead } from "../components/HeadToHead";
 import { REPO_URL } from "../config";
 import { COPY, RECORD_FILES, outcomeView, repoLink, type OutcomeView } from "../evidence/outcome";
 import type { Evidence } from "../evidence/types";
@@ -8,14 +9,14 @@ import type { Evidence } from "../evidence/types";
 // out of the calendar's bundle.
 const loadEvidence = () => import("../evidence/evidence.json").then((m) => m.default as unknown as Evidence);
 
-type State = { kind: "loading" } | { kind: "ready"; view: OutcomeView } | { kind: "problem" };
+type State = { kind: "loading" } | { kind: "ready"; view: OutcomeView; evidence: Evidence } | { kind: "problem" };
 
 export function EvidencePage() {
   const [state, setState] = useState<State>({ kind: "loading" });
   useEffect(() => {
     let live = true;
     loadEvidence().then(
-      (evidence) => live && setState({ kind: "ready", view: outcomeView(evidence) }),
+      (evidence) => live && setState({ kind: "ready", view: outcomeView(evidence), evidence }),
       () => live && setState({ kind: "problem" }),
     );
     return () => {
@@ -30,11 +31,12 @@ export function EvidencePage() {
     // TODO(label): messages.yaml has no sentence for "evidence could not be loaded"; same gap as the calendar's "service unreachable".
     return <main className="page"><p className="problem" role="alert">The evidence could not be loaded. Reload the page to try again.</p></main>;
   }
-  return <EvidenceOutcome view={state.view} repoUrl={REPO_URL} />;
+  return <EvidenceOutcome view={state.view} repoUrl={REPO_URL}><HeadToHead evidence={state.evidence} /></EvidenceOutcome>;
 }
 
-/** The first screen: the outcome, what it means for the record, the method, and the planning files. */
-export function EvidenceOutcome({ view, repoUrl }: { view: OutcomeView; repoUrl: string | null }) {
+/** The first screen: the outcome, what it means for the record, the method, and the planning files.
+ * The sections below it (Story 5.4 on) come in as children and span the full width. */
+export function EvidenceOutcome({ view, repoUrl, children }: { view: OutcomeView; repoUrl: string | null; children?: ReactNode }) {
   return (
     <main className="page evidence">
       <section className="outcome" aria-labelledby="outcome-title">
@@ -85,6 +87,7 @@ export function EvidenceOutcome({ view, repoUrl }: { view: OutcomeView; repoUrl:
           {repoUrl === null && <p className="aside">{COPY.filesPending}</p>}
         </section>
       </aside>
+      {children}
     </main>
   );
 }

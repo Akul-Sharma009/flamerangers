@@ -1,0 +1,71 @@
+/* Story 5.4: the head-to-head table. Kept out of styles.css, which other stories edit.
+   Uses the page tokens defined there (--paper, --ink, --muted, --rule, --faint, --serif,
+   --num). Ledger rules, no cards, no colour for states: beyond noise is a filled mark,
+   within noise a hollow one. */
+
+.evidence .h2h { grid-column: 1 / -1; min-width: 0; position: relative; }
+.evidence .h2h > h2 { margin-top: 28px; border-top: 3px double var(--ink); padding-top: 10px; font-size: 22px; }
+.evidence .h2h h3 { font-family: var(--serif); font-weight: 600; font-size: 16px; margin: 22px 0 6px; }
+.evidence .h2h h4 { font-family: var(--serif); font-weight: 600; font-size: 14px; margin: 14px 0 4px; }
+.h2h .intro { max-width: 72ch; }
+.h2h .sr { position: absolute; left: 0; top: 0; width: 1px; height: 1px; overflow: hidden; clip-path: inset(50%); white-space: nowrap; }
+
+/* Choices: three rows of plain words; the chosen one is ruled underneath. */
+.h2h-controls { display: flex; flex-wrap: wrap; gap: 10px 32px; margin: 12px 0 4px; padding: 10px 0; border-top: 1px solid var(--rule); border-bottom: 1px solid var(--rule); }
+.h2h-controls .choices { border: 0; margin: 0; padding: 0; display: flex; flex-wrap: wrap; align-items: baseline; gap: 4px 14px; min-width: 0; }
+.h2h-controls legend { float: left; font-size: 11.5px; color: var(--muted); letter-spacing: .05em; text-transform: uppercase; margin-right: 4px; padding: 0; }
+.h2h-controls label { position: relative; font-size: 14px; cursor: pointer; padding: 2px 0; border-bottom: 2px solid transparent; }
+.h2h-controls label.on { border-bottom-color: var(--ink); font-weight: 600; }
+.h2h-controls label:hover { border-bottom-color: var(--rule); }
+.h2h-controls label.on:hover { border-bottom-color: var(--ink); }
+.h2h-controls input { position: absolute; opacity: 0; width: 1px; height: 1px; margin: 0; }
+.h2h-controls label:has(input:focus-visible) { outline: 2px solid var(--ink); outline-offset: 2px; }
+
+.h2h-set-note { border-left: 3px double var(--ink); padding: 2px 0 2px 12px; margin-top: 14px; }
+.h2h-set-note h3 { margin-top: 0; }
+.h2h-set-note .setlabel { font-family: var(--num); font-size: 12.5px; margin: 0 0 4px; }
+.h2h .claim { font-family: var(--serif); font-size: 16px; }
+
+/* Tables: a ledger sheet that scrolls inside its own box at narrow widths; the
+   approach column stays put. */
+.h2h-scroll { position: relative; overflow-x: auto; max-width: 100%; border-top: 1px solid var(--ink); border-bottom: 1px solid var(--ink); }
+.h2h-scroll:focus-visible { outline: 2px solid var(--ink); outline-offset: 2px; }
+.h2h-table { border-collapse: collapse; width: 100%; font-size: 13px; }
+.h2h-table th, .h2h-table td { padding: 6px 10px; text-align: right; vertical-align: top; border-bottom: 1px solid var(--faint); }
+.h2h-table thead th { font-weight: 600; font-size: 12px; line-height: 1.3; vertical-align: bottom; border-bottom: 1px solid var(--rule); min-width: 7.5em; }
+.h2h-table thead .unit { display: block; font-weight: 400; color: var(--muted); font-size: 11px; }
+.h2h-table th[scope="row"], .h2h-table thead th:first-child { text-align: left; position: sticky; left: 0; background: var(--paper); font-family: var(--serif); font-size: 14px; white-space: nowrap; }
+.h2h-table thead th:first-child { font-family: var(--sans); font-size: 12px; }
+.h2h-table td { font-family: var(--num); font-variant-numeric: tabular-nums; white-space: nowrap; }
+.h2h-table td .sub { display: block; font-size: 11px; color: var(--muted); }
+.h2h-table .none { color: var(--muted); }
+.h2h-table tbody tr:last-child > * { border-bottom: 0; }
+
+.h2h-table.scores tr.baseline:first-of-type > *,
+.h2h-table.scores tr[data-approach="b"] > * { border-top: 1px solid var(--rule); }
+.h2h-table.scores tr.comparator > * { border-top: 1px dashed var(--muted); }
+.h2h-table.scores tr.comparator th { font-style: italic; }
+
+.h2h-table tr.group th { text-align: left; position: static; font-family: var(--sans); font-size: 11.5px; color: var(--muted); letter-spacing: .05em; text-transform: uppercase; padding-top: 12px; background: none; }
+.h2h-table.pairs th[scope="row"] { font-size: 13.5px; }
+
+.h2h .mark { font-family: var(--sans); font-size: 11px; }
+.h2h .legend .mark { margin-left: 6px; }
+.h2h .legend .mark:first-child { margin-left: 0; }
+
+.h2h-blocks { display: flex; flex-wrap: wrap; gap: 4px 22px; margin: 0; font-size: 13px; }
+.h2h-blocks > div { display: flex; gap: 6px; }
+.h2h-blocks dt { color: var(--muted); }
+.h2h-blocks dd { margin: 0; font-family: var(--num); font-variant-numeric: tabular-nums; }
+
+.h2h-rule { margin-top: 18px; padding-top: 4px; border-top: 1px solid var(--rule); }
+.h2h-rule .h2h-table.tests { width: auto; margin: 6px 0 10px; }
+.h2h-rule .h2h-table.tests th, .h2h-rule .h2h-table.tests td { font-family: var(--sans); text-align: left; white-space: normal; }
+
+@media (max-width: 760px) {
+  .evidence .h2h > h2 { font-size: 19px; }
+  .h2h-controls { gap: 8px 20px; }
+  .h2h-table th, .h2h-table td { padding: 5px 8px; }
+  .h2h-table thead th { min-width: 6.5em; }
+  .h2h-table th[scope="row"], .h2h-table thead th:first-child { white-space: normal; min-width: 7em; max-width: 9em; }
+}

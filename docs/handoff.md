@@ -2,7 +2,7 @@
 
 Short running status for the next session. Facts only; decisions and their status are in `DECISIONS.md`, story status in `sprint-status.yaml`.
 
-Updated: Sat 14 Nov 2026, evening SGT (Story 5.3).
+Updated: Sat 14 Nov 2026, evening SGT (Story 5.4).
 
 ## Where things stand
 
@@ -19,6 +19,7 @@ Updated: Sat 14 Nov 2026, evening SGT (Story 5.3).
 | 6.6 Pitch storyline | Done | Drafted in `docs/pitch/storyline.md` as a 7-slide deck. See below. |
 | 5.2 Evidence build and checks | Done | Merged to `master`. See below. |
 | 5.3 The outcome in plain words | Done | Merged to `master`. See below. |
+| 5.4 Head-to-head table | Review | On branch `claude/5-4-head-to-head-fb232e`, not committed yet. See below. |
 
 `master` holds Stories 1.1 to 1.5, 2.1, 2.2 and 5.1. New work branches from `master`.
 
@@ -171,6 +172,26 @@ Not in the repo: the Vercel trial used a two-line `index.py` entrypoint and a `r
 | AC2 C1 in plain language (transfer table, per-footprint detection model, weighted by fire season), changes only months from January 2022 | "the method is explained in plain words…" |
 | AC3 links to the guardrails, the test plan and the selection record in the public repo | "it links to the guardrails…", "with no repository address the files are named, not linked"; browser check of the three hrefs. The copies themselves are Story 6.3 (lead). |
 
+## Story 5.4: head-to-head table (branch `claude/5-4-head-to-head-fb232e`)
+
+- The evidence view now has a full-width "Head to head" section under the first screen (`web/src/components/HeadToHead.tsx`, `HeadToHead.css`; view model in `web/src/evidence/headToHead.ts`). The reader picks the set (final, selection), the region (pooled or one region) and the scale (0.25°, 1°, whole region). The section shows:
+  - the scores for C1, 4A, 1A, (b), (a) and the comparator;
+  - count error and bias by year, under the file's early/late periods;
+  - the pooled paired differences, each with its 95% interval and a ◆/◇ beyond-noise mark;
+  - the blocks behind the intervals;
+  - on the final set, "used once", the best-of-three note and the rule the pick used.
+- Everything is read from `evidence.json`: no change to `evidence/build.py`, `claims.yaml` or the scoring files. Each figure's tooltip is its scoring-file pointer.
+- Periods: the scoring files hold no 2014–2017 / 2018–2021 totals. The lead chose per-year rows under the file's period tag (see `DECISIONS.md`), so that criterion is met only in part.
+- Checks: `npm run test` (38 passed, 13 of them Story 5.4), `npm run build`, `uv run pytest` (176 passed, 9 skipped), evidence check, wording check (fresh build), import check. Looked at in the built-in browser at 1280 × 800 and 375 × 812: no horizontal page scroll, controls work, the set switch falls back to pooled, no console errors.
+- For the lead: the table's layout and the typed rule sentence are ASSUMED and need your OK (see `DECISIONS.md`, Story 5.4 entries).
+
+| Criterion | Test or evidence |
+| --- | --- |
+| AC1 C1, 4A, 1A, (a), (b) on the final and the selection set, for error and bias, flag precision with counts, rank correlation, top months and years, peak month, season length | `headToHead.test.tsx`: "AC1: C1, 4A, 1A, (b), (a) and the comparator…", "AC1: error and bias, flag precision with flag counts…", "AC1 / AD-8: every number shown is a figure from evidence.json…" |
+| AC2 per region, at 0.25°, 1° and whole region, and for 2014–2017 and 2018–2021 separately | "AC2: per region, at 0.25°, 1° and whole region, for each set", "AC2: an unknown region or scale falls back…", "AC2: years are shown under the file's early and late periods, without totals" (partly met; lead's choice); browser check of the controls |
+| AC3 each difference with its 95% interval and a beyond-noise mark, blocks stated, the close-call note | "AC3: every difference has its interval and a beyond-noise mark", "AC3: the number of blocks is stated…" |
+| AC4 final set: "used once", best-of-three, "comparator, never picked", the rule the final pick used | "AC4: final-set results carry…", "AC4: those final-set notes are not shown on the selection set…" |
+
 ## Contract 0.2.0: what changed from the first draft
 
 The first draft passed its tests but an independent review found it could not carry the product. The rewrite:
@@ -189,7 +210,7 @@ The points where the plan left room are listed in `DECISIONS.md` ("Contract 0.2.
 ## Next
 
 1. Data owner: Stories 1.3 and 2.2 are merged; next is Story 2.3 (ingest and cleaning for one extent).
-2. Lead: review Story 5.3 (copy and claim choice, the `VITE_REPO_URL` approach); then Stories 5.4 to 5.6 below it on the same page, and the open points in Story 6.6's storyline.
+2. Lead: review Story 5.4 (layout, the typed rule sentence, the per-year period rows); then Stories 5.5 and 5.6 below it on the same page, and the open points in Story 6.6's storyline.
 
 ## Checkpoints (flags, not deadlines; times in SGT)
 

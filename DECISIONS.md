@@ -259,3 +259,38 @@ Each entry has: a status (**ASSUMED** or **TESTED**), its evidence, and a "revis
 - **Decision:** the links to `docs/planning/GUARDRAILS.md`, `docs/planning/test-plan.md` and `docs/planning/DECISIONS.md` are built from `VITE_REPO_URL` (not a secret) as `<url>/blob/master/<path>`. With it unset, the page names the three files without links and says so. No repository address is committed.
 - **Evidence:** the repository address contains an account name, and no committed file holds it so far; the hosted site is not served from the repository, so relative links would not reach the files. `outcome.test.tsx` covers both modes. Checked in the browser with the variable set.
 - **Revisit if:** the lead prefers the address committed in one place (a one-line change in `web/src/config.ts`), or the files move. The links 404 until Story 6.3 copies the three files in.
+
+## Story 5.4: years shown under their period, no period totals (14 Nov 2026)
+
+- **Status:** ASSUMED. Chosen by the lead (14 Nov) from three options; the finding it rests on is checked.
+- **Decision:** Story 5.4 asks for results for 2014–2017 and 2018–2021 separately. The head-to-head section shows a "by year" table for the chosen set and region. It gives each year's count error, with the bias under it, for each approach, grouped under the period tag the scoring file gives that year (`early` first, then `late`). It states that the files give these at one scale (1°), with no interval and no period total. The other options were a new fixed claim for Story 5.6 saying period totals were never scored, or leaving periods out. Nothing was added to `evidence/build.py`: it already writes these rows (Story 5.2, "no totals for 2014–2017 and 2018–2021"). This AC is met only in part: there are no totals, intervals, flags, rankings or seasonal measures per period, because the scoring run never produced them.
+- **Evidence:** no field in the three scoring JSON files or their text reports holds a period total. The only period data is `/approaches/*/by_year_1deg` (MAE and bias per region-year, tagged `early`/`late`). On the final set, the early years cover southern Africa and Siberia only. Selection holds 2015 (early) and 2018 (late). Test: `headToHead.test.tsx`, "AC2: years are shown under the file's early and late periods…".
+- **Revisit if:** a period figure is wanted with an interval. It would have to come from the planning record's harness, which is frozen, and the final set may not be rescored. Or Story 5.6 should name the gap as a limit; that needs a new fixed claim.
+
+## Story 5.4: what the head-to-head table shows and in what order (14 Nov 2026)
+
+- **Status:** ASSUMED. Not yet seen by a reader.
+- **Decision:** the section opens on the final set, all regions pooled, at 1°, which is the test plan's decision scale for error and flags. The reader switches set (final or selection), region (pooled plus the set's own regions) and scale (0.25°, 1°, whole region) with three rows of radio buttons. A region the new set lacks falls back to pooled. Rows run C1, 4A, 1A, (b), (a), then the comparator under a dashed rule with its label "comparator, never picked". Columns follow the story's order: count error and bias (median absolute bias when pooled, since the file holds no pooled MAE), flag precision with "right of … raised" under it, recall with the true-anomaly count, month-rank correlation, top-months overlap (with k), year pairs in the right order (with the pair count), peak month error, and season length difference. A measure the file holds at no row of a level is left out, not shown as a column of dashes. A missing value (no flag raised) is a dash, with a note. The reported-only set is not offered here; that is left to Story 5.6.
+- **Evidence:** Story 5.4 AC1 and AC2; test plan §6 (decision scale); `headToHead.test.tsx` AC1 and AC2 tests. Checked in the built-in browser at 1280 × 800 and 375 × 812.
+- **Revisit if:** the lead wants the reported-only set, a different default, or fewer columns on a phone.
+
+## Story 5.4: paired differences are pooled only, one row per pair (14 Nov 2026)
+
+- **Status:** ASSUMED
+- **Decision:** the scoring files give paired differences only pooled over all regions, so the differences table does not change with region or scale, and says so. A pair's mirror (4A vs C1 beside C1 vs 4A) is dropped. The kept order is C1, 4A, 1A, comparator, (b), (a). C1's five pairs come first, the other ten under "The other pairs". Each cell shows the difference, a filled ◆ (beyond noise) or hollow ◇ (within noise) mark with screen-reader text, and the 95% interval. No colour is used. Under the table go the build's note (which says intervals may be somewhat narrow on close calls) and the blocks per region, the total and the draws, from the run table.
+- **Evidence:** `/comparisons` holds no region or scale level; Story 5.4 AC3; UI concept rule "every state has a mark that is not colour"; `headToHead.test.tsx` AC3 tests.
+- **Revisit if:** a reader wants the mirrored pairs. Or a display such as "-0.000" (the build's `fix3_signed` of a tiny negative) confuses; that would be fixed in `build.py`'s format, not in the web.
+
+## Story 5.4: the final-set notes and the rule the pick used (14 Nov 2026)
+
+- **Status:** ASSUMED. The lead approves the typed rule sentence.
+- **Decision:** on the final set the section shows: the set's label from the scoring file ("final set (step 5, used once)"); the `best-of-three` claim; the comparator's label in the table; and a "rule the final pick used" block. That block holds one typed sentence of the rule (from test plan §8, with no number); each candidate's pass on the tests against (a) and (b), and what it was worse on; the margin test (combination, single, pass, winner); the `margin-vs-4a` claim; and the outcome string. All of these are read from `final.decisions` in `evidence.json`. The selection set shows its own label and the final run's note on it: "The selection set was scored more than once; say the evidence is weaker." The margin's size is not quoted, as in `claims.yaml`.
+- **Evidence:** Story 5.4 AC4; `/decisions/final/*` in the final file; `headToHead.test.tsx` AC4 tests.
+- **Revisit if:** the lead wants the rule worded differently, or the margin's size stated. That would need a source the build can point at.
+
+## Story 5.4: scale and region names come from evidence.json (14 Nov 2026)
+
+- **Status:** TESTED (`headToHead.test.tsx`: "the typed words hold no number", "every number shown is a figure from evidence.json")
+- **Decision:** the choices "0.25°", "1°", "whole region" and the region names are read from the approach tables' titles in `evidence.json` (the part after the last comma, and between the first and last). So the web types no digit. Every figure on the section carries its scoring-file pointer as a tooltip, and the test checks that each one matches `evidence.json`. Styles live in `web/src/components/HeadToHead.css`, not `styles.css`. Wide tables scroll inside their own box on a phone, with the approach column fixed. Screen-reader-only text is positioned inside that box; otherwise it widened the page to 835 px at 375 px.
+- **Evidence:** the tests; the browser check (document width 375 at 375 px).
+- **Revisit if:** `build.py` changes its title format. The AC2 test would fail first.
