@@ -1,0 +1,8 @@
+{
+  "type": "https://burncal.invalid/problems/outside_coverage",
+  "title": "This area is not loaded yet",
+  "status": 404,
+  "code": "outside_coverage",
+  "record_version": "20261114-1a2b3c4d",
+  "data_through": "2026-11-13"
+}

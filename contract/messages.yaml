@@ -1,0 +1,84 @@
+# One sentence per problem code, caution, label and standing note.
+# The web shows these words and types none of its own. Keys under `labels`
+# are the contract's enum names in snake_case, and every enum value has an entry
+# (contract/test_contract.py checks this).
+#
+# Results and figures (for example how the conversion did in a region) are NOT
+# here. They come from evidence/claims.yaml and evidence.json, so that no result
+# is typed twice. Hotspots are never called "fires".
+version: 0.2.0
+
+problems:
+  invalid_aoi: "This area can't be used. Check that the coordinates are in range, in order and form a closed shape."
+  no_land: "There is no land in this area."
+  outside_coverage: "This area is not loaded yet."
+  too_large_for_sync: "This download is large. You can download it one year at a time."
+  version_superseded: "The record has been updated since this page loaded. Reloading with the new version."
+  rate_limited: "Too many requests. Please wait a moment and try again."
+
+cautions:
+  scale_below_1deg: "This area is smaller than a 1° box. The conversion was tested on 1° cells and whole regions, so treat counts for an area this small with care."
+  scale_below_025deg: "This area is smaller than a 0.25° box, the finest scale the conversion was tested at. Counts for an area this small are not supported by the tests."
+
+labels:
+  flag_state:
+    strong: "Flagged, strong: at least 1.5 times the cell's threshold."
+    marginal: "Flagged, marginal: above the cell's threshold, below 1.5 times it."
+    none: "Not flagged."
+    not_flaggable: "Not flaggable: fewer than 10 hotspots."
+    outside_record: "Outside the record."
+  partial_reason:
+    record_start: "The record starts partway through this month (July 2002)."
+    data_through: "Month to date: data runs only to the data-through date."
+    missing_days: "Some days of input data are missing in this month."
+    range_cut: "Your date range cuts this month. The count shown is for the whole month."
+  null_reason:
+    outside_record: "Outside the record."
+    outside_coverage: "Not loaded yet."
+  source:
+    aqua_real: "Aqua MODIS hotspots, as detected."
+    viirs_converted: "VIIRS hotspots converted to Aqua MODIS units."
+  quality:
+    SP: "Standard quality."
+    NRT: "Near real time. These counts can change when standard-quality data replaces them."
+  evidence_class:
+    tuned: "Inside a region the conversion was tuned on."
+    tested_unseen: "Inside a region the conversion was tested on but not tuned on."
+    reported_only: "Inside a region with reported-only results, which were not used to choose the method."
+    not_evaluated: "Outside every evaluated region. The conversion is untested here."
+  region_caveat:
+    none: ""
+    untuned_region: "Part of this area is outside the regions the conversion was tuned on."
+    southern_africa: "This area overlaps the southern African savanna region, where the conversion was tested but not tuned."
+  satellite:
+    AQUA: "Aqua (MODIS)"
+    TERRA: "Terra (MODIS)"
+    SNPP: "Suomi NPP (VIIRS)"
+    NOAA20: "NOAA-20 (VIIRS)"
+    NOAA21: "NOAA-21 (VIIRS)"
+  excluded_reason:
+    none: "Counted."
+    offshore: "Not counted: offshore."
+    static: "Not counted: a persistent heat source such as a gas flare or volcano."
+  day_night:
+    D: "Day"
+    N: "Night"
+  coverage_status:
+    loaded: "Loaded."
+    not_loaded: "Not loaded yet."
+
+notes:
+  placeholder: "Placeholder data. These numbers are invented and will be replaced by the real record."
+  hotspot_definition: "A hotspot is one satellite detection of heat. Hotspot counts measure burning activity, not the number of burns."
+  record_switch: "Sensor change: Aqua MODIS counts through December 2021, converted VIIRS counts from January 2022, on one scale."
+  satellite_switch: "From 3 November 2026 the record is fed by NOAA-20, because Suomi NPP stopped on 2 November 2026."
+  validated_satellite_false: "The satellite feeding this month was not part of the validation."
+  after_pick_years: "This month is outside the years used to choose the conversion method."
+  monthly_validation_only: "The conversion was validated on whole months only, not on part of a month."
+  no_typical_activity: "No typical activity in this month."
+  strong_tier: "The strong tier is a display tier. It was checked on selection years only and is not part of the scored flag rule."
+  flag_scale: "Flags are set on whole 1° cells, never on an area's total."
+  reference_year: "Reference years: this month is one of the years that set the flag thresholds."
+  provisional: "Provisional: this month is not complete, so its flags may change."
+  noaa20_check: "Reported only. This compares converted NOAA-20 counts with converted Suomi NPP counts and is not a validation against Aqua."
+  noaa20_check_not_run: "The NOAA-20 comparison has not been run yet."

@@ -1,0 +1,13 @@
+{
+  "record_version": "20261114-1a2b3c4d",
+  "data_through": "2026-11-13",
+  "cautions": [],
+  "month": "2006-10",
+  "flag_reference_years": {
+    "start_year": 2003,
+    "end_year": 2011
+  },
+  "cells": [
+    {"sw_lon": 102, "sw_lat": -1, "size_deg": 1, "flag_state": "none", "count": 96.0, "threshold": 96.0, "partly_inside": false, "evidence_class": "tuned", "provisional": false, "reference_year": true}
+  ]
+}

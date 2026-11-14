@@ -1,17 +1,19 @@
 openapi: 3.1.0
 info:
   title: "Harmonized burning activity calendar: data service"
-  version: 0.1.0
+  version: 0.2.0
   description: >
     Read-only API over one published store version. Every number is computed in
-    burncal/core or the service; the web only formats. DRAFT until Akul and the
-    teammate freeze it (Story 1.2).
+    burncal/core or the service and rounded once there (counts to 1 decimal,
+    ratios to 2); the web only formats and draws. null means outside the record
+    or outside coverage; 0 means no hotspots. DRAFT until both owners freeze it
+    (Story 1.2). After the freeze a change needs both owners and a version bump.
 servers:
   - url: http://localhost:8000
 paths:
   /meta:
     get:
-      summary: Store version, coverage, reference period and placeholder state
+      summary: Current record version, coverage, dates and placeholder state
       operationId: getMeta
       responses:
         "200":
@@ -19,261 +21,634 @@ paths:
           content:
             application/json:
               schema: {$ref: "#/components/schemas/Meta"}
-        "410":
-          description: Requested record_version was superseded
-          content:
-            application/json:
-              schema: {$ref: "#/components/schemas/VersionSuperseded"}
+        "429": {$ref: "#/components/responses/Problem"}
   /calendar:
-    get:
-      summary: Monthly harmonized counts for an area and date range
-      operationId: getCalendar
-      parameters:
-        - {name: aoi, in: query, required: true, schema: {type: string}, description: "GeoJSON polygon or bbox lon,lat,lon,lat"}
-        - {name: start, in: query, required: true, schema: {type: string, pattern: "^\\d{4}-\\d{2}$"}}
-        - {name: end, in: query, required: true, schema: {type: string, pattern: "^\\d{4}-\\d{2}$"}}
-        - {name: record_version, in: query, required: false, schema: {type: string}}
-        - {name: reference_start, in: query, required: false, schema: {type: integer, default: 2003}}
-        - {name: reference_end, in: query, required: false, schema: {type: integer, default: 2011}}
+    post:
+      summary: Monthly harmonized counts, statistics, flags and rankings for an area and date range
+      operationId: postCalendar
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema: {$ref: "#/components/schemas/CalendarRequest"}
       responses:
         "200":
           description: Calendar
           content:
             application/json:
               schema: {$ref: "#/components/schemas/Calendar"}
-        "410":
-          description: Requested record_version was superseded
-          content:
-            application/json:
-              schema: {$ref: "#/components/schemas/VersionSuperseded"}
+        "400": {$ref: "#/components/responses/Problem"}
+        "404": {$ref: "#/components/responses/Problem"}
+        "410": {$ref: "#/components/responses/Problem"}
+        "422": {$ref: "#/components/responses/Problem"}
+        "429": {$ref: "#/components/responses/Problem"}
   /cells:
-    get:
-      summary: Per 1-degree cell flags for one month
-      operationId: getCells
-      parameters:
-        - {name: aoi, in: query, required: true, schema: {type: string}}
-        - {name: month, in: query, required: true, schema: {type: string, pattern: "^\\d{4}-\\d{2}$"}}
-        - {name: record_version, in: query, required: false, schema: {type: string}}
+    post:
+      summary: Flag state of every 1 degree cell the area overlaps, for one month
+      operationId: postCells
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema: {$ref: "#/components/schemas/CellsRequest"}
       responses:
         "200":
           description: Cells
           content:
             application/json:
               schema: {$ref: "#/components/schemas/Cells"}
+        "400": {$ref: "#/components/responses/Problem"}
+        "404": {$ref: "#/components/responses/Problem"}
+        "410": {$ref: "#/components/responses/Problem"}
+        "422": {$ref: "#/components/responses/Problem"}
+        "429": {$ref: "#/components/responses/Problem"}
   /hotspots.csv:
-    get:
-      summary: Individual hotspots for an exact date range (CSV)
-      operationId: getHotspotsCsv
-      parameters:
-        - {name: aoi, in: query, required: true, schema: {type: string}}
-        - {name: start, in: query, required: true, schema: {type: string, format: date}}
-        - {name: end, in: query, required: true, schema: {type: string, format: date}}
-        - {name: all_satellites, in: query, required: false, schema: {type: boolean, default: false}}
+    post:
+      summary: Individual hotspots for an area and exact date range (CSV)
+      description: >
+        Columns and header block are in contract/CSV_SPEC.md. When the file
+        would be large the answer is 413 too_large_for_sync with the estimated
+        size and the years to request one at a time; no search is refused.
+      operationId: postHotspotsCsv
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema: {$ref: "#/components/schemas/HotspotsCsvRequest"}
       responses:
         "200":
-          description: Hotspot rows. Column spec in contract/CSV_SPEC.md (to be written).
+          description: Hotspot rows
           content:
             text/csv:
               schema: {type: string}
+        "400": {$ref: "#/components/responses/Problem"}
+        "404": {$ref: "#/components/responses/Problem"}
+        "410": {$ref: "#/components/responses/Problem"}
+        "413": {$ref: "#/components/responses/Problem"}
+        "422": {$ref: "#/components/responses/Problem"}
+        "429": {$ref: "#/components/responses/Problem"}
   /analytics.csv:
-    get:
+    post:
       summary: Monthly analytics (CSV), built from the same objects as /calendar
-      operationId: getAnalyticsCsv
-      parameters:
-        - {name: aoi, in: query, required: true, schema: {type: string}}
-        - {name: start, in: query, required: true, schema: {type: string, pattern: "^\\d{4}-\\d{2}$"}}
-        - {name: end, in: query, required: true, schema: {type: string, pattern: "^\\d{4}-\\d{2}$"}}
+      description: Columns and header block are in contract/CSV_SPEC.md.
+      operationId: postAnalyticsCsv
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema: {$ref: "#/components/schemas/CalendarRequest"}
       responses:
         "200":
-          description: Analytics rows. Column spec in contract/CSV_SPEC.md (to be written).
+          description: One row per month
           content:
             text/csv:
               schema: {type: string}
+        "400": {$ref: "#/components/responses/Problem"}
+        "404": {$ref: "#/components/responses/Problem"}
+        "410": {$ref: "#/components/responses/Problem"}
+        "422": {$ref: "#/components/responses/Problem"}
+        "429": {$ref: "#/components/responses/Problem"}
 components:
+  responses:
+    Problem:
+      description: "An error. The HTTP status for each code: invalid_aoi 400, outside_coverage 404, version_superseded 410, too_large_for_sync 413, no_land 422, rate_limited 429."
+      content:
+        application/problem+json:
+          schema: {$ref: "#/components/schemas/Problem"}
   schemas:
+    # ---- shared scalars and enums ----
+    RecordVersion:
+      type: string
+      pattern: "^\\d{8}-[0-9a-f]{8}$"
+    YearMonth:
+      type: string
+      pattern: "^\\d{4}-(0[1-9]|1[0-2])$"
+    Count:
+      description: A count in the count unit, rounded to 1 decimal. null = outside the record or outside coverage. 0 = no hotspots.
+      type: ["number", "null"]
+      minimum: 0
+    Ratio:
+      description: A ratio, rounded to 2 decimals. null when it is undefined.
+      type: ["number", "null"]
     ProblemCode:
-      description: "Machine codes. Named in the plan: outside_coverage, version_superseded. PROPOSED, not yet agreed with Akul: not_loaded, no_land, ratio_undefined, scale_caution_1deg, scale_caution_025deg. Sentences for each go in messages.yaml (to be written)."
+      description: Errors, returned as application/problem+json. The sentence shown for each is in messages.yaml.
       type: string
-      enum:
-        - outside_coverage
-        - not_loaded
-        - no_land
-        - ratio_undefined
-        - version_superseded
-        - scale_caution_1deg
-        - scale_caution_025deg
-    Excluded:
+      enum: [invalid_aoi, no_land, outside_coverage, too_large_for_sync, version_superseded, rate_limited]
+    CautionCode:
+      description: Notices carried inside a successful answer. The sentence shown for each is in messages.yaml.
       type: string
-      enum: [none, offshore, static]
+      enum: [scale_below_1deg, scale_below_025deg]
+    Satellite:
+      type: string
+      enum: [AQUA, TERRA, SNPP, NOAA20, NOAA21]
     Quality:
+      description: SP = standard processing. NRT = near real time.
       type: string
       enum: [SP, NRT]
+    Source:
+      description: Where a month's harmonized count comes from.
+      type: string
+      enum: [aqua_real, viirs_converted]
+    NullReason:
+      description: Why a count is null.
+      type: string
+      enum: [outside_record, outside_coverage]
     EvidenceClass:
       type: string
       enum: [tuned, tested_unseen, reported_only, not_evaluated]
+    RegionCaveat:
+      description: >
+        Which caveat the area carries beside the map and the calendar.
+        none = every cell is inside a tuning region. untuned_region = at least
+        one cell is outside them. southern_africa = the area overlaps the
+        southern African savanna region.
+      type: string
+      enum: [none, untuned_region, southern_africa]
     FlagState:
       type: string
       enum: [strong, marginal, none, not_flaggable, outside_record]
     PartialReason:
       type: string
       enum: [record_start, data_through, missing_days, range_cut]
+    ExcludedReason:
+      type: string
+      enum: [none, offshore, static]
+    DayNight:
+      type: string
+      enum: [D, N]
+    CoverageStatus:
+      type: string
+      enum: [loaded, not_loaded]
+    YearRange:
+      description: Whole calendar years, both ends included.
+      type: object
+      required: [start_year, end_year]
+      properties:
+        start_year: {type: integer}
+        end_year: {type: integer}
+      additionalProperties: false
+    # ---- requests ----
+    AoiInput:
+      description: >
+        A GeoJSON Polygon or MultiPolygon in WGS84, longitude first. The web
+        splits an area that crosses 180 degrees into a MultiPolygon before
+        sending. A polygon spanning more than 180 degrees of longitude, or with
+        more vertices than the service's cap, is invalid_aoi.
+      type: object
+      required: [geometry]
+      properties:
+        name:
+          description: A label to echo back, for example a featured area's name. Not used in any calculation.
+          type: ["string", "null"]
+          maxLength: 80
+        geometry:
+          type: object
+          required: [type, coordinates]
+          properties:
+            type: {type: string, enum: [Polygon, MultiPolygon]}
+            coordinates: {type: array}
+          additionalProperties: false
+      additionalProperties: false
+    CalendarRequest:
+      type: object
+      required: [record_version, aoi, start, end]
+      properties:
+        record_version: {$ref: "#/components/schemas/RecordVersion"}
+        aoi: {$ref: "#/components/schemas/AoiInput"}
+        start: {type: string, format: date, description: "First day of the range (UTC). A range that cuts a month only labels it."}
+        end: {type: string, format: date, description: "Last day of the range (UTC), included."}
+      additionalProperties: false
+    CellsRequest:
+      type: object
+      required: [record_version, aoi, month]
+      properties:
+        record_version: {$ref: "#/components/schemas/RecordVersion"}
+        aoi: {$ref: "#/components/schemas/AoiInput"}
+        month: {$ref: "#/components/schemas/YearMonth"}
+      additionalProperties: false
+    HotspotsCsvRequest:
+      type: object
+      required: [record_version, aoi, start, end]
+      properties:
+        record_version: {$ref: "#/components/schemas/RecordVersion"}
+        aoi: {$ref: "#/components/schemas/AoiInput"}
+        start: {type: string, format: date}
+        end: {type: string, format: date}
+        all_satellites:
+          description: false (default) returns only rows that feed the record. true returns every satellite's rows.
+          type: boolean
+          default: false
+        year:
+          description: Return only this year's rows. Used after a too_large_for_sync answer.
+          type: ["integer", "null"]
+      additionalProperties: false
+    # ---- errors and cautions ----
     Problem:
+      description: RFC 9457 problem details with a stable code.
+      type: object
+      required: [type, title, status, code]
+      properties:
+        type: {type: string}
+        title: {type: string}
+        status: {type: integer}
+        code: {$ref: "#/components/schemas/ProblemCode"}
+        detail: {type: string}
+        record_version: {$ref: "#/components/schemas/RecordVersion"}
+        data_through: {type: string, format: date}
+        current_record_version:
+          description: With version_superseded, the version to use instead. The web reloads /meta and asks again.
+          $ref: "#/components/schemas/RecordVersion"
+        estimated_rows: {type: integer, minimum: 0, description: "With too_large_for_sync."}
+        estimated_megabytes: {type: number, minimum: 0, description: "With too_large_for_sync, 1 decimal."}
+        years:
+          description: With too_large_for_sync, the years to request one at a time.
+          type: array
+          items: {type: integer}
+        retry_after_seconds: {type: integer, minimum: 0, description: "With rate_limited."}
+      additionalProperties: false
+    Caution:
       type: object
       required: [code]
       properties:
-        code: {$ref: "#/components/schemas/ProblemCode"}
-        detail: {type: string}
+        code: {$ref: "#/components/schemas/CautionCode"}
       additionalProperties: false
-    Envelope:
-      description: Fields every response carries.
-      type: object
-      required: [record_version, data_through, problems]
-      properties:
-        record_version: {type: string, pattern: "^\\d{8}-[0-9a-f]{8}$"}
-        data_through: {type: string, format: date}
-        problems:
-          type: array
-          items: {$ref: "#/components/schemas/Problem"}
+    # ---- /meta ----
     Meta:
-      allOf:
-        - {$ref: "#/components/schemas/Envelope"}
-        - type: object
-          required: [placeholder, record_start, record_switch, reference_period, coverage, noaa20_check]
+      type: object
+      required: [contract_version, record_version, data_through, placeholder, unit_label, record_start, record_switch, satellite_switch, current_month, data_through_day, reference_period, flag_reference_years, coverage, noaa20_check]
+      properties:
+        contract_version: {type: string}
+        record_version: {$ref: "#/components/schemas/RecordVersion"}
+        data_through: {type: string, format: date, description: "The store's 'now' (AD-16). The web's default end date."}
+        placeholder: {type: boolean, description: "true until the real record is published. The web shows a banner while it is true."}
+        unit_label: {type: string, description: "The count unit, as shown in legends and exports."}
+        record_start: {$ref: "#/components/schemas/YearMonth"}
+        record_switch:
+          description: The one place the switch date is served (AD-1).
+          type: object
+          required: [aqua_through, viirs_from]
           properties:
-            placeholder: {type: boolean}
-            record_start: {type: string, pattern: "^\\d{4}-\\d{2}$"}
-            record_switch: {type: object, required: [aqua_through, viirs_from], properties: {aqua_through: {type: string}, viirs_from: {type: string}}, additionalProperties: false}
-            reference_period: {type: object, required: [start, end, day], properties: {start: {type: integer}, end: {type: integer}, day: {type: integer, minimum: 1, maximum: 31}}, additionalProperties: false}
-            coverage:
+            aqua_through: {$ref: "#/components/schemas/YearMonth"}
+            viirs_from: {$ref: "#/components/schemas/YearMonth"}
+          additionalProperties: false
+        satellite_switch:
+          description: The change of feeding VIIRS satellite (AD-5), by UTC date.
+          type: object
+          required: [snpp_through, noaa20_from]
+          properties:
+            snpp_through: {type: string, format: date}
+            noaa20_from: {type: string, format: date}
+          additionalProperties: false
+        current_month: {$ref: "#/components/schemas/YearMonth"}
+        data_through_day: {type: integer, minimum: 1, maximum: 31, description: "The day d of the current month that data runs through."}
+        reference_period:
+          description: The complete calendar years from 2003 that end before the current month. Medians, means and anomalies use it.
+          $ref: "#/components/schemas/YearRange"
+        flag_reference_years:
+          description: The years whose Aqua counts set each cell's flag threshold (AD-9).
+          $ref: "#/components/schemas/YearRange"
+        coverage:
+          description: What the store holds (AD-12). A query outside it gets outside_coverage.
+          type: object
+          required: [global, regions]
+          properties:
+            global: {type: boolean, description: "true when every land area is loaded."}
+            regions:
               type: array
               items:
                 type: object
-                required: [name, status, evidence_class]
+                required: [region_id, name, status, evidence_class]
                 properties:
+                  region_id: {type: string, description: "Matches a feature in regions.geojson."}
                   name: {type: string}
-                  status: {type: string, enum: [loaded, not_loaded]}
+                  status: {$ref: "#/components/schemas/CoverageStatus"}
                   evidence_class: {$ref: "#/components/schemas/EvidenceClass"}
                 additionalProperties: false
-            noaa20_check:
-              description: Story 2.10 headline figures. null until that run has happened.
-              type: ["object", "null"]
-              additionalProperties: false
-              required: [reported_only, not_a_validation_against_aqua]
-              properties:
-                reported_only: {type: boolean, const: true}
-                not_a_validation_against_aqua: {type: boolean, const: true}
-                headline: {type: string}
-    VersionSuperseded:
-      allOf:
-        - {$ref: "#/components/schemas/Envelope"}
-        - type: object
-          required: [superseded_by]
+          additionalProperties: false
+        noaa20_check:
+          description: Headline figures of the NOAA-20 against Suomi NPP comparison (Story 2.10). null until that run exists.
+          oneOf:
+            - {type: "null"}
+            - {$ref: "#/components/schemas/Noaa20Check"}
+      additionalProperties: false
+    Noaa20Check:
+      description: Converted NOAA-20 counts against converted Suomi NPP counts. Reported only; not a validation against Aqua.
+      type: object
+      required: [reported_only, validated_against_aqua, period_start, period_end, pooled, regions]
+      properties:
+        reported_only: {type: boolean, const: true}
+        validated_against_aqua: {type: boolean, const: false}
+        period_start: {$ref: "#/components/schemas/YearMonth"}
+        period_end: {$ref: "#/components/schemas/YearMonth"}
+        pooled: {$ref: "#/components/schemas/Noaa20Figures"}
+        regions:
+          type: array
+          items:
+            type: object
+            required: [region_id, name, figures]
+            properties:
+              region_id: {type: string}
+              name: {type: string}
+              figures: {$ref: "#/components/schemas/Noaa20Figures"}
+            additionalProperties: false
+      additionalProperties: false
+    Noaa20Figures:
+      description: At 1 degree. bias_pct is (NOAA-20 minus Suomi NPP) over Suomi NPP, as a percentage with 1 decimal.
+      type: object
+      required: [mean_abs_difference, bias_pct, cell_months]
+      properties:
+        mean_abs_difference: {type: number, minimum: 0}
+        bias_pct: {type: number}
+        cell_months: {type: integer, minimum: 0}
+      additionalProperties: false
+    # ---- /calendar ----
+    Calendar:
+      type: object
+      required: [record_version, data_through, cautions, unit_label, aoi, range, reference_period, flag_reference_years, months, year_totals, calendar_month_medians, statistics, current_month]
+      properties:
+        record_version: {$ref: "#/components/schemas/RecordVersion"}
+        data_through: {type: string, format: date}
+        cautions:
+          type: array
+          items: {$ref: "#/components/schemas/Caution"}
+        unit_label: {type: string}
+        aoi: {$ref: "#/components/schemas/Aoi"}
+        range:
+          description: The requested dates, echoed.
+          type: object
+          required: [start, end]
           properties:
-            superseded_by: {type: string}
-    Raw:
+            start: {type: string, format: date}
+            end: {type: string, format: date}
+          additionalProperties: false
+        reference_period: {$ref: "#/components/schemas/YearRange"}
+        flag_reference_years: {$ref: "#/components/schemas/YearRange"}
+        months:
+          description: Every month of every calendar year the range touches, in order, so the grid's rows are whole years.
+          type: array
+          items: {$ref: "#/components/schemas/Month"}
+        year_totals:
+          description: One per calendar year the range touches, in order.
+          type: array
+          items: {$ref: "#/components/schemas/YearTotal"}
+        calendar_month_medians:
+          description: Twelve entries, January to December. The foot of the grid.
+          type: array
+          minItems: 12
+          maxItems: 12
+          items:
+            type: object
+            required: [calendar_month, median, reference_mean, no_typical_activity]
+            properties:
+              calendar_month: {type: integer, minimum: 1, maximum: 12}
+              median: {$ref: "#/components/schemas/Count"}
+              reference_mean: {$ref: "#/components/schemas/Count"}
+              no_typical_activity: {type: boolean, description: "true when the median is 0."}
+            additionalProperties: false
+        statistics: {$ref: "#/components/schemas/Statistics"}
+        current_month:
+          description: The current-month card (AD-15). null when the current month is outside the area's coverage.
+          oneOf:
+            - {type: "null"}
+            - {$ref: "#/components/schemas/CurrentMonth"}
+      additionalProperties: false
+    Aoi:
+      type: object
+      required: [aoi_id, name, area_km2, evidence_class_counts, region_caveat]
+      properties:
+        aoi_id: {type: string, description: "Hash of the normalised geometry."}
+        name: {type: ["string", "null"], description: "The label sent with the request, or null."}
+        area_km2: {type: number, minimum: 0, description: "Rounded to 1 decimal."}
+        evidence_class_counts:
+          description: How many of the area's 1 degree cells fall in each evidence class.
+          type: object
+          required: [tuned, tested_unseen, reported_only, not_evaluated]
+          properties:
+            tuned: {type: integer, minimum: 0}
+            tested_unseen: {type: integer, minimum: 0}
+            reported_only: {type: integer, minimum: 0}
+            not_evaluated: {type: integer, minimum: 0}
+          additionalProperties: false
+        region_caveat: {$ref: "#/components/schemas/RegionCaveat"}
+      additionalProperties: false
+    MonthInput:
+      description: One satellite and quality that the store holds for the month.
+      type: object
+      required: [satellite, quality, days, feeds_record]
+      properties:
+        satellite: {$ref: "#/components/schemas/Satellite"}
+        quality: {$ref: "#/components/schemas/Quality"}
+        days: {type: integer, minimum: 0, maximum: 31, description: "Days of the month with data from this satellite at this quality."}
+        feeds_record: {type: boolean}
+      additionalProperties: false
+    RawCounts:
+      description: Unconverted row counts per satellite, after cleaning. null = that satellite has no data for the month.
       type: object
       required: [aqua, terra, snpp, noaa20, noaa21]
       properties:
-        aqua: {type: ["number", "null"]}
-        terra: {type: ["number", "null"]}
-        snpp: {type: ["number", "null"]}
-        noaa20: {type: ["number", "null"]}
-        noaa21: {type: ["number", "null"]}
+        aqua: {type: ["integer", "null"], minimum: 0}
+        terra: {type: ["integer", "null"], minimum: 0}
+        snpp: {type: ["integer", "null"], minimum: 0}
+        noaa20: {type: ["integer", "null"], minimum: 0}
+        noaa21: {type: ["integer", "null"], minimum: 0}
       additionalProperties: false
     Month:
+      description: Always a whole calendar month (AD-17).
       type: object
-      required: [month, count, raw, provenance, validated_satellite, partial_reasons, complete, median, reference_mean, anomaly_count, anomaly_pct, flags, rank]
+      required: [month, count, null_reason, source, inputs, raw, complete, partial_reasons, validated_satellite, reference_year, provisional, median, reference_mean, no_typical_activity, ratio_to_median, anomaly_count, anomaly_pct, colour_class, anomaly_class, cells_flagged_strong, cells_flagged_marginal, cells_total, rank]
       properties:
-        month: {type: string, pattern: "^\\d{4}-\\d{2}$"}
-        count: {type: ["number", "null"], description: "Harmonized count, 1 decimal. null = outside record or not loaded. 0 = no hotspots."}
-        raw: {$ref: "#/components/schemas/Raw"}
-        provenance:
-          type: object
-          required: [standard, nrt]
-          properties:
-            standard: {type: array, items: {type: string}}
-            nrt: {type: array, items: {type: string}}
-          additionalProperties: false
-        validated_satellite: {type: boolean}
-        partial_reasons: {type: array, items: {$ref: "#/components/schemas/PartialReason"}}
-        complete: {type: boolean}
-        median: {type: ["number", "null"]}
-        reference_mean: {type: ["number", "null"]}
-        anomaly_count: {type: ["number", "null"]}
-        anomaly_pct: {type: ["number", "null"], description: "2 decimals. null when the historical median is 0."}
-        flags:
-          type: object
-          required: [strong, marginal, total]
-          properties:
-            strong: {type: integer, minimum: 0}
-            marginal: {type: integer, minimum: 0}
-            total: {type: integer, minimum: 0}
-          additionalProperties: false
-        rank: {type: ["integer", "null"]}
-        same_days:
-          type: object
-          description: Same-days count per complete past year (ruler for the current-month card). Empty for other months.
-          additionalProperties: {type: number}
+        month: {$ref: "#/components/schemas/YearMonth"}
+        count: {$ref: "#/components/schemas/Count"}
+        null_reason:
+          description: Set exactly when count is null.
+          oneOf:
+            - {type: "null"}
+            - {$ref: "#/components/schemas/NullReason"}
+        source:
+          description: null when count is null.
+          oneOf:
+            - {type: "null"}
+            - {$ref: "#/components/schemas/Source"}
+        inputs:
+          type: array
+          items: {$ref: "#/components/schemas/MonthInput"}
+        raw: {$ref: "#/components/schemas/RawCounts"}
+        complete: {type: boolean, description: "true when partial_reasons holds none of record_start, data_through, missing_days."}
+        partial_reasons:
+          type: array
+          items: {$ref: "#/components/schemas/PartialReason"}
+        validated_satellite: {type: boolean, description: "true only when every feeding input is Suomi NPP or Aqua."}
+        reference_year: {type: boolean, description: "true for months in the flag reference years."}
+        provisional: {type: boolean, description: "true when the month's flags may still change because the month is partial."}
+        median: {description: "Median of this calendar month over the reference period.", $ref: "#/components/schemas/Count"}
+        reference_mean: {description: "Mean of this calendar month over the reference period.", $ref: "#/components/schemas/Count"}
+        no_typical_activity: {type: boolean, description: "true when the median is 0. Then ratio_to_median is null."}
+        ratio_to_median: {description: "count over median.", $ref: "#/components/schemas/Ratio"}
+        anomaly_count: {type: ["number", "null"], description: "count minus reference_mean, 1 decimal."}
+        anomaly_pct: {description: "anomaly_count over reference_mean, as a percentage with 2 decimals. null when the mean is 0.", $ref: "#/components/schemas/Ratio"}
+        colour_class: {type: ["integer", "null"], minimum: 0, description: "Index of the count's class in statistics.colour_breaks. null when count is null."}
+        anomaly_class: {type: ["integer", "null"], minimum: 0, description: "Index of the anomaly's class in statistics.anomaly_breaks. null when there is no anomaly."}
+        cells_flagged_strong: {type: integer, minimum: 0}
+        cells_flagged_marginal: {type: integer, minimum: 0}
+        cells_total: {type: integer, minimum: 0, description: "Every 1 degree cell the area overlaps."}
+        rank: {type: ["integer", "null"], minimum: 1, description: "Rank among complete months inside the range, 1 = highest. Ties share a rank. null when not ranked."}
       additionalProperties: false
-    Calendar:
-      allOf:
-        - {$ref: "#/components/schemas/Envelope"}
-        - type: object
-          required: [aoi, months, statistics]
-          properties:
-            aoi: {type: object, required: [name, area_km2], properties: {name: {type: string}, area_km2: {type: number}}, additionalProperties: false}
-            months: {type: array, items: {$ref: "#/components/schemas/Month"}}
-            statistics:
-              type: object
-              required: [colour_breaks]
-              properties:
-                colour_breaks: {type: array, items: {type: number}}
-                top_months: {type: array, items: {type: string}}
-                top_years: {type: array, items: {type: integer}}
-              additionalProperties: false
-    Cell:
+    YearTotal:
       type: object
-      required: [lon, lat, flag_state, count, threshold, partly_inside, evidence_class, provisional, reference_year]
+      required: [year, total, complete, rank, share_of_max]
       properties:
-        lon: {type: number}
-        lat: {type: number}
+        year: {type: integer}
+        total: {description: "Sum of the year's months. null when no month of the year is in the record.", $ref: "#/components/schemas/Count"}
+        complete: {type: boolean, description: "true when all twelve months are complete."}
+        rank: {type: ["integer", "null"], minimum: 1, description: "Rank among complete years inside the range. Ties share a rank."}
+        share_of_max: {description: "total over the largest year total shown; the length of the row's bar.", $ref: "#/components/schemas/Ratio"}
+      additionalProperties: false
+    Statistics:
+      type: object
+      required: [colour_breaks, anomaly_breaks, top_months, top_years, busiest_calendar_months, record_high]
+      properties:
+        colour_breaks:
+          description: "Lower bound of each count class for this area, ascending. Class i runs from colour_breaks[i] up to the next break."
+          type: array
+          items: {type: number}
+        anomaly_breaks:
+          description: "Lower bound of each anomaly_pct class, ascending, for the diverging ramp. The class holding 0 is the neutral middle."
+          type: array
+          items: {type: number}
+        top_months:
+          description: Up to 5 complete months inside the range, highest first. Ties share a rank, so more than 5 entries can appear.
+          type: array
+          items:
+            type: object
+            required: [month, count, rank]
+            properties:
+              month: {$ref: "#/components/schemas/YearMonth"}
+              count: {type: number, minimum: 0}
+              rank: {type: integer, minimum: 1}
+            additionalProperties: false
+        top_years:
+          description: Up to 5 complete years inside the range, highest first. Ties share a rank.
+          type: array
+          items:
+            type: object
+            required: [year, total, rank]
+            properties:
+              year: {type: integer}
+              total: {type: number, minimum: 0}
+              rank: {type: integer, minimum: 1}
+            additionalProperties: false
+        busiest_calendar_months:
+          description: Calendar months by mean count over the complete months inside the range, highest first.
+          type: array
+          items:
+            type: object
+            required: [calendar_month, mean_count, rank]
+            properties:
+              calendar_month: {type: integer, minimum: 1, maximum: 12}
+              mean_count: {type: number, minimum: 0}
+              rank: {type: integer, minimum: 1}
+            additionalProperties: false
+        record_high:
+          description: The highest complete month in the whole record for this area, whatever the range. null when the area has none.
+          oneOf:
+            - {type: "null"}
+            - type: object
+              required: [month, count]
+              properties:
+                month: {$ref: "#/components/schemas/YearMonth"}
+                count: {type: number, minimum: 0}
+              additionalProperties: false
+      additionalProperties: false
+    CurrentMonth:
+      description: Days 1 to d of the current month against the same days of each reference year.
+      type: object
+      required: [month, day, count_to_date, same_days_median, no_typical_activity, ratio, difference, reference_period, same_days_by_year, cells_flagged_strong, cells_flagged_marginal, cells_total, quality, validated_satellite, monthly_validation_only]
+      properties:
+        month: {$ref: "#/components/schemas/YearMonth"}
+        day: {type: integer, minimum: 1, maximum: 31, description: "d, the data-through day."}
+        count_to_date: {type: number, minimum: 0}
+        same_days_median: {type: number, minimum: 0}
+        no_typical_activity: {type: boolean, description: "true when same_days_median is 0. Then ratio is null."}
+        ratio: {description: "count_to_date over same_days_median.", $ref: "#/components/schemas/Ratio"}
+        difference: {type: number, description: "count_to_date minus same_days_median, 1 decimal."}
+        reference_period: {$ref: "#/components/schemas/YearRange"}
+        same_days_by_year:
+          description: The count for days 1 to d in each complete year of the reference period. The ruler's marks.
+          type: array
+          items:
+            type: object
+            required: [year, count]
+            properties:
+              year: {type: integer}
+              count: {type: number, minimum: 0}
+            additionalProperties: false
+        cells_flagged_strong: {type: integer, minimum: 0}
+        cells_flagged_marginal: {type: integer, minimum: 0}
+        cells_total: {type: integer, minimum: 0}
+        quality: {description: "NRT when any feeding input of the month is near real time. The feeding satellites are in the month's inputs.", $ref: "#/components/schemas/Quality"}
+        validated_satellite: {type: boolean}
+        monthly_validation_only:
+          description: The conversion was validated on whole months only, not on part-months.
+          type: boolean
+          const: true
+      additionalProperties: false
+    # ---- /cells ----
+    Cells:
+      type: object
+      required: [record_version, data_through, cautions, month, flag_reference_years, cells]
+      properties:
+        record_version: {$ref: "#/components/schemas/RecordVersion"}
+        data_through: {type: string, format: date}
+        cautions:
+          type: array
+          items: {$ref: "#/components/schemas/Caution"}
+        month: {$ref: "#/components/schemas/YearMonth"}
+        flag_reference_years: {$ref: "#/components/schemas/YearRange"}
+        cells:
+          type: array
+          items: {$ref: "#/components/schemas/Cell"}
+      additionalProperties: false
+    Cell:
+      description: A whole 1 degree cell, named by its south-west corner. Its count and flag are for the whole cell, not the part inside the area.
+      type: object
+      required: [sw_lon, sw_lat, size_deg, flag_state, count, threshold, partly_inside, evidence_class, provisional, reference_year]
+      properties:
+        sw_lon: {type: integer, minimum: -180, maximum: 179}
+        sw_lat: {type: integer, minimum: -90, maximum: 89}
+        size_deg: {type: number, const: 1}
         flag_state: {$ref: "#/components/schemas/FlagState"}
-        count: {type: ["number", "null"]}
-        threshold: {type: ["number", "null"]}
+        count: {$ref: "#/components/schemas/Count"}
+        threshold: {type: ["number", "null"], minimum: 0, description: "The cell's flag threshold for this calendar month, 1 decimal."}
         partly_inside: {type: boolean}
         evidence_class: {$ref: "#/components/schemas/EvidenceClass"}
         provisional: {type: boolean}
         reference_year: {type: boolean}
       additionalProperties: false
-    Cells:
-      allOf:
-        - {$ref: "#/components/schemas/Envelope"}
-        - type: object
-          required: [month, cells]
-          properties:
-            month: {type: string}
-            cells: {type: array, items: {$ref: "#/components/schemas/Cell"}}
+    # ---- hotspot rows (the columns of /hotspots.csv; see CSV_SPEC.md) ----
     HotspotRow:
       type: object
-      required: [lat, lon, utc_datetime, satellite, instrument, confidence, frp, daynight, quality, feeds_record, excluded_reason, weight]
+      required: [latitude, longitude, acq_datetime_utc, satellite, instrument, confidence, frp, daynight, type, quality, feeds_record, excluded_reason, weight]
       properties:
-        lat: {type: number}
-        lon: {type: number}
-        utc_datetime: {type: string}
-        satellite: {type: string, enum: [Aqua, Terra, SNPP, NOAA-20, NOAA-21]}
-        instrument: {type: string}
-        confidence: {type: number}
-        frp: {type: number}
-        daynight: {type: string, enum: [D, N]}
-        type: {type: ["integer", "null"]}
+        latitude: {type: number, minimum: -90, maximum: 90}
+        longitude: {type: number, minimum: -180, maximum: 180}
+        acq_datetime_utc: {type: string, format: date-time}
+        satellite: {$ref: "#/components/schemas/Satellite"}
+        instrument: {type: string, enum: [MODIS, VIIRS]}
+        confidence: {type: string, description: "As FIRMS gives it: 0 to 100 for MODIS; l, n or h for VIIRS. Not used as a filter."}
+        frp: {type: ["number", "null"], description: "Fire radiative power in MW, as FIRMS gives it."}
+        daynight: {description: "Recomputed from solar zenith angle for every row.", $ref: "#/components/schemas/DayNight"}
+        type: {type: ["integer", "null"], description: "FIRMS inferred hot spot type. Standard-quality rows only; null for NRT."}
         quality: {$ref: "#/components/schemas/Quality"}
         feeds_record: {type: boolean}
-        excluded_reason: {$ref: "#/components/schemas/Excluded"}
-        weight: {type: number}
+        excluded_reason: {$ref: "#/components/schemas/ExcludedReason"}
+        weight: {type: number, minimum: 0, description: "The row's contribution to the harmonized count. Unrounded."}
       additionalProperties: false
     HotspotRowList:
+      description: Fixture form of /hotspots.csv rows.
       type: object
       required: [rows]
       properties:
-        rows: {type: array, items: {$ref: "#/components/schemas/HotspotRow"}}
+        rows:
+          type: array
+          items: {$ref: "#/components/schemas/HotspotRow"}
       additionalProperties: false

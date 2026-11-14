@@ -1,0 +1,148 @@
+{
+  "record_version": "20261114-1a2b3c4d",
+  "data_through": "2026-11-13",
+  "cautions": [],
+  "unit_label": "hotspots, Aqua MODIS units",
+  "aoi": {
+    "aoi_id": "84fa096a61e5d411",
+    "name": "Central Kalimantan box",
+    "area_km2": 27799.4,
+    "evidence_class_counts": {
+      "tuned": 0,
+      "tested_unseen": 0,
+      "reported_only": 0,
+      "not_evaluated": 4
+    },
+    "region_caveat": "untuned_region"
+  },
+  "range": {
+    "start": "2025-01-01",
+    "end": "2026-11-13"
+  },
+  "reference_period": {
+    "start_year": 2003,
+    "end_year": 2025
+  },
+  "flag_reference_years": {
+    "start_year": 2003,
+    "end_year": 2011
+  },
+  "months": [
+    {"month": "2025-01", "count": null, "null_reason": "outside_coverage", "source": null, "inputs": [], "raw": {"aqua": null, "terra": null, "snpp": null, "noaa20": null, "noaa21": null}, "complete": false, "partial_reasons": [], "validated_satellite": false, "reference_year": false, "provisional": false, "median": null, "reference_mean": null, "no_typical_activity": false, "ratio_to_median": null, "anomaly_count": null, "anomaly_pct": null, "colour_class": null, "anomaly_class": null, "cells_flagged_strong": 0, "cells_flagged_marginal": 0, "cells_total": 4, "rank": null},
+    {"month": "2025-02", "count": null, "null_reason": "outside_coverage", "source": null, "inputs": [], "raw": {"aqua": null, "terra": null, "snpp": null, "noaa20": null, "noaa21": null}, "complete": false, "partial_reasons": [], "validated_satellite": false, "reference_year": false, "provisional": false, "median": null, "reference_mean": null, "no_typical_activity": false, "ratio_to_median": null, "anomaly_count": null, "anomaly_pct": null, "colour_class": null, "anomaly_class": null, "cells_flagged_strong": 0, "cells_flagged_marginal": 0, "cells_total": 4, "rank": null},
+    {"month": "2025-03", "count": null, "null_reason": "outside_coverage", "source": null, "inputs": [], "raw": {"aqua": null, "terra": null, "snpp": null, "noaa20": null, "noaa21": null}, "complete": false, "partial_reasons": [], "validated_satellite": false, "reference_year": false, "provisional": false, "median": null, "reference_mean": null, "no_typical_activity": false, "ratio_to_median": null, "anomaly_count": null, "anomaly_pct": null, "colour_class": null, "anomaly_class": null, "cells_flagged_strong": 0, "cells_flagged_marginal": 0, "cells_total": 4, "rank": null},
+    {"month": "2025-04", "count": 160.2, "null_reason": null, "source": "viirs_converted", "inputs": [{"satellite": "AQUA", "quality": "SP", "days": 30, "feeds_record": false}, {"satellite": "TERRA", "quality": "SP", "days": 30, "feeds_record": false}, {"satellite": "SNPP", "quality": "SP", "days": 30, "feeds_record": true}, {"satellite": "NOAA20", "quality": "SP", "days": 30, "feeds_record": false}, {"satellite": "NOAA21", "quality": "SP", "days": 30, "feeds_record": false}], "raw": {"aqua": 174, "terra": 128, "snpp": 783, "noaa20": 669, "noaa21": 753}, "complete": true, "partial_reasons": [], "validated_satellite": true, "reference_year": false, "provisional": false, "median": 127.0, "reference_mean": 171.8, "no_typical_activity": false, "ratio_to_median": 1.26, "anomaly_count": -11.6, "anomaly_pct": -6.75, "colour_class": 1, "anomaly_class": 2, "cells_flagged_strong": 0, "cells_flagged_marginal": 0, "cells_total": 4, "rank": 15},
+    {"month": "2025-05", "count": 78.6, "null_reason": null, "source": "viirs_converted", "inputs": [{"satellite": "AQUA", "quality": "SP", "days": 31, "feeds_record": false}, {"satellite": "TERRA", "quality": "SP", "days": 31, "feeds_record": false}, {"satellite": "SNPP", "quality": "SP", "days": 31, "feeds_record": true}, {"satellite": "NOAA20", "quality": "SP", "days": 31, "feeds_record": false}, {"satellite": "NOAA21", "quality": "SP", "days": 31, "feeds_record": false}], "raw": {"aqua": 71, "terra": 60, "snpp": 391, "noaa20": 388, "noaa21": 311}, "complete": true, "partial_reasons": [], "validated_satellite": true, "reference_year": false, "provisional": false, "median": 167.0, "reference_mean": 195.6, "no_typical_activity": false, "ratio_to_median": 0.47, "anomaly_count": -117.0, "anomaly_pct": -59.83, "colour_class": 1, "anomaly_class": 0, "cells_flagged_strong": 0, "cells_flagged_marginal": 0, "cells_total": 4, "rank": 19},
+    {"month": "2025-06", "count": 231.2, "null_reason": null, "source": "viirs_converted", "inputs": [{"satellite": "AQUA", "quality": "SP", "days": 30, "feeds_record": false}, {"satellite": "TERRA", "quality": "SP", "days": 30, "feeds_record": false}, {"satellite": "SNPP", "quality": "SP", "days": 30, "feeds_record": true}, {"satellite": "NOAA20", "quality": "SP", "days": 30, "feeds_record": false}, {"satellite": "NOAA21", "quality": "SP", "days": 30, "feeds_record": false}], "raw": {"aqua": 226, "terra": 170, "snpp": 1081, "noaa20": 952, "noaa21": 943}, "complete": true, "partial_reasons": [], "validated_satellite": true, "reference_year": false, "provisional": false, "median": 337.0, "reference_mean": 426.2, "no_typical_activity": false, "ratio_to_median": 0.69, "anomaly_count": -195.1, "anomaly_pct": -45.77, "colour_class": 2, "anomaly_class": 1, "cells_flagged_strong": 0, "cells_flagged_marginal": 0, "cells_total": 4, "rank": 12},
+    {"month": "2025-07", "count": 369.9, "null_reason": null, "source": "viirs_converted", "inputs": [{"satellite": "AQUA", "quality": "SP", "days": 31, "feeds_record": false}, {"satellite": "TERRA", "quality": "SP", "days": 31, "feeds_record": false}, {"satellite": "SNPP", "quality": "SP", "days": 31, "feeds_record": true}, {"satellite": "NOAA20", "quality": "SP", "days": 31, "feeds_record": false}, {"satellite": "NOAA21", "quality": "SP", "days": 31, "feeds_record": false}], "raw": {"aqua": 363, "terra": 311, "snpp": 1576, "noaa20": 1652, "noaa21": 1532}, "complete": true, "partial_reasons": [], "validated_satellite": true, "reference_year": false, "provisional": false, "median": 420.0, "reference_mean": 612.9, "no_typical_activity": false, "ratio_to_median": 0.88, "anomaly_count": -243.0, "anomaly_pct": -39.65, "colour_class": 3, "anomaly_class": 1, "cells_flagged_strong": 0, "cells_flagged_marginal": 0, "cells_total": 4, "rank": 9},
+    {"month": "2025-08", "count": 878.1, "null_reason": null, "source": "viirs_converted", "inputs": [{"satellite": "AQUA", "quality": "SP", "days": 31, "feeds_record": false}, {"satellite": "TERRA", "quality": "SP", "days": 31, "feeds_record": false}, {"satellite": "SNPP", "quality": "SP", "days": 31, "feeds_record": true}, {"satellite": "NOAA20", "quality": "SP", "days": 31, "feeds_record": false}, {"satellite": "NOAA21", "quality": "SP", "days": 31, "feeds_record": false}], "raw": {"aqua": 953, "terra": 664, "snpp": 4034, "noaa20": 3886, "noaa21": 4228}, "complete": true, "partial_reasons": [], "validated_satellite": true, "reference_year": false, "provisional": false, "median": 828.0, "reference_mean": 935.4, "no_typical_activity": false, "ratio_to_median": 1.06, "anomaly_count": -57.3, "anomaly_pct": -6.12, "colour_class": 5, "anomaly_class": 2, "cells_flagged_strong": 0, "cells_flagged_marginal": 0, "cells_total": 4, "rank": 2},
+    {"month": "2025-09", "count": 884.9, "null_reason": null, "source": "viirs_converted", "inputs": [{"satellite": "AQUA", "quality": "SP", "days": 30, "feeds_record": false}, {"satellite": "TERRA", "quality": "SP", "days": 30, "feeds_record": false}, {"satellite": "SNPP", "quality": "SP", "days": 30, "feeds_record": true}, {"satellite": "NOAA20", "quality": "SP", "days": 30, "feeds_record": false}, {"satellite": "NOAA21", "quality": "SP", "days": 30, "feeds_record": false}], "raw": {"aqua": 817, "terra": 769, "snpp": 4257, "noaa20": 4276, "noaa21": 3729}, "complete": true, "partial_reasons": [], "validated_satellite": true, "reference_year": false, "provisional": false, "median": 1177.0, "reference_mean": 1292.5, "no_typical_activity": false, "ratio_to_median": 0.75, "anomaly_count": -407.5, "anomaly_pct": -31.53, "colour_class": 6, "anomaly_class": 1, "cells_flagged_strong": 0, "cells_flagged_marginal": 0, "cells_total": 4, "rank": 1},
+    {"month": "2025-10", "count": 748.4, "null_reason": null, "source": "viirs_converted", "inputs": [{"satellite": "AQUA", "quality": "SP", "days": 31, "feeds_record": false}, {"satellite": "TERRA", "quality": "SP", "days": 31, "feeds_record": false}, {"satellite": "SNPP", "quality": "SP", "days": 31, "feeds_record": true}, {"satellite": "NOAA20", "quality": "SP", "days": 31, "feeds_record": false}, {"satellite": "NOAA21", "quality": "SP", "days": 31, "feeds_record": false}], "raw": {"aqua": 707, "terra": 590, "snpp": 3676, "noaa20": 3307, "noaa21": 3083}, "complete": true, "partial_reasons": [], "validated_satellite": true, "reference_year": false, "provisional": false, "median": 865.8, "reference_mean": 976.0, "no_typical_activity": false, "ratio_to_median": 0.86, "anomaly_count": -227.6, "anomaly_pct": -23.32, "colour_class": 4, "anomaly_class": 1, "cells_flagged_strong": 0, "cells_flagged_marginal": 0, "cells_total": 4, "rank": 4},
+    {"month": "2025-11", "count": 241.9, "null_reason": null, "source": "viirs_converted", "inputs": [{"satellite": "AQUA", "quality": "SP", "days": 30, "feeds_record": false}, {"satellite": "TERRA", "quality": "SP", "days": 30, "feeds_record": false}, {"satellite": "SNPP", "quality": "SP", "days": 30, "feeds_record": true}, {"satellite": "NOAA20", "quality": "SP", "days": 30, "feeds_record": false}, {"satellite": "NOAA21", "quality": "SP", "days": 30, "feeds_record": false}], "raw": {"aqua": 264, "terra": 204, "snpp": 1086, "noaa20": 1181, "noaa21": 1049}, "complete": true, "partial_reasons": [], "validated_satellite": true, "reference_year": false, "provisional": false, "median": 213.0, "reference_mean": 275.5, "no_typical_activity": false, "ratio_to_median": 1.14, "anomaly_count": -33.6, "anomaly_pct": -12.18, "colour_class": 2, "anomaly_class": 2, "cells_flagged_strong": 0, "cells_flagged_marginal": 0, "cells_total": 4, "rank": 11},
+    {"month": "2025-12", "count": 100.1, "null_reason": null, "source": "viirs_converted", "inputs": [{"satellite": "AQUA", "quality": "SP", "days": 31, "feeds_record": false}, {"satellite": "TERRA", "quality": "SP", "days": 31, "feeds_record": false}, {"satellite": "SNPP", "quality": "SP", "days": 31, "feeds_record": true}, {"satellite": "NOAA20", "quality": "SP", "days": 31, "feeds_record": false}, {"satellite": "NOAA21", "quality": "SP", "days": 31, "feeds_record": false}], "raw": {"aqua": 99, "terra": 75, "snpp": 489, "noaa20": 415, "noaa21": 424}, "complete": true, "partial_reasons": [], "validated_satellite": true, "reference_year": false, "provisional": false, "median": 126.0, "reference_mean": 156.8, "no_typical_activity": false, "ratio_to_median": 0.79, "anomaly_count": -56.8, "anomaly_pct": -36.19, "colour_class": 1, "anomaly_class": 1, "cells_flagged_strong": 0, "cells_flagged_marginal": 0, "cells_total": 4, "rank": 18},
+    {"month": "2026-01", "count": 116.5, "null_reason": null, "source": "viirs_converted", "inputs": [{"satellite": "AQUA", "quality": "SP", "days": 31, "feeds_record": false}, {"satellite": "TERRA", "quality": "SP", "days": 31, "feeds_record": false}, {"satellite": "SNPP", "quality": "SP", "days": 31, "feeds_record": true}, {"satellite": "NOAA20", "quality": "SP", "days": 31, "feeds_record": false}, {"satellite": "NOAA21", "quality": "SP", "days": 31, "feeds_record": false}], "raw": {"aqua": 124, "terra": 96, "snpp": 502, "noaa20": 531, "noaa21": 501}, "complete": true, "partial_reasons": [], "validated_satellite": true, "reference_year": false, "provisional": false, "median": 167.0, "reference_mean": 197.7, "no_typical_activity": false, "ratio_to_median": 0.7, "anomaly_count": -81.2, "anomaly_pct": -41.06, "colour_class": 1, "anomaly_class": 1, "cells_flagged_strong": 0, "cells_flagged_marginal": 0, "cells_total": 4, "rank": 16},
+    {"month": "2026-02", "count": 324.4, "null_reason": null, "source": "viirs_converted", "inputs": [{"satellite": "AQUA", "quality": "SP", "days": 28, "feeds_record": false}, {"satellite": "TERRA", "quality": "SP", "days": 28, "feeds_record": false}, {"satellite": "SNPP", "quality": "SP", "days": 28, "feeds_record": true}, {"satellite": "NOAA20", "quality": "SP", "days": 28, "feeds_record": false}, {"satellite": "NOAA21", "quality": "SP", "days": 28, "feeds_record": false}], "raw": {"aqua": 319, "terra": 237, "snpp": 1530, "noaa20": 1603, "noaa21": 1506}, "complete": true, "partial_reasons": [], "validated_satellite": true, "reference_year": false, "provisional": false, "median": 365.0, "reference_mean": 412.2, "no_typical_activity": false, "ratio_to_median": 0.89, "anomaly_count": -87.8, "anomaly_pct": -21.29, "colour_class": 3, "anomaly_class": 1, "cells_flagged_strong": 0, "cells_flagged_marginal": 0, "cells_total": 4, "rank": 10},
+    {"month": "2026-03", "count": 190.7, "null_reason": null, "source": "viirs_converted", "inputs": [{"satellite": "AQUA", "quality": "SP", "days": 31, "feeds_record": false}, {"satellite": "TERRA", "quality": "SP", "days": 31, "feeds_record": false}, {"satellite": "SNPP", "quality": "SP", "days": 31, "feeds_record": true}, {"satellite": "NOAA20", "quality": "SP", "days": 31, "feeds_record": false}, {"satellite": "NOAA21", "quality": "SP", "days": 31, "feeds_record": false}], "raw": {"aqua": 182, "terra": 153, "snpp": 871, "noaa20": 900, "noaa21": 817}, "complete": true, "partial_reasons": [], "validated_satellite": true, "reference_year": false, "provisional": false, "median": 324.0, "reference_mean": 430.8, "no_typical_activity": false, "ratio_to_median": 0.59, "anomaly_count": -240.2, "anomaly_pct": -55.74, "colour_class": 2, "anomaly_class": 0, "cells_flagged_strong": 0, "cells_flagged_marginal": 0, "cells_total": 4, "rank": 13},
+    {"month": "2026-04", "count": 173.9, "null_reason": null, "source": "viirs_converted", "inputs": [{"satellite": "AQUA", "quality": "SP", "days": 30, "feeds_record": false}, {"satellite": "TERRA", "quality": "SP", "days": 30, "feeds_record": false}, {"satellite": "SNPP", "quality": "SP", "days": 30, "feeds_record": true}, {"satellite": "NOAA20", "quality": "SP", "days": 30, "feeds_record": false}, {"satellite": "NOAA21", "quality": "SP", "days": 30, "feeds_record": false}], "raw": {"aqua": 170, "terra": 132, "snpp": 750, "noaa20": 759, "noaa21": 748}, "complete": true, "partial_reasons": [], "validated_satellite": true, "reference_year": false, "provisional": false, "median": 127.0, "reference_mean": 171.8, "no_typical_activity": false, "ratio_to_median": 1.37, "anomaly_count": 2.1, "anomaly_pct": 1.24, "colour_class": 2, "anomaly_class": 2, "cells_flagged_strong": 0, "cells_flagged_marginal": 0, "cells_total": 4, "rank": 14},
+    {"month": "2026-05", "count": 116.5, "null_reason": null, "source": "viirs_converted", "inputs": [{"satellite": "AQUA", "quality": "SP", "days": 31, "feeds_record": false}, {"satellite": "TERRA", "quality": "SP", "days": 31, "feeds_record": false}, {"satellite": "SNPP", "quality": "SP", "days": 31, "feeds_record": true}, {"satellite": "NOAA20", "quality": "SP", "days": 31, "feeds_record": false}, {"satellite": "NOAA21", "quality": "SP", "days": 31, "feeds_record": false}], "raw": {"aqua": 117, "terra": 86, "snpp": 547, "noaa20": 563, "noaa21": 544}, "complete": true, "partial_reasons": [], "validated_satellite": true, "reference_year": false, "provisional": false, "median": 167.0, "reference_mean": 195.6, "no_typical_activity": false, "ratio_to_median": 0.7, "anomaly_count": -79.1, "anomaly_pct": -40.43, "colour_class": 1, "anomaly_class": 1, "cells_flagged_strong": 0, "cells_flagged_marginal": 0, "cells_total": 4, "rank": 16},
+    {"month": "2026-06", "count": 374.1, "null_reason": null, "source": "viirs_converted", "inputs": [{"satellite": "AQUA", "quality": "SP", "days": 30, "feeds_record": false}, {"satellite": "TERRA", "quality": "SP", "days": 30, "feeds_record": false}, {"satellite": "SNPP", "quality": "SP", "days": 30, "feeds_record": true}, {"satellite": "NOAA20", "quality": "SP", "days": 30, "feeds_record": false}, {"satellite": "NOAA21", "quality": "SP", "days": 30, "feeds_record": false}], "raw": {"aqua": 338, "terra": 325, "snpp": 1669, "noaa20": 1817, "noaa21": 1692}, "complete": true, "partial_reasons": [], "validated_satellite": true, "reference_year": false, "provisional": false, "median": 337.0, "reference_mean": 426.2, "no_typical_activity": false, "ratio_to_median": 1.11, "anomaly_count": -52.1, "anomaly_pct": -12.22, "colour_class": 3, "anomaly_class": 2, "cells_flagged_strong": 0, "cells_flagged_marginal": 0, "cells_total": 4, "rank": 8},
+    {"month": "2026-07", "count": 468.0, "null_reason": null, "source": "viirs_converted", "inputs": [{"satellite": "AQUA", "quality": "SP", "days": 31, "feeds_record": false}, {"satellite": "TERRA", "quality": "SP", "days": 31, "feeds_record": false}, {"satellite": "SNPP", "quality": "SP", "days": 31, "feeds_record": true}, {"satellite": "NOAA20", "quality": "SP", "days": 31, "feeds_record": false}, {"satellite": "NOAA21", "quality": "SP", "days": 31, "feeds_record": false}], "raw": {"aqua": 454, "terra": 372, "snpp": 2009, "noaa20": 1902, "noaa21": 1917}, "complete": true, "partial_reasons": [], "validated_satellite": true, "reference_year": false, "provisional": false, "median": 420.0, "reference_mean": 612.9, "no_typical_activity": false, "ratio_to_median": 1.11, "anomaly_count": -144.9, "anomaly_pct": -23.65, "colour_class": 4, "anomaly_class": 1, "cells_flagged_strong": 0, "cells_flagged_marginal": 0, "cells_total": 4, "rank": 5},
+    {"month": "2026-08", "count": 384.3, "null_reason": null, "source": "viirs_converted", "inputs": [{"satellite": "AQUA", "quality": "SP", "days": 31, "feeds_record": false}, {"satellite": "TERRA", "quality": "SP", "days": 31, "feeds_record": false}, {"satellite": "SNPP", "quality": "SP", "days": 31, "feeds_record": true}, {"satellite": "NOAA20", "quality": "SP", "days": 31, "feeds_record": false}, {"satellite": "NOAA21", "quality": "SP", "days": 31, "feeds_record": false}], "raw": {"aqua": 373, "terra": 317, "snpp": 1732, "noaa20": 1655, "noaa21": 1557}, "complete": true, "partial_reasons": [], "validated_satellite": true, "reference_year": false, "provisional": false, "median": 828.0, "reference_mean": 935.4, "no_typical_activity": false, "ratio_to_median": 0.46, "anomaly_count": -551.1, "anomaly_pct": -58.92, "colour_class": 3, "anomaly_class": 0, "cells_flagged_strong": 0, "cells_flagged_marginal": 0, "cells_total": 4, "rank": 7},
+    {"month": "2026-09", "count": 836.7, "null_reason": null, "source": "viirs_converted", "inputs": [{"satellite": "AQUA", "quality": "NRT", "days": 30, "feeds_record": false}, {"satellite": "TERRA", "quality": "NRT", "days": 30, "feeds_record": false}, {"satellite": "SNPP", "quality": "NRT", "days": 30, "feeds_record": true}, {"satellite": "NOAA20", "quality": "NRT", "days": 30, "feeds_record": false}, {"satellite": "NOAA21", "quality": "NRT", "days": 30, "feeds_record": false}], "raw": {"aqua": 877, "terra": 606, "snpp": 3647, "noaa20": 3951, "noaa21": 3801}, "complete": true, "partial_reasons": [], "validated_satellite": true, "reference_year": false, "provisional": false, "median": 1177.0, "reference_mean": 1292.5, "no_typical_activity": false, "ratio_to_median": 0.71, "anomaly_count": -455.7, "anomaly_pct": -35.26, "colour_class": 5, "anomaly_class": 1, "cells_flagged_strong": 0, "cells_flagged_marginal": 0, "cells_total": 4, "rank": 3},
+    {"month": "2026-10", "count": 452.0, "null_reason": null, "source": "viirs_converted", "inputs": [{"satellite": "AQUA", "quality": "NRT", "days": 31, "feeds_record": false}, {"satellite": "TERRA", "quality": "NRT", "days": 31, "feeds_record": false}, {"satellite": "SNPP", "quality": "NRT", "days": 31, "feeds_record": true}, {"satellite": "NOAA20", "quality": "NRT", "days": 31, "feeds_record": false}, {"satellite": "NOAA21", "quality": "NRT", "days": 31, "feeds_record": false}], "raw": {"aqua": 423, "terra": 366, "snpp": 2143, "noaa20": 1880, "noaa21": 1926}, "complete": true, "partial_reasons": [], "validated_satellite": true, "reference_year": false, "provisional": false, "median": 865.8, "reference_mean": 976.0, "no_typical_activity": false, "ratio_to_median": 0.52, "anomaly_count": -524.0, "anomaly_pct": -53.69, "colour_class": 4, "anomaly_class": 0, "cells_flagged_strong": 0, "cells_flagged_marginal": 0, "cells_total": 4, "rank": 6},
+    {"month": "2026-11", "count": 96.0, "null_reason": null, "source": "viirs_converted", "inputs": [{"satellite": "AQUA", "quality": "NRT", "days": 13, "feeds_record": false}, {"satellite": "TERRA", "quality": "NRT", "days": 13, "feeds_record": false}, {"satellite": "SNPP", "quality": "NRT", "days": 2, "feeds_record": true}, {"satellite": "NOAA20", "quality": "NRT", "days": 11, "feeds_record": true}, {"satellite": "NOAA21", "quality": "NRT", "days": 13, "feeds_record": false}], "raw": {"aqua": 98, "terra": 75, "snpp": 63, "noaa20": 439, "noaa21": 394}, "complete": false, "partial_reasons": ["data_through", "range_cut"], "validated_satellite": false, "reference_year": false, "provisional": true, "median": 213.0, "reference_mean": 275.5, "no_typical_activity": false, "ratio_to_median": 0.45, "anomaly_count": -179.5, "anomaly_pct": -65.15, "colour_class": 1, "anomaly_class": 0, "cells_flagged_strong": 0, "cells_flagged_marginal": 0, "cells_total": 4, "rank": null},
+    {"month": "2026-12", "count": null, "null_reason": "outside_record", "source": null, "inputs": [], "raw": {"aqua": null, "terra": null, "snpp": null, "noaa20": null, "noaa21": null}, "complete": false, "partial_reasons": [], "validated_satellite": false, "reference_year": false, "provisional": false, "median": null, "reference_mean": null, "no_typical_activity": false, "ratio_to_median": null, "anomaly_count": null, "anomaly_pct": null, "colour_class": null, "anomaly_class": null, "cells_flagged_strong": 0, "cells_flagged_marginal": 0, "cells_total": 4, "rank": null}
+  ],
+  "year_totals": [
+    {"year": 2025, "total": 3693.2, "complete": false, "rank": null, "share_of_max": 1.0},
+    {"year": 2026, "total": 3533.1, "complete": false, "rank": null, "share_of_max": 0.96}
+  ],
+  "calendar_month_medians": [
+    {"calendar_month": 1, "median": 167.0, "reference_mean": 197.7, "no_typical_activity": false},
+    {"calendar_month": 2, "median": 365.0, "reference_mean": 412.2, "no_typical_activity": false},
+    {"calendar_month": 3, "median": 324.0, "reference_mean": 430.8, "no_typical_activity": false},
+    {"calendar_month": 4, "median": 127.0, "reference_mean": 171.8, "no_typical_activity": false},
+    {"calendar_month": 5, "median": 167.0, "reference_mean": 195.6, "no_typical_activity": false},
+    {"calendar_month": 6, "median": 337.0, "reference_mean": 426.2, "no_typical_activity": false},
+    {"calendar_month": 7, "median": 420.0, "reference_mean": 612.9, "no_typical_activity": false},
+    {"calendar_month": 8, "median": 828.0, "reference_mean": 935.4, "no_typical_activity": false},
+    {"calendar_month": 9, "median": 1177.0, "reference_mean": 1292.5, "no_typical_activity": false},
+    {"calendar_month": 10, "median": 865.8, "reference_mean": 976.0, "no_typical_activity": false},
+    {"calendar_month": 11, "median": 213.0, "reference_mean": 275.5, "no_typical_activity": false},
+    {"calendar_month": 12, "median": 126.0, "reference_mean": 156.8, "no_typical_activity": false}
+  ],
+  "statistics": {
+    "colour_breaks": [0, 1, 163, 324, 452, 836, 884],
+    "anomaly_breaks": [-100, -50, -20, 20, 50, 100],
+    "top_months": [
+      {"month": "2025-09", "count": 884.9, "rank": 1},
+      {"month": "2025-08", "count": 878.1, "rank": 2},
+      {"month": "2026-09", "count": 836.7, "rank": 3},
+      {"month": "2025-10", "count": 748.4, "rank": 4},
+      {"month": "2026-07", "count": 468.0, "rank": 5}
+    ],
+    "top_years": [],
+    "busiest_calendar_months": [
+      {"calendar_month": 9, "mean_count": 860.8, "rank": 1},
+      {"calendar_month": 8, "mean_count": 631.2, "rank": 2},
+      {"calendar_month": 10, "mean_count": 600.2, "rank": 3},
+      {"calendar_month": 7, "mean_count": 418.9, "rank": 4},
+      {"calendar_month": 2, "mean_count": 324.4, "rank": 5},
+      {"calendar_month": 6, "mean_count": 302.6, "rank": 6},
+      {"calendar_month": 11, "mean_count": 241.9, "rank": 7},
+      {"calendar_month": 3, "mean_count": 190.7, "rank": 8},
+      {"calendar_month": 4, "mean_count": 167.0, "rank": 9},
+      {"calendar_month": 1, "mean_count": 116.5, "rank": 10},
+      {"calendar_month": 12, "mean_count": 100.1, "rank": 11},
+      {"calendar_month": 5, "mean_count": 97.5, "rank": 12}
+    ],
+    "record_high": {
+      "month": "2025-09",
+      "count": 884.9
+    }
+  },
+  "current_month": {
+    "month": "2026-11",
+    "day": 13,
+    "count_to_date": 96.0,
+    "same_days_median": 90.6,
+    "no_typical_activity": false,
+    "ratio": 1.06,
+    "difference": 5.4,
+    "reference_period": {
+      "start_year": 2003,
+      "end_year": 2025
+    },
+    "same_days_by_year": [
+      {"year": 2003, "count": 83.0},
+      {"year": 2004, "count": 149.8},
+      {"year": 2005, "count": 86.2},
+      {"year": 2006, "count": 131.0},
+      {"year": 2007, "count": 79.1},
+      {"year": 2008, "count": 69.0},
+      {"year": 2009, "count": 155.8},
+      {"year": 2010, "count": 59.0},
+      {"year": 2011, "count": 87.5},
+      {"year": 2012, "count": 137.7},
+      {"year": 2013, "count": 75.3},
+      {"year": 2014, "count": 183.2},
+      {"year": 2015, "count": 277.6},
+      {"year": 2016, "count": 41.7},
+      {"year": 2017, "count": 93.1},
+      {"year": 2018, "count": 99.9},
+      {"year": 2019, "count": 254.1},
+      {"year": 2020, "count": 84.2},
+      {"year": 2021, "count": 55.3},
+      {"year": 2022, "count": 78.0},
+      {"year": 2023, "count": 179.3},
+      {"year": 2024, "count": 90.6},
+      {"year": 2025, "count": 107.7}
+    ],
+    "cells_flagged_strong": 0,
+    "cells_flagged_marginal": 0,
+    "cells_total": 4,
+    "quality": "NRT",
+    "validated_satellite": false,
+    "monthly_validation_only": true
+  }
+}

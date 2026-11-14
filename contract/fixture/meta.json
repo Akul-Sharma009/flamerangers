@@ -1,14 +1,38 @@
 {
+  "contract_version": "0.2.0",
   "record_version": "20261114-1a2b3c4d",
   "data_through": "2026-11-13",
-  "problems": [{"code": "not_loaded", "detail": "Other evaluated regions are not loaded in this fixture"}],
   "placeholder": true,
+  "unit_label": "hotspots, Aqua MODIS units",
   "record_start": "2002-07",
-  "record_switch": {"aqua_through": "2021-12", "viirs_from": "2022-01"},
-  "reference_period": {"start": 2003, "end": 2011, "day": 13},
-  "coverage": [
-    {"name": "Sumatra", "status": "loaded", "evidence_class": "tuned"},
-    {"name": "Australia grassland", "status": "not_loaded", "evidence_class": "tuned"}
-  ],
+  "record_switch": {
+    "aqua_through": "2021-12",
+    "viirs_from": "2022-01"
+  },
+  "satellite_switch": {
+    "snpp_through": "2026-11-02",
+    "noaa20_from": "2026-11-03"
+  },
+  "current_month": "2026-11",
+  "data_through_day": 13,
+  "reference_period": {
+    "start_year": 2003,
+    "end_year": 2025
+  },
+  "flag_reference_years": {
+    "start_year": 2003,
+    "end_year": 2011
+  },
+  "coverage": {
+    "global": false,
+    "regions": [
+      {"region_id": "sumatra", "name": "Sumatra", "status": "loaded", "evidence_class": "tuned"},
+      {"region_id": "australia_grassland", "name": "Australian grassland", "status": "not_loaded", "evidence_class": "tuned"},
+      {"region_id": "amazon_forest", "name": "Amazon forest", "status": "not_loaded", "evidence_class": "tuned"},
+      {"region_id": "southern_africa", "name": "Southern African savanna", "status": "not_loaded", "evidence_class": "tested_unseen"},
+      {"region_id": "siberia", "name": "Siberian boreal forest", "status": "not_loaded", "evidence_class": "tested_unseen"},
+      {"region_id": "punjab", "name": "Punjab cropland", "status": "not_loaded", "evidence_class": "reported_only"}
+    ]
+  },
   "noaa20_check": null
 }

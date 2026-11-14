@@ -1,0 +1,11 @@
+{
+  "type": "https://burncal.invalid/problems/too_large_for_sync",
+  "title": "This download is large",
+  "status": 413,
+  "code": "too_large_for_sync",
+  "record_version": "20261114-1a2b3c4d",
+  "data_through": "2026-11-13",
+  "estimated_rows": 4200000,
+  "estimated_megabytes": 610.0,
+  "years": [2002, 2003, 2004, 2005, 2006, 2007, 2008, 2009, 2010, 2011, 2012, 2013, 2014, 2015, 2016, 2017, 2018, 2019, 2020, 2021, 2022, 2023, 2024, 2025, 2026]
+}

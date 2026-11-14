@@ -1,0 +1,263 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "evidence.schema.json",
+  "title": "evidence.json",
+  "description": "Everything the evidence view shows. Written by the evidence build from the files in evidence/scoring/; no number in it is typed by hand. Every figure names the scoring file and the JSON pointer it was read from, and the build fails if a figure differs from its source. Ships inside the web build; the evidence view does not call the service.",
+  "type": "object",
+  "required": [
+    "schema_version",
+    "sources",
+    "claims",
+    "tables"
+  ],
+  "additionalProperties": false,
+  "properties": {
+    "schema_version": {
+      "type": "string"
+    },
+    "sources": {
+      "description": "The scoring files the build read.",
+      "type": "array",
+      "items": {
+        "type": "object",
+        "required": [
+          "file",
+          "sha256",
+          "set",
+          "label"
+        ],
+        "additionalProperties": false,
+        "properties": {
+          "file": {
+            "type": "string"
+          },
+          "sha256": {
+            "type": "string",
+            "pattern": "^[0-9a-f]{64}$"
+          },
+          "set": {
+            "type": "string",
+            "enum": [
+              "selection",
+              "final",
+              "reported_only",
+              "noaa20_check"
+            ]
+          },
+          "label": {
+            "type": "string"
+          },
+          "run_id": {
+            "type": [
+              "string",
+              "null"
+            ]
+          }
+        }
+      }
+    },
+    "claims": {
+      "description": "The fixed sentences from evidence/claims.yaml, each with the figures it quotes.",
+      "type": "array",
+      "items": {
+        "type": "object",
+        "required": [
+          "id",
+          "text",
+          "used_for_pick",
+          "figures"
+        ],
+        "additionalProperties": false,
+        "properties": {
+          "id": {
+            "type": "string"
+          },
+          "text": {
+            "type": "string"
+          },
+          "used_for_pick": {
+            "type": "boolean",
+            "description": "false for reported-only results, which never change the pick."
+          },
+          "figures": {
+            "type": "array",
+            "items": {
+              "$ref": "#/$defs/figure"
+            }
+          }
+        }
+      }
+    },
+    "tables": {
+      "description": "Head-to-head tables. Each cell is a figure.",
+      "type": "array",
+      "items": {
+        "type": "object",
+        "required": [
+          "id",
+          "title",
+          "set",
+          "columns",
+          "rows"
+        ],
+        "additionalProperties": false,
+        "properties": {
+          "id": {
+            "type": "string"
+          },
+          "title": {
+            "type": "string"
+          },
+          "set": {
+            "type": "string",
+            "enum": [
+              "selection",
+              "final",
+              "reported_only",
+              "noaa20_check"
+            ]
+          },
+          "note": {
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "columns": {
+            "type": "array",
+            "items": {
+              "type": "object",
+              "required": [
+                "key",
+                "label"
+              ],
+              "additionalProperties": false,
+              "properties": {
+                "key": {
+                  "type": "string"
+                },
+                "label": {
+                  "type": "string"
+                },
+                "unit": {
+                  "type": [
+                    "string",
+                    "null"
+                  ]
+                }
+              }
+            }
+          },
+          "rows": {
+            "type": "array",
+            "items": {
+              "type": "object",
+              "required": [
+                "key",
+                "label",
+                "cells"
+              ],
+              "additionalProperties": false,
+              "properties": {
+                "key": {
+                  "type": "string"
+                },
+                "label": {
+                  "type": "string"
+                },
+                "cells": {
+                  "type": "object",
+                  "additionalProperties": {
+                    "oneOf": [
+                      {
+                        "type": "null"
+                      },
+                      {
+                        "$ref": "#/$defs/figure"
+                      }
+                    ]
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    }
+  },
+  "$defs": {
+    "figure": {
+      "type": "object",
+      "required": [
+        "value",
+        "display",
+        "source"
+      ],
+      "additionalProperties": false,
+      "properties": {
+        "name": {
+          "type": "string"
+        },
+        "value": {
+          "type": [
+            "number",
+            "boolean",
+            "string"
+          ],
+          "description": "Exactly as it stands in the scoring file."
+        },
+        "display": {
+          "type": "string",
+          "description": "The value as shown, formatted by the build. The web prints this and does no rounding."
+        },
+        "interval": {
+          "description": "95% interval, when the scoring file gives one.",
+          "type": [
+            "object",
+            "null"
+          ],
+          "required": [
+            "lo",
+            "hi",
+            "display"
+          ],
+          "additionalProperties": false,
+          "properties": {
+            "lo": {
+              "type": "number"
+            },
+            "hi": {
+              "type": "number"
+            },
+            "display": {
+              "type": "string"
+            }
+          }
+        },
+        "beyond_noise": {
+          "type": [
+            "boolean",
+            "null"
+          ]
+        },
+        "source": {
+          "type": "object",
+          "required": [
+            "file",
+            "pointer"
+          ],
+          "additionalProperties": false,
+          "properties": {
+            "file": {
+              "type": "string"
+            },
+            "pointer": {
+              "type": "string",
+              "description": "RFC 6901 JSON pointer into the scoring file."
+            }
+          }
+        }
+      }
+    }
+  }
+}

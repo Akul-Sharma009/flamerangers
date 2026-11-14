@@ -1,0 +1,56 @@
+{
+  "contract_version": "0.2.0",
+  "record_version": "20261114-1a2b3c4d",
+  "data_through": "2026-11-13",
+  "placeholder": true,
+  "unit_label": "hotspots, Aqua MODIS units",
+  "record_start": "2002-07",
+  "record_switch": {
+    "aqua_through": "2021-12",
+    "viirs_from": "2022-01"
+  },
+  "satellite_switch": {
+    "snpp_through": "2026-11-02",
+    "noaa20_from": "2026-11-03"
+  },
+  "current_month": "2026-11",
+  "data_through_day": 13,
+  "reference_period": {
+    "start_year": 2003,
+    "end_year": 2025
+  },
+  "flag_reference_years": {
+    "start_year": 2003,
+    "end_year": 2011
+  },
+  "coverage": {
+    "global": false,
+    "regions": [
+      {"region_id": "sumatra", "name": "Sumatra", "status": "loaded", "evidence_class": "tuned"},
+      {"region_id": "australia_grassland", "name": "Australian grassland", "status": "not_loaded", "evidence_class": "tuned"},
+      {"region_id": "amazon_forest", "name": "Amazon forest", "status": "not_loaded", "evidence_class": "tuned"},
+      {"region_id": "southern_africa", "name": "Southern African savanna", "status": "not_loaded", "evidence_class": "tested_unseen"},
+      {"region_id": "siberia", "name": "Siberian boreal forest", "status": "not_loaded", "evidence_class": "tested_unseen"},
+      {"region_id": "punjab", "name": "Punjab cropland", "status": "not_loaded", "evidence_class": "reported_only"}
+    ]
+  },
+  "noaa20_check": {
+    "reported_only": true,
+    "validated_against_aqua": false,
+    "period_start": "2022-01",
+    "period_end": "2026-10",
+    "pooled": {
+      "mean_abs_difference": 2.8,
+      "bias_pct": -2.6,
+      "cell_months": 3758
+    },
+    "regions": [
+      {"region_id": "sumatra", "name": "Sumatra", "figures": {"mean_abs_difference": 5.9, "bias_pct": -2.7, "cell_months": 2313}},
+      {"region_id": "australia_grassland", "name": "Australian grassland", "figures": {"mean_abs_difference": 5.2, "bias_pct": -5.2, "cell_months": 4595}},
+      {"region_id": "amazon_forest", "name": "Amazon forest", "figures": {"mean_abs_difference": 3.4, "bias_pct": 2.0, "cell_months": 3815}},
+      {"region_id": "southern_africa", "name": "Southern African savanna", "figures": {"mean_abs_difference": 3.3, "bias_pct": 2.6, "cell_months": 2018}},
+      {"region_id": "siberia", "name": "Siberian boreal forest", "figures": {"mean_abs_difference": 6.4, "bias_pct": 5.9, "cell_months": 3387}},
+      {"region_id": "punjab", "name": "Punjab cropland", "figures": {"mean_abs_difference": 6.2, "bias_pct": 5.0, "cell_months": 3139}}
+    ]
+  }
+}

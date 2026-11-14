@@ -1,0 +1,9 @@
+{
+  "type": "https://burncal.invalid/problems/version_superseded",
+  "title": "A newer record version is available",
+  "status": 410,
+  "code": "version_superseded",
+  "record_version": "20261101-aaaaaaaa",
+  "data_through": "2026-11-01",
+  "current_record_version": "20261114-1a2b3c4d"
+}

@@ -1,37 +1,56 @@
-# Handoff (public-safe)
+# Handoff
 
-## Story 1.1: scaffold (branch `teammate/1.1-scaffold`, not yet merged)
+Short running status for the next session. Facts only; decisions and their status are in `DECISIONS.md`, story status in `sprint-status.yaml`.
 
-- Layout, pins (Python 3.14, uv, FastAPI, DuckDB, pyarrow, Shapely, numpy, pandas), `.env.example` with an empty `FIRMS_MAP_KEY`, gitleaks hook (v8.30.1), import check at `tools/check_imports.py`.
-- Open: whether `tests/` lives in this repo. The planning notes say it stays in the planning repo; Story 1.1's text says the folder is unchanged. Decide with Akul.
+Updated: Sat 14 Nov 2026, 13:00 SGT.
 
-## Build log
+## Where things stand
 
-- **14 Nov, 12:30 SGT.** Story 1.1 done on `teammate/1.1-scaffold`, commit `6fde700`, pushed.
-  - Checks run: pinned dependencies install, import check passes and catches a bad import, gitleaks hook passes, gitleaks finds no secrets in the repo and flags a planted fake key.
-  - Open for Akul: where `tests/` lives. Story 1.1 says the folder stays unchanged; the planning notes keep the tests in the planning record. Until he decides, test code sits under each package.
-  - Next: Story 1.2 (contract and fixture), co-written with Akul.
+| Story | Status | Notes |
+| --- | --- | --- |
+| 1.1 Repo scaffold | Done | Reviewed by the lead |
+| 1.2 Contract and fixture | Review | Contract 0.2.0 is written and tested. Not frozen: the data owner has not yet agreed to it. |
+| 1.3 Service stub | Not started in this repo | The host measurements for the Sat 12:00 checkpoint are not in yet |
+| 2.1 C1 parameters | Done | In `burncal/core/params/`; Story 2.2 is unblocked |
 
-## Story 1.2: contract and fixture (branch `teammate/1.2-contract`, DRAFT)
+Branches: `teammate/1.1-scaffold`, then `teammate/1.2-contract`, then `lead/1.1-setup` on top. Nothing is merged to `master` yet.
 
-- Written: `contract/openapi.yaml` (endpoints `/meta`, `/calendar`, `/cells`, `/hotspots.csv`, `/analytics.csv`), Sumatra fixtures in `contract/fixture/`, and `contract/test_contract.py`.
-- Checks: `uv run pytest contract` passes 12 of 12. The spec is valid, each fixture validates, and every enum value and the named problem codes appear in a fixture.
-- Not yet written, so Story 1.2 is not finished: `contract/CSV_SPEC.md` (CSV columns), `messages.yaml`, `regions.geojson`, and the `evidence.json` schema.
-- Needs Akul to agree before freezing: the problem codes marked PROPOSED in `openapi.yaml`, and the response shapes, which he has not reviewed.
+## What exists
 
-## Lead setup (branch `lead/1.1-setup`, on top of `teammate/1.2-contract`)
+- **Scaffold.** Pinned Python environment (`uv sync`), pinned web app in `web/` (Node 26, Vite, React, TypeScript 7), gitleaks hook, import check (`tools/check_imports.py`), stack smoke tests. Every pin in the plan's Stack table held.
+- **Frozen inputs.** `burncal/core/params/` (C1 parameters, parity targets, flag thresholds, Sumatra tuning counts) and `evidence/scoring/` (four scoring runs). Hashes are in each folder's `MANIFEST.json`.
+- **Contract 0.2.0** in `contract/`: `openapi.yaml`, fixtures, `messages.yaml`, `regions.geojson`, `CSV_SPEC.md`, `evidence.schema.json`. See `contract/README.md`.
+- **Generated files.** `contract/fixture/` comes from `tools/build_fixture.py`. `web/src/api/schema.d.ts` comes from `npm run gen:types` (needs the network; see `DECISIONS.md`). Regenerate both after any contract change.
 
-- `burncal/core/params/`: C1's frozen parameters (`c1_params.json`, verified against `c1_params.sha256`), the parity targets (`parity/`), the 1° flag thresholds and Sumatra's Aqua tuning-year counts. All 16 files match the hashes in `MANIFEST.json`. That manifest also lists three files under `intermediate/` that stay in the planning repo. Story 2.2 is no longer blocked on these.
-- `evidence/scoring/`: four scoring runs (two selection, final, reported-only), `.json` and `.txt` each, copied unchanged, with a `MANIFEST.json` of SHA-256 hashes. Checked: aggregate scores only.
-- `sprint-status.yaml` at the repo root is now the live copy. `DECISIONS.md` holds build-time decisions. `CLAUDE.md` holds the project rules.
-- `.gitignore` now covers `store/` and `CLAUDE.local.md`.
-- `tools/check_imports.py` now resolves relative imports, so `from ..pipeline import x` inside `core` fails the check.
-- Answer to the open question on `tests/`: the architecture's convention is that product tests sit beside the code (`test_*.py`, `*.test.ts`); the scoring harness stays in the planning repo and nothing here imports it.
-- The scoring harness ran on Python 3.12.15, numpy 2.5.4 and pandas 3.1.1; the product pins Python 3.14. Check this first if the parity check misses.
+## How to check everything
 
-## Still open in Story 1.1
+```bash
+uv sync
+uv run pytest
+uv run python tools/check_imports.py
+cd web && npm install && npm run typecheck && npm run test && npm run build
+```
 
-- The web scaffold with pinned versions, and the stack smoke test (web types generated from a two-field OpenAPI file, one FastAPI route on the pinned versions).
+## Contract 0.2.0: what changed from the first draft
+
+The first draft passed its tests but an independent review found it could not carry the product. The rewrite:
+
+- `POST` with a JSON body for `/calendar`, `/cells` and both CSVs; `record_version` required in each; `aoi_id` returned.
+- A `current_month` object for the card: count to date, same-days median, ratio, difference, the day, the reference years and each year's same-days count.
+- Year totals, calendar-month medians, rankings with values and ranks, colour and anomaly class breaks, and each month's class, all served.
+- Two periods served separately: `reference_period` and `flag_reference_years`.
+- Structured provenance: `source`, `inputs` (satellite, quality, days, feeds the record) and evidence-class counts.
+- Errors as `application/problem+json` with the plan's six codes; scale cautions inside the answer.
+- The plan's names: `cells_flagged_strong`, `cells_flagged_marginal`, `cells_total`; `AQUA`, `TERRA`, `SNPP`, `NOAA20`, `NOAA21`; cells by `sw_lon`, `sw_lat`.
+- Closed schemas, so a misspelt field fails, and tests that scan every enum in the document.
+
+The points where the plan left room are listed in `DECISIONS.md` ("Contract 0.2.0"). **The data owner should read those seven points first**; each is open until the freeze.
+
+## Next
+
+1. Data owner: read contract 0.2.0 and the seven points; agree or object. Then both owners freeze it.
+2. Data owner: Story 1.3 (service stub answering from `contract/fixture/`) and Story 2.2 (C1 in `core`, parity within 1e-6).
+3. Lead: Story 1.5 (web shell drawing `calendar.json`), then the evidence track from Story 5.1.
 
 ## Checkpoints (flags, not deadlines; times in SGT)
 
@@ -45,3 +64,10 @@
 | Before any global run | One global year is measured for size, download time and quota | Lead |
 | Sun 15:00 | Stories 6.5 and 6.1 are started | Lead, data owner |
 | Sun 15:00 | The planning documents the evidence view links to are copied into `docs/planning/`, after the lead has read each | Lead |
+
+## Things to keep in mind
+
+- The scoring harness ran on Python 3.12.15, numpy 2.5.4 and pandas 3.1.1; the product pins Python 3.14. Check this first if the parity check misses.
+- No converted count is published until the parity check passes.
+- Product tests sit beside the code. The scoring harness stays in the planning record and nothing here imports it.
+- Starlette warns that `httpx` in its test client is deprecated in favour of `httpx2`. Not acted on.

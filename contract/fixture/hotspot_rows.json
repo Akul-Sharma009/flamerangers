@@ -1,7 +1,10 @@
 {
   "rows": [
-    {"lat": 0.52, "lon": 101.3, "utc_datetime": "2019-03-04T06:12:00Z", "satellite": "Aqua", "instrument": "MODIS", "confidence": 85, "frp": 12.4, "daynight": "D", "type": 0, "quality": "SP", "feeds_record": true, "excluded_reason": "none", "weight": 1.0},
-    {"lat": 0.10, "lon": 101.9, "utc_datetime": "2026-11-03T18:40:00Z", "satellite": "NOAA-20", "instrument": "VIIRS", "confidence": 62, "frp": 3.1, "daynight": "N", "type": null, "quality": "NRT", "feeds_record": true, "excluded_reason": "offshore", "weight": 0.0},
-    {"lat": -0.20, "lon": 102.4, "utc_datetime": "2014-08-11T04:05:00Z", "satellite": "NOAA-21", "instrument": "VIIRS", "confidence": 40, "frp": 1.2, "daynight": "D", "type": 2, "quality": "SP", "feeds_record": false, "excluded_reason": "static", "weight": 0.0}
+    {"latitude": 0.5213, "longitude": 101.3127, "acq_datetime_utc": "2015-09-14T06:12:00Z", "satellite": "AQUA", "instrument": "MODIS", "confidence": "85", "frp": 42.4, "daynight": "D", "type": 0, "quality": "SP", "feeds_record": true, "excluded_reason": "none", "weight": 1.0},
+    {"latitude": 0.5302, "longitude": 101.3251, "acq_datetime_utc": "2015-09-14T03:31:00Z", "satellite": "TERRA", "instrument": "MODIS", "confidence": "71", "frp": 18.9, "daynight": "D", "type": 0, "quality": "SP", "feeds_record": false, "excluded_reason": "none", "weight": 0.0},
+    {"latitude": -2.9871, "longitude": 104.7533, "acq_datetime_utc": "2023-09-02T06:48:00Z", "satellite": "SNPP", "instrument": "VIIRS", "confidence": "n", "frp": 6.3, "daynight": "D", "type": 0, "quality": "SP", "feeds_record": true, "excluded_reason": "none", "weight": 0.2714},
+    {"latitude": 1.6644, "longitude": 101.4409, "acq_datetime_utc": "2023-09-02T18:21:00Z", "satellite": "SNPP", "instrument": "VIIRS", "confidence": "h", "frp": 3.1, "daynight": "N", "type": 2, "quality": "SP", "feeds_record": true, "excluded_reason": "static", "weight": 0.0},
+    {"latitude": 3.9105, "longitude": 98.9902, "acq_datetime_utc": "2026-11-05T06:02:00Z", "satellite": "NOAA20", "instrument": "VIIRS", "confidence": "l", "frp": 1.4, "daynight": "D", "type": null, "quality": "NRT", "feeds_record": true, "excluded_reason": "offshore", "weight": 0.0},
+    {"latitude": -0.4418, "longitude": 102.3376, "acq_datetime_utc": "2026-11-05T06:51:00Z", "satellite": "NOAA21", "instrument": "VIIRS", "confidence": "n", "frp": 4.8, "daynight": "D", "type": null, "quality": "NRT", "feeds_record": false, "excluded_reason": "none", "weight": 0.0}
   ]
 }

@@ -1,0 +1,9 @@
+{
+  "type": "https://burncal.invalid/problems/rate_limited",
+  "title": "Too many requests",
+  "status": 429,
+  "code": "rate_limited",
+  "record_version": "20261114-1a2b3c4d",
+  "data_through": "2026-11-13",
+  "retry_after_seconds": 30
+}

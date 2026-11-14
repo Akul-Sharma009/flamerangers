@@ -1,6 +1,8 @@
 # Harmonized burning activity calendar
 
-A public calendar of satellite fire hotspots for any land area, from July 2002 to now, on one consistent scale across the MODIS and VIIRS record.
+A public calendar of satellite hotspots for any land area, from July 2002 to now, on one consistent scale across the MODIS and VIIRS record.
+
+A hotspot is one satellite detection of heat. Hotspot counts measure burning activity, not the number of burns.
 
 ## Setup (fresh clone)
 
@@ -11,6 +13,15 @@ cp .env.example .env          # then add your own FIRMS_MAP_KEY to .env (never c
 uv sync                       # installs the pinned Python dependencies
 uv run python tools/check_imports.py
 uv run pytest
+```
+
+The web app needs Node 26:
+
+```bash
+cd web
+npm install
+npm run test
+npm run build
 ```
 
 Install the secret-scan hook once:

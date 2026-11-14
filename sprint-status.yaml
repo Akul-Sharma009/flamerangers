@@ -35,9 +35,9 @@ project_key: NOKEY
 tracking_system: file-system
 story_location: _bmad-output/implementation-artifacts
 development_status:
-  epic-1: backlog
-  1-1-repo-scaffold-and-guardrails-both: backlog
-  1-2-data-contract-and-sumatra-fixture-both: backlog
+  epic-1: in-progress
+  1-1-repo-scaffold-and-guardrails-both: done
+  1-2-data-contract-and-sumatra-fixture-both: review
   1-3-service-stub-at-a-public-address-t: backlog
   1-4-ui-concept-chosen-a: backlog
   1-5-web-shell-showing-the-fixture-calendar-a: backlog

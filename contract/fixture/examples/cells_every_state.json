@@ -1,0 +1,19 @@
+{
+  "record_version": "20261114-1a2b3c4d",
+  "data_through": "2026-11-13",
+  "cautions": [
+    {"code": "scale_below_1deg"}
+  ],
+  "month": "2026-11",
+  "flag_reference_years": {
+    "start_year": 2003,
+    "end_year": 2011
+  },
+  "cells": [
+    {"sw_lon": 101, "sw_lat": 0, "size_deg": 1, "flag_state": "strong", "count": 31.5, "threshold": 18.0, "partly_inside": false, "evidence_class": "tuned", "provisional": true, "reference_year": false},
+    {"sw_lon": 27, "sw_lat": -14, "size_deg": 1, "flag_state": "marginal", "count": 24.0, "threshold": 21.5, "partly_inside": true, "evidence_class": "tested_unseen", "provisional": true, "reference_year": false},
+    {"sw_lon": 75, "sw_lat": 30, "size_deg": 1, "flag_state": "none", "count": 12.0, "threshold": 40.2, "partly_inside": false, "evidence_class": "reported_only", "provisional": true, "reference_year": false},
+    {"sw_lon": 114, "sw_lat": -2, "size_deg": 1, "flag_state": "not_flaggable", "count": 3.0, "threshold": 7.5, "partly_inside": false, "evidence_class": "not_evaluated", "provisional": true, "reference_year": false},
+    {"sw_lon": -170, "sw_lat": 65, "size_deg": 1, "flag_state": "outside_record", "count": null, "threshold": null, "partly_inside": false, "evidence_class": "not_evaluated", "provisional": false, "reference_year": false}
+  ]
+}

@@ -1,0 +1,9 @@
+{
+  "type": "https://burncal.invalid/problems/invalid_aoi",
+  "title": "The area is not valid",
+  "status": 400,
+  "code": "invalid_aoi",
+  "record_version": "20261114-1a2b3c4d",
+  "data_through": "2026-11-13",
+  "detail": "The polygon is not closed: its last point differs from its first."
+}
