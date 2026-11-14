@@ -1,0 +1,6 @@
+{
+  "record_version": "20261101-aaaaaaaa",
+  "data_through": "2026-11-01",
+  "problems": [{"code": "version_superseded", "detail": "This record version was replaced"}],
+  "superseded_by": "20261114-1a2b3c4d"
+}

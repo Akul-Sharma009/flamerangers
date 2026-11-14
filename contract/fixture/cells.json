@@ -1,0 +1,13 @@
+{
+  "record_version": "20261114-1a2b3c4d",
+  "data_through": "2026-11-13",
+  "problems": [{"code": "scale_caution_025deg", "detail": "Area is smaller than a 0.25 degree box"}],
+  "month": "2026-11",
+  "cells": [
+    {"lon": 101.0, "lat": 0.0, "flag_state": "strong", "count": 14.0, "threshold": 8.0, "partly_inside": false, "evidence_class": "tuned", "provisional": true, "reference_year": false},
+    {"lon": 102.0, "lat": 0.0, "flag_state": "marginal", "count": 11.0, "threshold": 10.5, "partly_inside": true, "evidence_class": "tested_unseen", "provisional": true, "reference_year": false},
+    {"lon": 103.0, "lat": 0.0, "flag_state": "none", "count": 6.0, "threshold": 9.0, "partly_inside": false, "evidence_class": "reported_only", "provisional": true, "reference_year": false},
+    {"lon": 104.0, "lat": 0.0, "flag_state": "not_flaggable", "count": 3.0, "threshold": 4.0, "partly_inside": false, "evidence_class": "not_evaluated", "provisional": true, "reference_year": false},
+    {"lon": 105.0, "lat": 0.0, "flag_state": "outside_record", "count": null, "threshold": null, "partly_inside": false, "evidence_class": "not_evaluated", "provisional": false, "reference_year": false}
+  ]
+}

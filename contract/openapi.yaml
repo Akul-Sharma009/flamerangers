@@ -1,0 +1,279 @@
+openapi: 3.1.0
+info:
+  title: "Harmonized burning activity calendar: data service"
+  version: 0.1.0
+  description: >
+    Read-only API over one published store version. Every number is computed in
+    burncal/core or the service; the web only formats. DRAFT until Akul and the
+    teammate freeze it (Story 1.2).
+servers:
+  - url: http://localhost:8000
+paths:
+  /meta:
+    get:
+      summary: Store version, coverage, reference period and placeholder state
+      operationId: getMeta
+      responses:
+        "200":
+          description: Store metadata
+          content:
+            application/json:
+              schema: {$ref: "#/components/schemas/Meta"}
+        "410":
+          description: Requested record_version was superseded
+          content:
+            application/json:
+              schema: {$ref: "#/components/schemas/VersionSuperseded"}
+  /calendar:
+    get:
+      summary: Monthly harmonized counts for an area and date range
+      operationId: getCalendar
+      parameters:
+        - {name: aoi, in: query, required: true, schema: {type: string}, description: "GeoJSON polygon or bbox lon,lat,lon,lat"}
+        - {name: start, in: query, required: true, schema: {type: string, pattern: "^\\d{4}-\\d{2}$"}}
+        - {name: end, in: query, required: true, schema: {type: string, pattern: "^\\d{4}-\\d{2}$"}}
+        - {name: record_version, in: query, required: false, schema: {type: string}}
+        - {name: reference_start, in: query, required: false, schema: {type: integer, default: 2003}}
+        - {name: reference_end, in: query, required: false, schema: {type: integer, default: 2011}}
+      responses:
+        "200":
+          description: Calendar
+          content:
+            application/json:
+              schema: {$ref: "#/components/schemas/Calendar"}
+        "410":
+          description: Requested record_version was superseded
+          content:
+            application/json:
+              schema: {$ref: "#/components/schemas/VersionSuperseded"}
+  /cells:
+    get:
+      summary: Per 1-degree cell flags for one month
+      operationId: getCells
+      parameters:
+        - {name: aoi, in: query, required: true, schema: {type: string}}
+        - {name: month, in: query, required: true, schema: {type: string, pattern: "^\\d{4}-\\d{2}$"}}
+        - {name: record_version, in: query, required: false, schema: {type: string}}
+      responses:
+        "200":
+          description: Cells
+          content:
+            application/json:
+              schema: {$ref: "#/components/schemas/Cells"}
+  /hotspots.csv:
+    get:
+      summary: Individual hotspots for an exact date range (CSV)
+      operationId: getHotspotsCsv
+      parameters:
+        - {name: aoi, in: query, required: true, schema: {type: string}}
+        - {name: start, in: query, required: true, schema: {type: string, format: date}}
+        - {name: end, in: query, required: true, schema: {type: string, format: date}}
+        - {name: all_satellites, in: query, required: false, schema: {type: boolean, default: false}}
+      responses:
+        "200":
+          description: Hotspot rows. Column spec in contract/CSV_SPEC.md (to be written).
+          content:
+            text/csv:
+              schema: {type: string}
+  /analytics.csv:
+    get:
+      summary: Monthly analytics (CSV), built from the same objects as /calendar
+      operationId: getAnalyticsCsv
+      parameters:
+        - {name: aoi, in: query, required: true, schema: {type: string}}
+        - {name: start, in: query, required: true, schema: {type: string, pattern: "^\\d{4}-\\d{2}$"}}
+        - {name: end, in: query, required: true, schema: {type: string, pattern: "^\\d{4}-\\d{2}$"}}
+      responses:
+        "200":
+          description: Analytics rows. Column spec in contract/CSV_SPEC.md (to be written).
+          content:
+            text/csv:
+              schema: {type: string}
+components:
+  schemas:
+    ProblemCode:
+      description: "Machine codes. Named in the plan: outside_coverage, version_superseded. PROPOSED, not yet agreed with Akul: not_loaded, no_land, ratio_undefined, scale_caution_1deg, scale_caution_025deg. Sentences for each go in messages.yaml (to be written)."
+      type: string
+      enum:
+        - outside_coverage
+        - not_loaded
+        - no_land
+        - ratio_undefined
+        - version_superseded
+        - scale_caution_1deg
+        - scale_caution_025deg
+    Excluded:
+      type: string
+      enum: [none, offshore, static]
+    Quality:
+      type: string
+      enum: [SP, NRT]
+    EvidenceClass:
+      type: string
+      enum: [tuned, tested_unseen, reported_only, not_evaluated]
+    FlagState:
+      type: string
+      enum: [strong, marginal, none, not_flaggable, outside_record]
+    PartialReason:
+      type: string
+      enum: [record_start, data_through, missing_days, range_cut]
+    Problem:
+      type: object
+      required: [code]
+      properties:
+        code: {$ref: "#/components/schemas/ProblemCode"}
+        detail: {type: string}
+      additionalProperties: false
+    Envelope:
+      description: Fields every response carries.
+      type: object
+      required: [record_version, data_through, problems]
+      properties:
+        record_version: {type: string, pattern: "^\\d{8}-[0-9a-f]{8}$"}
+        data_through: {type: string, format: date}
+        problems:
+          type: array
+          items: {$ref: "#/components/schemas/Problem"}
+    Meta:
+      allOf:
+        - {$ref: "#/components/schemas/Envelope"}
+        - type: object
+          required: [placeholder, record_start, record_switch, reference_period, coverage, noaa20_check]
+          properties:
+            placeholder: {type: boolean}
+            record_start: {type: string, pattern: "^\\d{4}-\\d{2}$"}
+            record_switch: {type: object, required: [aqua_through, viirs_from], properties: {aqua_through: {type: string}, viirs_from: {type: string}}, additionalProperties: false}
+            reference_period: {type: object, required: [start, end, day], properties: {start: {type: integer}, end: {type: integer}, day: {type: integer, minimum: 1, maximum: 31}}, additionalProperties: false}
+            coverage:
+              type: array
+              items:
+                type: object
+                required: [name, status, evidence_class]
+                properties:
+                  name: {type: string}
+                  status: {type: string, enum: [loaded, not_loaded]}
+                  evidence_class: {$ref: "#/components/schemas/EvidenceClass"}
+                additionalProperties: false
+            noaa20_check:
+              description: Story 2.10 headline figures. null until that run has happened.
+              type: ["object", "null"]
+              additionalProperties: false
+              required: [reported_only, not_a_validation_against_aqua]
+              properties:
+                reported_only: {type: boolean, const: true}
+                not_a_validation_against_aqua: {type: boolean, const: true}
+                headline: {type: string}
+    VersionSuperseded:
+      allOf:
+        - {$ref: "#/components/schemas/Envelope"}
+        - type: object
+          required: [superseded_by]
+          properties:
+            superseded_by: {type: string}
+    Raw:
+      type: object
+      required: [aqua, terra, snpp, noaa20, noaa21]
+      properties:
+        aqua: {type: ["number", "null"]}
+        terra: {type: ["number", "null"]}
+        snpp: {type: ["number", "null"]}
+        noaa20: {type: ["number", "null"]}
+        noaa21: {type: ["number", "null"]}
+      additionalProperties: false
+    Month:
+      type: object
+      required: [month, count, raw, provenance, validated_satellite, partial_reasons, complete, median, reference_mean, anomaly_count, anomaly_pct, flags, rank]
+      properties:
+        month: {type: string, pattern: "^\\d{4}-\\d{2}$"}
+        count: {type: ["number", "null"], description: "Harmonized count, 1 decimal. null = outside record or not loaded. 0 = no hotspots."}
+        raw: {$ref: "#/components/schemas/Raw"}
+        provenance:
+          type: object
+          required: [standard, nrt]
+          properties:
+            standard: {type: array, items: {type: string}}
+            nrt: {type: array, items: {type: string}}
+          additionalProperties: false
+        validated_satellite: {type: boolean}
+        partial_reasons: {type: array, items: {$ref: "#/components/schemas/PartialReason"}}
+        complete: {type: boolean}
+        median: {type: ["number", "null"]}
+        reference_mean: {type: ["number", "null"]}
+        anomaly_count: {type: ["number", "null"]}
+        anomaly_pct: {type: ["number", "null"], description: "2 decimals. null when the historical median is 0."}
+        flags:
+          type: object
+          required: [strong, marginal, total]
+          properties:
+            strong: {type: integer, minimum: 0}
+            marginal: {type: integer, minimum: 0}
+            total: {type: integer, minimum: 0}
+          additionalProperties: false
+        rank: {type: ["integer", "null"]}
+        same_days:
+          type: object
+          description: Same-days count per complete past year (ruler for the current-month card). Empty for other months.
+          additionalProperties: {type: number}
+      additionalProperties: false
+    Calendar:
+      allOf:
+        - {$ref: "#/components/schemas/Envelope"}
+        - type: object
+          required: [aoi, months, statistics]
+          properties:
+            aoi: {type: object, required: [name, area_km2], properties: {name: {type: string}, area_km2: {type: number}}, additionalProperties: false}
+            months: {type: array, items: {$ref: "#/components/schemas/Month"}}
+            statistics:
+              type: object
+              required: [colour_breaks]
+              properties:
+                colour_breaks: {type: array, items: {type: number}}
+                top_months: {type: array, items: {type: string}}
+                top_years: {type: array, items: {type: integer}}
+              additionalProperties: false
+    Cell:
+      type: object
+      required: [lon, lat, flag_state, count, threshold, partly_inside, evidence_class, provisional, reference_year]
+      properties:
+        lon: {type: number}
+        lat: {type: number}
+        flag_state: {$ref: "#/components/schemas/FlagState"}
+        count: {type: ["number", "null"]}
+        threshold: {type: ["number", "null"]}
+        partly_inside: {type: boolean}
+        evidence_class: {$ref: "#/components/schemas/EvidenceClass"}
+        provisional: {type: boolean}
+        reference_year: {type: boolean}
+      additionalProperties: false
+    Cells:
+      allOf:
+        - {$ref: "#/components/schemas/Envelope"}
+        - type: object
+          required: [month, cells]
+          properties:
+            month: {type: string}
+            cells: {type: array, items: {$ref: "#/components/schemas/Cell"}}
+    HotspotRow:
+      type: object
+      required: [lat, lon, utc_datetime, satellite, instrument, confidence, frp, daynight, quality, feeds_record, excluded_reason, weight]
+      properties:
+        lat: {type: number}
+        lon: {type: number}
+        utc_datetime: {type: string}
+        satellite: {type: string, enum: [Aqua, Terra, SNPP, NOAA-20, NOAA-21]}
+        instrument: {type: string}
+        confidence: {type: number}
+        frp: {type: number}
+        daynight: {type: string, enum: [D, N]}
+        type: {type: ["integer", "null"]}
+        quality: {$ref: "#/components/schemas/Quality"}
+        feeds_record: {type: boolean}
+        excluded_reason: {$ref: "#/components/schemas/Excluded"}
+        weight: {type: number}
+      additionalProperties: false
+    HotspotRowList:
+      type: object
+      required: [rows]
+      properties:
+        rows: {type: array, items: {$ref: "#/components/schemas/HotspotRow"}}
+      additionalProperties: false

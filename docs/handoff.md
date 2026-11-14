@@ -11,3 +11,10 @@
   - Checks run: pinned dependencies install, import check passes and catches a bad import, gitleaks hook passes, gitleaks finds no secrets in the repo and flags a planted fake key.
   - Open for Akul: where `tests/` lives. Story 1.1 says the folder stays unchanged; the planning notes keep the tests in the planning record. Until he decides, test code sits under each package.
   - Next: Story 1.2 (contract and fixture), co-written with Akul.
+
+## Story 1.2: contract and fixture (branch `teammate/1.2-contract`, DRAFT)
+
+- Written: `contract/openapi.yaml` (endpoints `/meta`, `/calendar`, `/cells`, `/hotspots.csv`, `/analytics.csv`), Sumatra fixtures in `contract/fixture/`, and `contract/test_contract.py`.
+- Checks: `uv run pytest contract` passes 12 of 12. The spec is valid, each fixture validates, and every enum value and the named problem codes appear in a fixture.
+- Not yet written, so Story 1.2 is not finished: `contract/CSV_SPEC.md` (CSV columns), `messages.yaml`, `regions.geojson`, and the `evidence.json` schema.
+- Needs Akul to agree before freezing: the problem codes marked PROPOSED in `openapi.yaml`, and the response shapes, which he has not reviewed.

@@ -1,0 +1,14 @@
+{
+  "record_version": "20261114-1a2b3c4d",
+  "data_through": "2026-11-13",
+  "problems": [{"code": "not_loaded", "detail": "Other evaluated regions are not loaded in this fixture"}],
+  "placeholder": true,
+  "record_start": "2002-07",
+  "record_switch": {"aqua_through": "2021-12", "viirs_from": "2022-01"},
+  "reference_period": {"start": 2003, "end": 2011, "day": 13},
+  "coverage": [
+    {"name": "Sumatra", "status": "loaded", "evidence_class": "tuned"},
+    {"name": "Australia grassland", "status": "not_loaded", "evidence_class": "tuned"}
+  ],
+  "noaa20_check": null
+}

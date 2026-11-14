@@ -1,0 +1,8 @@
+{
+  "record_version": "20261114-1a2b3c4d",
+  "data_through": "2026-11-13",
+  "problems": [{"code": "no_land", "detail": "No land in this area"}],
+  "aoi": {"name": "Java Sea box", "area_km2": 0.0},
+  "months": [],
+  "statistics": {"colour_breaks": [], "top_months": [], "top_years": []}
+}

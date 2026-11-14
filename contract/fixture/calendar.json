@@ -1,0 +1,18 @@
+{
+  "record_version": "20261114-1a2b3c4d",
+  "data_through": "2026-11-13",
+  "problems": [
+    {"code": "outside_coverage", "detail": "Part of the requested range is outside the loaded coverage"},
+    {"code": "ratio_undefined", "detail": "Historical median is 0 for 2019-03; no ratio returned"},
+    {"code": "scale_caution_1deg", "detail": "Area is smaller than a 1 degree box"}
+  ],
+  "aoi": {"name": "Sumatra", "area_km2": 473000.0},
+  "months": [
+    {"month": "2002-06", "count": null, "raw": {"aqua": null, "terra": null, "snpp": null, "noaa20": null, "noaa21": null}, "provenance": {"standard": [], "nrt": []}, "validated_satellite": false, "partial_reasons": [], "complete": false, "median": null, "reference_mean": null, "anomaly_count": null, "anomaly_pct": null, "flags": {"strong": 0, "marginal": 0, "total": 0}, "rank": null, "same_days": {}},
+    {"month": "2002-07", "count": 12.3, "raw": {"aqua": 12.3, "terra": null, "snpp": null, "noaa20": null, "noaa21": null}, "provenance": {"standard": ["Aqua SP"], "nrt": []}, "validated_satellite": true, "partial_reasons": ["record_start"], "complete": false, "median": null, "reference_mean": null, "anomaly_count": null, "anomaly_pct": null, "flags": {"strong": 0, "marginal": 0, "total": 0}, "rank": null, "same_days": {}},
+    {"month": "2019-03", "count": 0, "raw": {"aqua": 0, "terra": null, "snpp": 0, "noaa20": null, "noaa21": null}, "provenance": {"standard": ["Aqua SP"], "nrt": ["SNPP NRT"]}, "validated_satellite": true, "partial_reasons": ["missing_days"], "complete": false, "median": 0, "reference_mean": 0, "anomaly_count": 0, "anomaly_pct": null, "flags": {"strong": 0, "marginal": 0, "total": 0}, "rank": null, "same_days": {}},
+    {"month": "2020-06", "count": 41.7, "raw": {"aqua": 41.7, "terra": null, "snpp": null, "noaa20": null, "noaa21": null}, "provenance": {"standard": ["Aqua SP"], "nrt": []}, "validated_satellite": true, "partial_reasons": ["range_cut"], "complete": true, "median": 30.1, "reference_mean": 29.4, "anomaly_count": 11.6, "anomaly_pct": 38.54, "flags": {"strong": 2, "marginal": 1, "total": 9}, "rank": 14, "same_days": {}},
+    {"month": "2026-11", "count": 58.2, "raw": {"aqua": null, "terra": null, "snpp": null, "noaa20": 58.2, "noaa21": null}, "provenance": {"standard": [], "nrt": ["NOAA-20 NRT"]}, "validated_satellite": false, "partial_reasons": ["data_through"], "complete": false, "median": 40.0, "reference_mean": 39.1, "anomaly_count": 18.2, "anomaly_pct": 45.5, "flags": {"strong": 3, "marginal": 2, "total": 11}, "rank": null, "same_days": {"2003": 10.5, "2004": 12.0, "2005": 9.8, "2006": 11.1, "2007": 13.4, "2008": 8.7, "2009": 10.9, "2010": 12.6, "2011": 11.2}}
+  ],
+  "statistics": {"colour_breaks": [0, 10, 20, 40, 80], "top_months": ["2019-03"], "top_years": [2019]}
+}
