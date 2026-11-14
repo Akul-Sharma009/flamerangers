@@ -84,3 +84,30 @@ Each entry has: a status (**ASSUMED** or **TESTED**), its evidence, and a "revis
 - **Decision:** The calendar page shows the area name, size, cautions and standing notes on the left, and not the current-month sentence or ruler.
 - **Evidence:** The sentence template and the "usual =" line are UI copy with no entry in `messages.yaml`. Writing them is Story 3.7's job, with the lead deciding the words.
 - **Revisit if:** the lead wants the sentence for the Saturday demo.
+## Malformed requests answer 400, not 422 (14 Nov)
+
+- **Status:** ASSUMED
+- **Decision:** The service answers any malformed request body (missing field, bad date, wrong geometry type, unknown field) with `400` and `application/problem+json`, code `invalid_aoi`, and a `detail` naming the field. It never uses FastAPI's default `422`.
+- **Evidence:** Contract 0.2.0 maps `422` to `no_land` and has no code for a malformed body. Test `test_1_3_ac1_malformed_request_gets_400_problem_not_422`.
+- **Revisit if:** the contract adds a code for a malformed request (needs both owners and a version bump).
+
+## CSV counting limits and citation before Stories 5.7 and 6.1 (14 Nov)
+
+- **Status:** ASSUMED
+- **Decision:** Until the about-the-data text (5.7) and the dataset references (6.1) exist, the CSV `counting_limits` lines are the `messages.yaml` notes `hotspot_definition`, `monthly_validation_only` and `flag_scale`, and `citation` is one line marked as a placeholder.
+- **Evidence:** `contract/CSV_SPEC.md` takes both from text that does not exist yet.
+- **Revisit if:** 5.7 or 6.1 is written.
+
+## Service CORS origins (14 Nov)
+
+- **Status:** ASSUMED
+- **Decision:** The service allows the exact origins listed in `CORS_ORIGINS` (comma-separated, not a secret). Unset means `http://localhost:5173` only. GET and POST, header `Content-Type`. Set by the lead on 14 Nov.
+- **Evidence:** Story 1.3 AC3. Tests `test_1_3_ac3_*` in `burncal/service/test_service.py`; checked on the hosted trial.
+- **Revisit if:** the web's public origin is known (add it to `CORS_ORIGINS` on the host).
+
+## Hosted trial for the stub (14 Nov)
+
+- **Status:** TESTED
+- **Decision:** The Story 1.3 trial runs on Vercel Hobby (free) as a Python function. Hugging Face Docker Spaces were refused: they now need a paid plan. The lead chooses the final host.
+- **Evidence:** Measurements in `docs/handoff.md` (Story 1.3, hosted trial).
+- **Revisit if:** the real store needs a local disk. Vercel's writable disk is `/tmp` only, with about 158 MB free.

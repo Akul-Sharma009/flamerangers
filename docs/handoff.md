@@ -11,7 +11,7 @@ Updated: Sat 14 Nov 2026, afternoon SGT (Story 1.5).
 | 1.1 Repo scaffold | Done | Reviewed by the lead |
 | 1.2 Contract and fixture | Done | Contract 0.2.0 is frozen (14 Nov). A change needs both owners and a version bump. |
 | 1.4 UI concept | Done | `UI-CONCEPT.md` in the planning record |
-| 1.3 Service stub | Not started in this repo | The host measurements for the Sat 12:00 checkpoint are not in yet |
+| 1.3 Service stub | Review | On contract 0.2.0; Vercel trial measured (see below) |
 | 2.1 C1 parameters | Done | In `burncal/core/params/`; Story 2.2 is unblocked |
 | 1.5 Web shell | Review | Draws Sumatra from the fixture; not committed yet. See below. |
 
@@ -32,6 +32,43 @@ uv run pytest
 uv run python tools/check_imports.py
 cd web && npm install && npm run typecheck && npm run test && npm run build
 ```
+
+## Story 1.3: service stub (branch `teammate/1.3-service-stub`, on top of `lead/1.1-setup`)
+
+- `burncal/service/app.py` answers every contract 0.2.0 endpoint from `contract/fixture/` when there is no store: `GET /meta`, and `POST /calendar`, `/cells`, `/hotspots.csv`, `/analytics.csv` with JSON bodies. Run: `uv run uvicorn burncal.service.app:app --port 8000`, then open `http://localhost:8000/meta`.
+- An old `record_version` gets `410` with `problems/version_superseded.json`. A malformed body gets `400` problem+json, never `422` (see `DECISIONS.md`).
+- Both CSVs follow `contract/CSV_SPEC.md`: header block, column line, rows; `null` is an empty cell. `counting_limits` and `citation` are stand-ins until Stories 5.7 and 6.1 (see `DECISIONS.md`).
+- CORS: exact origins from `CORS_ORIGINS` (comma-separated, not a secret), default `http://localhost:5173`, GET and POST. The service reads no other environment variable.
+- `Dockerfile` for a container host: non-root user, listens on `$PORT` (default 7860), `.env` kept out by `.dockerignore`.
+- Checks: `uv run pytest` 56 passed (13 of them service tests); import check passed.
+- The hosted trial below still runs the contract 0.1.0 stub.
+
+### Hosted trial: Vercel (Hobby, free), 14 Nov
+
+Trial only; the lead chooses and owns the final host. Public URL: `https://burncal-stub.vercel.app` (the per-deployment URLs sit behind Vercel's sign-in). Deployed as a Python function (not a container): Python 3.14, the pinned runtime dependencies from `pyproject.toml`, region iad1.
+
+| Measure | Result |
+| --- | --- |
+| Build | 12 s; bundle 343 MB, over Vercel's standard size, so dependencies are installed when an instance starts |
+| Cold start | 4.9 s for the first request after 20 idle minutes, from Singapore (then 0.28 s). Of that, 2.8 s is the dependency install on each new instance (runtime log) |
+| Warm request from Singapore | 0.28 to 0.59 s (mostly the round trip to iad1) |
+| Memory | about 2.2 GB available, 2 vCPU; 156 MB used with fastapi, duckdb, pyarrow, pandas, shapely and numpy loaded |
+| Disk | `/tmp` 525 MB, of which 158 MB free after the dependency install; everything else is read-only |
+| Endpoints | all five answer `200`; old `record_version` gives `410`; `placeholder: true` |
+| CORS | `http://localhost:5173` allowed; other origins get no CORS header |
+| Secrets | no environment variables set on the project |
+
+What it means for the real service: the store (5 to 15 GB) cannot sit on this host's disk. It would need object storage read over the network, and the bundle is already close to the 500 MB limit. A container host with a mounted disk avoids both.
+
+Not in the repo: the Vercel trial used a two-line `index.py` entrypoint and a `requirements.txt` with the same pins. A throwaway project `burncal-probe` measured the limits.
+
+| Criterion | Test or evidence |
+| --- | --- |
+| AC1 answers every endpoint from the fixture | `test_1_3_ac1_every_contract_path_is_answered`, `..._meta_is_the_fixture_and_a_placeholder`, `..._calendar_is_the_fixture_and_valid`, `..._cells_is_the_fixture_and_valid`, `..._analytics_csv_follows_the_spec`, `..._hotspots_csv_follows_the_spec` |
+| AC1 contract tests pass | `uv run pytest contract`, plus schema checks inside the service tests; `..._old_record_version_gets_410_problem`, `..._malformed_request_gets_400_problem_not_422` |
+| AC2 cold start, memory, disk on a host | Hosted trial table above (Vercel) |
+| AC3 CORS web origin and localhost only | `test_1_3_ac3_cors_allows_each_listed_origin`, `..._cors_refuses_unlisted_origins`, `..._cors_defaults_to_local_web_only`; checked on the hosted URL |
+| AC3 no secret on the host | `test_1_3_ac3_service_reads_no_secret`; hosted project has no environment variables |
 
 ## Story 1.5: the web shell
 
