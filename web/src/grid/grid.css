@@ -1,12 +1,24 @@
+.calfigure { width: 100%; min-width: 0; }
+.viewswitch { display: inline-flex; margin: 0 0 6px; border: 1px solid var(--ink); }
+.viewswitch button { font: 12px var(--sans); background: var(--paper); color: var(--ink); border: 0; padding: 3px 12px; cursor: pointer; }
+.viewswitch button + button { border-left: 1px solid var(--ink); }
+.viewswitch button[aria-pressed="true"] { background: var(--ink); color: var(--paper); }
+.viewswitch button:focus-visible { outline: 2px solid var(--ink); outline-offset: 2px; }
+
 .calgrid { width: 100%; min-width: 0; }
-.calgrid svg { display: block; width: 100%; overflow: visible; }
+.gridstage { position: relative; }
+.calgrid svg { display: block; overflow: visible; }
+.calgrid svg:focus { outline: none; }
 .calgrid text { font-family: var(--num); fill: currentColor; }
 .calgrid .yr { font-size: 11.5px; fill: var(--ink); text-anchor: end; }
 .calgrid .colhead, .calgrid .foot-label { font-family: var(--sans); font-size: 11px; fill: var(--muted); }
 .calgrid .colhead { text-anchor: middle; }
+.calgrid [role="gridcell"] { cursor: pointer; outline: none; }
 .calgrid .cell { color: var(--ink); }
 .calgrid .cell text.num { font-size: 10px; text-anchor: end; }
+.calgrid .cell text.num.tight { font-size: 9px; }
 .calgrid .cell text.dash { font-size: 11px; text-anchor: middle; fill: var(--muted); }
+.calgrid .cell text.marks { font-size: 8.5px; text-anchor: end; font-weight: 700; }
 .calgrid .cell.k0, .calgrid .cell.k1, .calgrid .cell.k2, .calgrid .cell.k3 { color: var(--ink); }
 .calgrid .cell.k4, .calgrid .cell.k5, .calgrid .cell.k6 { color: var(--paper); }
 .calgrid .cell.k0 .bg { fill: var(--c0); }
@@ -17,26 +29,67 @@
 .calgrid .cell.k5 .bg { fill: var(--c5); }
 .calgrid .cell.k6 .bg { fill: var(--c6); }
 .calgrid .cell.nullcell { color: var(--muted); }
+.calgrid .null-bg { fill: var(--paper); }
+.calgrid .null-pat { stroke: var(--rule); stroke-width: 0.5; }
 .calgrid .mtd { fill: none; stroke: var(--ink); stroke-width: 2; stroke-dasharray: 3 2; }
+.calgrid .k4 .mtd, .calgrid .k5 .mtd, .calgrid .k6 .mtd { stroke: var(--paper); }
 .calgrid .flag-strong { fill: currentColor; }
 .calgrid .flag-marginal { fill: none; stroke: currentColor; stroke-width: 1.2; }
+.calgrid .ring { fill: none; stroke: var(--ink); stroke-width: 2; pointer-events: none; }
+.calgrid .hit { fill: transparent; }
 .calgrid .tot-bar { fill: var(--muted); }
 .calgrid .tot-bar.hollow { fill: none; stroke: var(--muted); stroke-width: 1.2; }
+.calgrid .tot-box { fill: none; stroke: var(--muted); stroke-width: 1.2; }
 .calgrid .tot-num { font-size: 10.5px; fill: var(--ink); }
-.calgrid .rank circle { fill: none; stroke: var(--ink); stroke-width: 1.2; }
+.calgrid .tot-num.narrow { font-size: 9.5px; }
+.calgrid .rank.narrow text { font-size: 8.5px; }
+.calgrid .rank circle { fill: var(--paper); stroke: var(--ink); stroke-width: 1.2; }
 .calgrid .rank text { font-size: 9.5px; text-anchor: middle; fill: var(--ink); }
 .calgrid .switch-rule { stroke: var(--ink); stroke-width: 2; }
 .calgrid .switch-note { font-family: var(--sans); font-size: 11px; fill: var(--muted); }
 .calgrid .foot-rule { stroke: var(--rule); stroke-width: 1; }
-.calgrid .median { font-size: 10px; fill: var(--muted); text-anchor: middle; }
+.calgrid .median-num { font-size: 10px; fill: var(--muted); }
 .calgrid .hatch-line { stroke: var(--rule); stroke-width: 1; }
 .calgrid .dot { fill: var(--rule); }
 
-.gridlegend { display: flex; flex-wrap: wrap; gap: 6px 16px; align-items: center; margin-top: 10px; font-family: var(--sans); font-size: 11px; color: var(--muted); }
-.gridlegend .group { display: inline-flex; align-items: center; gap: 4px; }
-.gridlegend .ramp { display: inline-flex; gap: 2px; }
+.cellcard {
+  position: absolute; z-index: 2; box-sizing: border-box; pointer-events: none;
+  display: flex; flex-direction: column; gap: 2px;
+  background: var(--paper); border: 1px solid var(--ink); padding: 6px 8px;
+  font: 11.5px/1.35 var(--sans); color: var(--muted);
+}
+.cellcard strong { font-family: var(--serif); font-size: 14px; color: var(--ink); }
+.cellcard .count { font-family: var(--num); font-size: 12px; color: var(--ink); }
+
+.caltable-wrap { width: 100%; overflow-x: auto; }
+.caltable { border-collapse: collapse; font: 10px var(--num); font-variant-numeric: tabular-nums; }
+.caltable caption { text-align: left; font: 12px var(--sans); color: var(--muted); padding-bottom: 4px; }
+.caltable th, .caltable td { padding: 2px 3px; text-align: right; border-bottom: 1px solid var(--faint); white-space: nowrap; }
+.caltable thead th { font: 11px var(--sans); color: var(--muted); border-bottom: 1px solid var(--ink); }
+.caltable tbody th, .caltable tfoot th { font-weight: 400; text-align: left; }
+.caltable td.null { color: var(--muted); background: repeating-linear-gradient(45deg, transparent 0 3px, var(--faint) 3px 4px); text-align: center; }
+.caltable td.mtd { outline: 2px dashed var(--ink); outline-offset: -3px; }
+.caltable td .flag { margin-right: 1px; font-size: 8px; }
+.caltable sup.marks { font-weight: 700; font-size: 8px; margin-left: 1px; line-height: 0; }
+.caltable td.total { border-left: 1px solid var(--rule); }
+.caltable td.total.incomplete { outline: 1.2px solid var(--muted); outline-offset: -3px; }
+.caltable .rank { display: inline-block; min-width: 13px; margin-left: 4px; border: 1px solid var(--ink); border-radius: 50%; text-align: center; font-size: 9.5px; }
+.caltable tr.before-switch td, .caltable tr.before-switch th { border-bottom: 0; }
+.caltable tr.switch td { border-top: 2px solid var(--ink); text-align: left; font: 11px var(--sans); color: var(--muted); white-space: normal; padding: 3px 5px 5px; }
+.caltable tfoot th, .caltable tfoot td { border-top: 1px solid var(--ink); color: var(--muted); }
+
+.gridlegend { margin-top: 10px; font-family: var(--sans); font-size: 11px; color: var(--muted); }
+.gridlegend .scale { display: flex; flex-wrap: wrap; align-items: flex-end; gap: 4px 10px; margin-bottom: 8px; }
+.gridlegend .unit { color: var(--ink); }
+.gridlegend .ramp { display: inline-flex; gap: 2px; flex-wrap: wrap; }
 .gridlegend .step { display: inline-flex; flex-direction: column; align-items: flex-start; gap: 1px; }
 .gridlegend .step i { display: block; width: 44px; height: 12px; border: 1px solid var(--rule); }
 .gridlegend .step span { font-family: var(--num); font-size: 10px; }
-.gridlegend .item { display: inline-flex; align-items: center; gap: 5px; }
-.gridlegend svg { flex: none; }
+.gridlegend ul.symbols { list-style: none; margin: 0; padding: 0; display: grid; grid-template-columns: repeat(auto-fill, minmax(240px, 1fr)); gap: 5px 16px; }
+.gridlegend .item { display: flex; align-items: flex-start; gap: 6px; line-height: 1.35; }
+.gridlegend svg { flex: none; margin-top: 1px; }
+.gridlegend .markglyph { flex: none; width: 12px; text-align: center; font: 700 11px var(--num); color: var(--ink); }
+
+@media (max-width: 420px) {
+  .gridlegend .step i { width: 36px; }
+}

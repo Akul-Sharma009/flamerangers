@@ -21,6 +21,7 @@ Updated: Sat 14 Nov 2026, late evening SGT (PRs 3 to 11 merged; the lead's revie
 | 5.3 The outcome in plain words | Done | Merged to `master`. See below. |
 | 5.4 Head-to-head table | Done | Reviewed by the lead and merged to master. See below. |
 | 3.3 Select an area | Done | Reviewed by the lead and merged to master. See below. |
+| 3.5 The burning activity calendar | Review | On branch `claude/3-5-calendar-472072`, not merged. See below. |
 | 2.3 Ingest and cleaning | Done | PR 3, merged 14 Nov |
 | 2.4 Weights and the record | Done | PR 4, merged 14 Nov, with the weaker-class tie rule (225 / 570 / 6 / 38); full C1 parity PASS |
 | 2.5 Grids, thresholds, flags | In progress | PR 5, merged 14 Nov. Open: AC2 results for Australia and Amazon not recorded; static-input check (Next) |
@@ -376,6 +377,25 @@ One year (2024) of FIRMS standard data, MODIS_SP (Aqua and Terra rows) and VIIRS
 | AC2 out of range, out of order, not closed give a clear message | `area.test.tsx` AC2 block (parsers, corner marking, vertex lines); headless check of both forms |
 | AC3 no land / outside coverage show their sentence, never a calendar of zeros | `area.test.tsx` AC3 block (both codes, no grid, no size; version retry) |
 | AC4 cautions below 1° and 0.25° | `area.test.tsx` AC4 block (both, one, none served) |
+
+## Story 3.5: the burning activity calendar
+
+- The grid in `web/src/grid/` is now drawn by React from a pure model (`model.ts`) and layout (`layout.ts`); `CalendarGrid.tsx` holds the grid, the cell card and a Grid/Table switch, `CalendarTable.tsx` the table view, `GridLegend.tsx` the key. `web/src/pages/CalendarPage.tsx` is unchanged; `web/src/styles.css` changed one line (the one-column layout is `minmax(0, 1fr)`).
+- Marks that are not colour: hatching (outside the record), dots (not loaded), dashed outline (month to date), triangle and circle (strong and marginal flags), and letters after the count: `n` near real time, `*` incomplete month, `c` cut by the date range. Story 3.4's cut label is the `c` mark, read from the served `range_cut` partial reason.
+- Every month, year total and median is focusable (one tab stop, then arrow keys, Home, End, Escape) and shows a card on hover, focus or tap with the exact served count and its provenance; the same text is the cell's accessible name.
+- Checks: `npm run typecheck`, `npm run test` (94 passed; 23 in `grid.test.tsx`, 6 in `model.test.ts`), `npm run build`, `uv run python evidence/wording.py` passed.
+- Browser check (built-in browser, `vite` and `vite preview`): 1280 px, numerals in cells, hover card on September 2015, arrows from September 2019 down to the December median, Escape closes the card; 375 px, tint-only cells with letter marks, totals as numbers, vertical medians, tap card on September 2015, page width 375 in grid and table views; no console errors on the production build.
+- The browser pane does not run resize observers while it is hidden, so a resize there does not redraw the grid until the pane is shown or the page reloads. A real browser is not affected.
+- For the lead: the decisions headed "Story 3.5" in `DECISIONS.md` (five ASSUMED, one TESTED). Open: with the default range (to the data-through date) the fixture serves the current month with both `data_through` and `range_cut`, so it shows `c` as well as the dashed outline. Whether the service should leave out `range_cut` when the range ends on the data-through date is the data owner's call.
+
+| Criterion | Test or evidence |
+| --- | --- |
+| AC1 rows are years, columns January to December, cells coloured by served class; legend shows the breaks and the unit label | `grid.test.tsx` AC1 block (row order, every month's class, every break and the unit in the legend); browser check at 1280 and 375 px |
+| AC2 same count, same colour across the switch; switch marked between Dec 2021 and Jan 2022; legend explains it | `grid.test.tsx` AC2 block (equal counts on both sides get the same class; class never depends on `source`; rule between the 2022 and 2021 rows; the switch sentence in the grid and the legend) |
+| AC3 outside the record looks different from zero; NRT and partial months marked, not by colour alone | `grid.test.tsx` AC3 block (hatched outside the record against a filled "0" in grid and table; `n` on exactly the NRT months; `*` for missing days and record start; dashed outline for the month to date; `c` for a range cut, whole-month count kept; marks at 375 px; every mark's sentence in the legend) |
+| AC4 hover, focus or tap shows the exact count and provenance; same data in a table view | `grid.test.tsx` AC4 block (every month's detail against served fields; every month, total and median focusable with one tab stop; card for the focused cell; arrow-key moves; table holds every month's value and marks); hover, keyboard and tap checked in the browser |
+| AC5 year totals end each row, medians foot each column; every number on screen is served | `grid.test.tsx` AC5 block (served totals and medians at both widths; a 0 median shows "0"; every number in the grid, table and legend is a served value or a number inside a contract sentence) |
+| AC6 look and layout follow UI-CONCEPT.md | `grid.test.tsx` AC6 block (rank rings on the top years, hollow bar for incomplete years, no red); screenshots at 1280 and 375 px against the concept: paper ground, one sepia ramp, newest year on top, labelled rule, totals column with rank marks, medians row. Compared side by side with the concept's mockup at 1280 px: same structure (newest year on top, ruled switch, totals with bars and rank rings, medians row, hatching, dashed month to date). Differences: a Grid/Table switch where the mockup has a "show as plain table" link; a longer legend, because it explains more marks; the switch note is the contract's full sentence. |
 
 ## Contract 0.3.0
 

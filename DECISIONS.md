@@ -471,3 +471,45 @@ Each entry has: a status (**ASSUMED** or **TESTED**), its evidence, and a "revis
   - Simplest fallback: static answers for the six featured areas on the web host. It does not answer a drawn area.
 - **Evidence:** the stub trial (`docs/handoff.md`, Story 1.3) and the teammate's object-storage timing (cold Sumatra calendar 4.07 s on Vercel through DuckDB range reads). The real service loads the current and the previous version wholly into memory at start-up (`burncal/service/store.py`); its memory use is not measured yet.
 - **Revisit if:** the service's memory with Sumatra's current and previous versions loaded comes near 2 GB, or six regions will not fit in 2 GB; the store version cannot reach the function (bundle over the limit, or `/tmp` too small); or the hosted p95 of 20 Sumatra calendars misses the 3 s target (Story 2.6 AC6). The options then are serving only the current version, splitting regions across deployments, lazy reads by tile, or a container host from the list above.
+
+## Story 3.5: React draws the grid's SVG, not D3 (14 Nov 2026)
+
+- **Status:** ASSUMED
+- **Decision:** The grid is still one SVG drawn from the served `/calendar` answer, but React renders it from a pure layout (`web/src/grid/layout.ts`) instead of D3 drawing into a ref. The look is unchanged from Story 1.5. D3 stays a dependency for the ruler (Story 3.7).
+- **Evidence:** Story 3.5 needs focus, arrow keys, hover and tap on every cell, and tests for each criterion. With React the cells take event handlers and a roving tab stop directly, and the whole grid renders with `renderToStaticMarkup`, so every criterion is tested without adding a DOM library (`grid.test.tsx`, 23 tests). UI-CONCEPT.md section 7 names D3 as the drawing tool.
+- **Revisit if:** the lead wants D3 kept as the drawing layer; the grid then needs a DOM test library.
+
+## Story 3.5: marks that are not colour (14 Nov 2026)
+
+- **Status:** ASSUMED
+- **Decision:** Besides Story 1.5's marks (hatching for outside the record, dots for not loaded, a dashed outline for the month to date, a triangle and a circle for strong and marginal flags), a month carries letter marks after its count, as printed statistical tables flag figures: `n` near real time (any input that feeds the record has quality NRT), `*` incomplete (partial reason `record_start` or `missing_days`), `c` cut by the date range (`range_cut`). Below about 700 px, where cells show tint only, the letters sit in the cell's top-right corner. The table view shows the same letters. The legend gives each mark the contract's sentence. A month to date is not also given `*`; its dashed outline says it.
+- **Evidence:** UI-CONCEPT.md section 6 ("outline, hatching, symbol or text"); `grid.test.tsx` AC3 block; checked at 1280 px and 375 px in the built-in browser.
+- **Revisit if:** the lead or a user test finds the letters unclear, or real data puts a letter on most recent months.
+
+## Story 3.5: what the cell card says (14 Nov 2026)
+
+- **Status:** ASSUMED
+- **Decision:** Hovering, focusing or tapping a month shows a card and gives the cell the same text as its accessible name: the month, the exact served count with the unit label, the `source` sentence, each input that feeds the record with its served day count ("From Suomi NPP (VIIRS), 30 days"), the quality sentence for each quality among them, every partial-reason sentence, and the flag sentence. Year totals and medians are focusable too and say their served value, rank and incomplete-year note. Arrow keys, Home and End move between months, totals and medians; Escape or leaving the grid closes the card. The validation labels for NOAA-20 and the after-pick years are left to Story 3.6. Short labels ("Grid", "Table", "From", "days", "year total", "median", "Rank n of the complete years shown") are typed in the web, as Story 3.3 did; every sentence comes from `messages.yaml`.
+- **Evidence:** Story 3.5 AC4; `grid.test.tsx` AC4 block; keyboard and tap checked in the built-in browser.
+- **Revisit if:** Story 3.6 needs the card laid out differently, or the lead wants these labels in `messages.yaml`.
+
+## Story 3.5: a median of 0 shows as 0 (14 Nov 2026)
+
+- **Status:** TESTED (`grid.test.tsx`, AC5 block)
+- **Decision:** Story 1.5 showed "–" for a calendar-month median of 0 with `no_typical_activity`. It now shows "0" with the "No typical activity" sentence in its card; only a `null` median shows "–".
+- **Evidence:** CLAUDE.md "missing is not zero".
+- **Revisit if:** never, unless the contract changes what `null` means.
+
+## Story 3.5: the grid at phone width (14 Nov 2026)
+
+- **Status:** ASSUMED
+- **Decision:** Below 700 px the year-total column shows the served total as a number (no bar), an incomplete year's total sits in a hollow box (the legend's incomplete-year mark), rank circles sit before the number, and the medians are written vertically under their columns. The table view scrolls sideways inside its own box. The page's one-column layout in `web/src/styles.css` is now `minmax(0, 1fr)` instead of `1fr`, so wide content cannot widen the page.
+- **Evidence:** at 375 px, page width 375 in grid and table views (built-in browser, dev and production build).
+- **Revisit if:** the vertical medians read badly on a real phone.
+
+## Story 3.5: the sensor-change rule falls between two rows (14 Nov 2026)
+
+- **Status:** ASSUMED
+- **Decision:** Rows are years, so the rule is drawn between the row of the year of `meta.record_switch.viirs_from` and the row below it. This is right because the switch is at a year boundary (January 2022).
+- **Evidence:** `grid.test.tsx` AC2 block.
+- **Revisit if:** the switch ever moves off a January; the rule would then have to step inside a row.
