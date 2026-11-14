@@ -168,13 +168,14 @@ describe("Story 3.4 AC2: a range that cuts a month", () => {
     const march = model.rows.flatMap((r) => r.cells).find((c) => c.month === "2010-03")!;
     const served = cut.months.find((m) => m.month === "2010-03")!;
     expect(march.count).toBe(served.count);
-    expect(march.title).toContain(`${formatCount(served.count!)} ${cut.unit_label}`);
+    expect(march.detail.join("\n")).toContain(`${formatCount(served.count!)} ${cut.unit_label}`);
   });
 
-  it("labels each month the range cuts with the range_cut sentence (the grid's mark is Story 3.5)", () => {
+  it("labels each month the range cuts with the range_cut sentence and the grid's cut mark", () => {
     const cells = buildGridModel(cutCalendar(), meta).rows.flatMap((r) => r.cells);
     const label = messages.labels.partial_reason.range_cut;
-    expect(cells.filter((c) => c.title.includes(label)).map((c) => c.month).sort()).toEqual(["2010-03", "2012-06"]);
+    expect(cells.filter((c) => c.detail.some((d) => d.includes(label))).map((c) => c.month).sort()).toEqual(["2010-03", "2012-06"]);
+    expect(cells.filter((c) => c.cut).map((c) => c.month).sort()).toEqual(["2010-03", "2012-06"]);
   });
 
   it("titles the calendar with the served range's months", () => {
@@ -190,8 +191,8 @@ describe("Story 3.4 AC2: a range that cuts a month", () => {
 describe("Story 3.4 AC3: rankings follow the range; median and anomalies keep the reference period", () => {
   it("draws the rank marks the service sent for the range, not ones of its own", () => {
     const model = buildGridModel(cutCalendar(), meta);
-    expect(model.rows.find((r) => r.year === 2011)!.topRank).toBe(1);
-    expect(model.rows.filter((r) => r.topRank !== null)).toHaveLength(1);
+    expect(model.rows.find((r) => r.year === 2011)!.total?.topRank).toBe(1);
+    expect(model.rows.filter((r) => (r.total?.topRank ?? null) !== null)).toHaveLength(1);
   });
 
   it("states the served reference period beside the dates", () => {
