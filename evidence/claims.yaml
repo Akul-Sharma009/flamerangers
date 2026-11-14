@@ -1,0 +1,198 @@
+# Fixed claims (Story 5.1). The UI, README and pitch use these sentences and no others
+# about how C1 scored. Never write that C1 "beat the baselines" or had lower error than
+# "every baseline".
+#
+# Each figure gives the number as the sentence shows it (`display`) and where it comes
+# from (`source`: a file in evidence/scoring/ and an RFC 6901 JSON pointer). No value is
+# typed here: the evidence build (Story 5.2) reads each value from its source, formats it
+# with `format`, and fails if the result differs from `display`.
+#
+# Formats:
+#   pct1      value x 100, one decimal, then "%"        (0.2787 -> "27.9%")
+#   pct1_abs  as pct1, of the absolute value            (-0.1675 -> "16.8%")
+#   fix3      three decimals                            (0.7044 -> "0.704")
+#   fix3_abs  as fix3, of the absolute value            (-0.0084 -> "0.008")
+#   fix2      two decimals                              (45.497 -> "45.50")
+#   bool      a true/false in the file; `expect` is the value the sentence relies on,
+#             and `display` is not quoted in the text
+#   string    a string in the file, equal to `expect`
+# An `_abs` figure also gives `sign` (negative or positive), which the text relies on
+# ("ran 16.8% low", "0.008 lower precision").
+# A figure with `interval` also reads the 95% interval's `lo` and `hi` (same format).
+#
+# Names used in the text: (a) the raw splice, (b) one global factor, (c) Aqua only.
+# "Beyond noise" means the paired 95% interval excludes zero (the scoring files'
+# `beyond_noise` field).
+
+version: 1
+
+files:
+  final: final_20261113T172020Z.json
+  reported_only: reported_only_20261113T205827Z.json
+
+claims:
+  - id: count-error-vs-b
+    used_for_pick: true
+    text: >-
+      C1 has 27.9% lower count error than one global factor, baseline (b), on the final
+      set, 95% interval 18.6% to 30.5%, beyond noise. It also passed against the raw
+      splice, baseline (a). Baseline (c), Aqua only, is not scored on count error.
+    figures:
+      - name: error reduction, C1 against (b), final set
+        display: "27.9%"
+        format: pct1
+        source: {file: final, pointer: "/comparisons/C1 vs b/error/diff"}
+        interval:
+          display: "18.6% to 30.5%"
+          lo: {file: final, pointer: "/comparisons/C1 vs b/error/lo"}
+          hi: {file: final, pointer: "/comparisons/C1 vs b/error/hi"}
+        beyond_noise: {file: final, pointer: "/comparisons/C1 vs b/error/beyond_noise"}
+      - name: C1 passed the test against (a), final set
+        display: "true"
+        format: bool
+        expect: true
+        source: {file: final, pointer: "/decisions/final/beats_a/C1/pass"}
+
+  - id: flag-precision-vs-b
+    used_for_pick: true
+    text: >-
+      C1 failed the flag-precision test against (b): 0.704 against 0.736. Under the rule
+      fixed beforehand the outcome was "nothing beat one global factor", and the project
+      lead kept C1 as a recorded deviation after seeing the scores.
+    figures:
+      - name: C1 flag precision, final set
+        display: "0.704"
+        format: fix3
+        source: {file: final, pointer: "/approaches/C1/1/pooled/flags/precision"}
+      - name: (b) flag precision, final set
+        display: "0.736"
+        format: fix3
+        source: {file: final, pointer: "/approaches/b/1/pooled/flags/precision"}
+      - name: precision difference C1 minus (b) is beyond noise
+        display: "true"
+        format: bool
+        expect: true
+        source: {file: final, pointer: "/comparisons/C1 vs b/precision/beyond_noise"}
+      - name: C1 passed the test against (b), final set
+        display: "false"
+        format: bool
+        expect: false
+        source: {file: final, pointer: "/decisions/final/beats_b/C1/pass"}
+
+  - id: trade-off-recall
+    used_for_pick: true
+    text: >-
+      The trade-off: on the final set C1's flags caught more of the true anomalies than
+      (b)'s (recall 0.761 against 0.690) and were right less often. In plain words, more
+      true alerts and more false alarms.
+    figures:
+      - name: C1 flag recall, final set
+        display: "0.761"
+        format: fix3
+        source: {file: final, pointer: "/approaches/C1/1/pooled/flags/recall"}
+      - name: (b) flag recall, final set
+        display: "0.690"
+        format: fix3
+        source: {file: final, pointer: "/approaches/b/1/pooled/flags/recall"}
+
+  - id: best-of-three
+    used_for_pick: true
+    text: >-
+      The final-set score is slightly optimistic because C1 is the best of three.
+    figures:
+      - name: lowest-error approach of the three scored on the final set
+        display: "C1"
+        format: string
+        expect: "C1"
+        source: {file: final, pointer: "/decisions/not used for the pick/best_single/best"}
+
+  - id: aqua-through-2021
+    used_for_pick: true
+    text: >-
+      Real Aqua is the record through December 2021 because every method failed against
+      Aqua only.
+    figures:
+      - {name: "(a) against (c)", display: "false", format: bool, expect: false, source: {file: final, pointer: "/decisions/not used for the pick/non_inferior_to_c/a/pass"}}
+      - {name: "(b) against (c)", display: "false", format: bool, expect: false, source: {file: final, pointer: "/decisions/not used for the pick/non_inferior_to_c/b/pass"}}
+      - {name: "comparator against (c)", display: "false", format: bool, expect: false, source: {file: final, pointer: "/decisions/not used for the pick/non_inferior_to_c/cmp/pass"}}
+      - {name: "4A against (c)", display: "false", format: bool, expect: false, source: {file: final, pointer: "/decisions/not used for the pick/non_inferior_to_c/4A/pass"}}
+      - {name: "1A against (c)", display: "false", format: bool, expect: false, source: {file: final, pointer: "/decisions/not used for the pick/non_inferior_to_c/1A/pass"}}
+      - {name: "C1 against (c)", display: "false", format: bool, expect: false, source: {file: final, pointer: "/decisions/not used for the pick/non_inferior_to_c/C1/pass"}}
+
+  - id: southern-africa-flags
+    used_for_pick: true
+    # Scoped to the candidates and the baselines: on the final set the region-month
+    # comparator's flags in southern Africa were right 0.510 of the time (DECISIONS.md).
+    text: >-
+      On the final set, flags in southern Africa were right less than half the time for
+      every candidate method and both baselines: C1 0.453, 4A 0.473, 1A 0.408, (b) 0.459,
+      (a) 0.164.
+    figures:
+      - {name: "C1 precision in southern Africa", display: "0.453", format: fix3, source: {file: final, pointer: "/approaches/C1/1/regions/southern_africa/flags/precision"}}
+      - {name: "4A precision in southern Africa", display: "0.473", format: fix3, source: {file: final, pointer: "/approaches/4A/1/regions/southern_africa/flags/precision"}}
+      - {name: "1A precision in southern Africa", display: "0.408", format: fix3, source: {file: final, pointer: "/approaches/1A/1/regions/southern_africa/flags/precision"}}
+      - {name: "(b) precision in southern Africa", display: "0.459", format: fix3, source: {file: final, pointer: "/approaches/b/1/regions/southern_africa/flags/precision"}}
+      - {name: "(a) precision in southern Africa", display: "0.164", format: fix3, source: {file: final, pointer: "/approaches/a/1/regions/southern_africa/flags/precision"}}
+
+  - id: tiers-selection-only
+    used_for_pick: true
+    text: >-
+      The two flag tiers were checked on selection years only.
+    figures: []
+
+  - id: noaa20-untested
+    used_for_pick: true
+    text: >-
+      NOAA-20 is untested against Aqua. The comparison of NOAA-20 with Suomi NPP is
+      reported only.
+    figures: []
+
+  - id: reported-only-vs-b
+    used_for_pick: false
+    text: >-
+      Reported-only run (2012–2013, 2022–2026 and Punjab; never used for the pick),
+      against (b): C1 has 20.2% lower count error, 95% interval 14.8% to 24.6%, and lower
+      flag precision (0.720 against 0.738), both beyond noise. Recall is 0.695 against
+      0.631.
+    figures:
+      - name: error reduction, C1 against (b), reported-only set
+        display: "20.2%"
+        format: pct1
+        source: {file: reported_only, pointer: "/comparisons/C1 vs b/error/diff"}
+        interval:
+          display: "14.8% to 24.6%"
+          lo: {file: reported_only, pointer: "/comparisons/C1 vs b/error/lo"}
+          hi: {file: reported_only, pointer: "/comparisons/C1 vs b/error/hi"}
+        beyond_noise: {file: reported_only, pointer: "/comparisons/C1 vs b/error/beyond_noise"}
+      - {name: "C1 flag precision, reported-only set", display: "0.720", format: fix3, source: {file: reported_only, pointer: "/approaches/C1/1/pooled/flags/precision"}}
+      - {name: "(b) flag precision, reported-only set", display: "0.738", format: fix3, source: {file: reported_only, pointer: "/approaches/b/1/pooled/flags/precision"}}
+      - {name: "precision difference C1 minus (b) is beyond noise", display: "true", format: bool, expect: true, source: {file: reported_only, pointer: "/comparisons/C1 vs b/precision/beyond_noise"}}
+      - {name: "C1 flag recall, reported-only set", display: "0.695", format: fix3, source: {file: reported_only, pointer: "/approaches/C1/1/pooled/flags/recall"}}
+      - {name: "(b) flag recall, reported-only set", display: "0.631", format: fix3, source: {file: reported_only, pointer: "/approaches/b/1/pooled/flags/recall"}}
+
+  - id: reported-only-4a
+    used_for_pick: false
+    text: >-
+      On that reported-only set 4A alone passed the (b) test (12.2% lower error, precision
+      within noise) and C1 did not. C1 has 6.5% lower error than 4A and 0.008 lower
+      precision. This did not change the pick, because reported-only results never do.
+    figures:
+      - {name: "4A passed the test against (b), reported-only set", display: "true", format: bool, expect: true, source: {file: reported_only, pointer: "/decisions/shown only/beats_b/4A/pass"}}
+      - {name: "C1 passed the test against (b), reported-only set", display: "false", format: bool, expect: false, source: {file: reported_only, pointer: "/decisions/shown only/beats_b/C1/pass"}}
+      - {name: error reduction, 4A against (b), reported-only set, display: "12.2%", format: pct1, source: {file: reported_only, pointer: "/comparisons/4A vs b/error/diff"}}
+      - {name: "4A minus (b) precision is beyond noise", display: "false", format: bool, expect: false, source: {file: reported_only, pointer: "/comparisons/4A vs b/precision/beyond_noise"}}
+      - {name: error reduction, C1 against 4A, reported-only set, display: "6.5%", format: pct1, source: {file: reported_only, pointer: "/comparisons/C1 vs 4A/error/diff"}}
+      - {name: "precision difference C1 minus 4A, reported-only set", display: "0.008", format: fix3_abs, sign: negative, source: {file: reported_only, pointer: "/comparisons/C1 vs 4A/precision/diff"}}
+
+  - id: reported-only-regions
+    used_for_pick: false
+    text: >-
+      In southern Africa on the reported-only set, 4A did better than C1 (error 45.50
+      against 51.97) and C1 ran 16.8% low. In Punjab 1A did best (29.45 against C1's
+      31.59).
+    figures:
+      - {name: "4A error in southern Africa, reported-only set", display: "45.50", format: fix2, source: {file: reported_only, pointer: "/approaches/4A/1/regions/southern_africa/mae"}}
+      - {name: "C1 error in southern Africa, reported-only set", display: "51.97", format: fix2, source: {file: reported_only, pointer: "/approaches/C1/1/regions/southern_africa/mae"}}
+      - {name: "C1 bias in southern Africa, reported-only set", display: "16.8%", format: pct1_abs, sign: negative, source: {file: reported_only, pointer: "/approaches/C1/1/regions/southern_africa/bias"}}
+      - {name: "1A error in Punjab, reported-only set", display: "29.45", format: fix2, source: {file: reported_only, pointer: "/approaches/1A/1/regions/punjab/mae"}}
+      - {name: "C1 error in Punjab, reported-only set", display: "31.59", format: fix2, source: {file: reported_only, pointer: "/approaches/C1/1/regions/punjab/mae"}}

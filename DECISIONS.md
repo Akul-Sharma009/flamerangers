@@ -84,3 +84,31 @@ Each entry has: a status (**ASSUMED** or **TESTED**), its evidence, and a "revis
 - **Decision:** The calendar page shows the area name, size, cautions and standing notes on the left, and not the current-month sentence or ruler.
 - **Evidence:** The sentence template and the "usual =" line are UI copy with no entry in `messages.yaml`. Writing them is Story 3.7's job, with the lead deciding the words.
 - **Revisit if:** the lead wants the sentence for the Saturday demo.
+
+## Story 5.1: claims.yaml points at the scoring files instead of holding numbers (14 Nov 2026)
+
+- **Status:** TESTED
+- **Decision:** Each claim in `evidence/claims.yaml` has an `id`, its `text`, `used_for_pick`, and a list of figures. Each figure gives the number as written in the sentence (`display`), a `format`, and a `source` (scoring file and RFC 6901 pointer), plus the interval and noise pointers where the sentence quotes them. No value is typed in. The shape follows `contract/evidence.schema.json`, so Story 5.2's build can copy the value in and compare.
+- **Evidence:** `evidence/test_claims.py` resolves every pointer, formats the value, and checks it equals `display` and appears in the sentence; it checks every number in a sentence has a figure, the banned wording, that reported-only figures sit only in claims marked `used_for_pick: false`, and the manifest hashes. 98 tests pass. The check found two errors in the story's sentences (entries below).
+- **Revisit if:** Story 5.2 needs a field the figures lack, or wants the formatting moved into `core` (AD-8). The test's formatter is a check only and publishes nothing.
+
+## Story 5.1: Punjab figure is 29.45, not 29.46 (14 Nov 2026)
+
+- **Status:** TESTED
+- **Decision:** The claim reads "29.45 against C1's 31.59". The story's text said 29.46.
+- **Evidence:** The scoring file holds 29.45490938455426 (`/approaches/1A/1/regions/punjab/mae` in the reported-only JSON). The `.txt` report prints 29.455, and rounding that again gives 29.46. The planning record carries the same double-rounded figure.
+- **Revisit if:** never; the source is frozen.
+
+## Story 5.1: the southern Africa sentence is scoped to candidates and baselines (14 Nov 2026)
+
+- **Status:** ASSUMED (the lead decides the final words)
+- **Decision:** The story's sentence "Flags were right less than half the time in southern Africa for every method" is written as "On the final set, flags in southern Africa were right less than half the time for every candidate method and both baselines", with each value quoted.
+- **Evidence:** On the final set at 1°, precision in southern Africa is C1 0.453, 4A 0.473, 1A 0.408, (b) 0.459 and (a) 0.164, but the region-month comparator (`cmp`) is 0.510. On the reported-only set (b) is 0.573 and C1 0.557, so the statement holds only on the final set. The unscoped sentence would be false for a judge who checks the files.
+- **Revisit if:** the lead prefers other words, or wants the comparator named in the sentence.
+
+## Story 5.1: smaller wording choices in claims.yaml (14 Nov 2026)
+
+- **Status:** ASSUMED
+- **Decision:** The lead's name in the kept-C1 sentence is written as "the project lead" (no names in committed files). "Story 2.10's comparison" is written as "the comparison of NOAA-20 with Suomi NPP" (no story numbers in public sentences). "The tiers" is written as "the two flag tiers".
+- **Evidence:** CLAUDE.md rules for the public repo; the sentences are shown to judges.
+- **Revisit if:** the lead wants the original words.

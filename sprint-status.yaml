@@ -77,8 +77,8 @@ development_status:
   4-5-numbers-agree-check-t: backlog
   epic-4-retrospective: optional
 
-  epic-5: backlog
-  5-1-commit-the-scoring-outputs-and-the-fixed-claims-a: backlog
+  epic-5: in-progress
+  5-1-commit-the-scoring-outputs-and-the-fixed-claims-a: done
   5-2-evidence-build-and-its-checks-a: backlog
   5-3-the-outcome-in-plain-words-a: backlog
   5-4-head-to-head-table-a: backlog

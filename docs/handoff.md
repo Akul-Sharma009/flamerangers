@@ -2,7 +2,7 @@
 
 Short running status for the next session. Facts only; decisions and their status are in `DECISIONS.md`, story status in `sprint-status.yaml`.
 
-Updated: Sat 14 Nov 2026, afternoon SGT (Story 1.5).
+Updated: Sat 14 Nov 2026, evening SGT (Story 5.1).
 
 ## Where things stand
 
@@ -13,7 +13,8 @@ Updated: Sat 14 Nov 2026, afternoon SGT (Story 1.5).
 | 1.4 UI concept | Done | `UI-CONCEPT.md` in the planning record |
 | 1.3 Service stub | Not started in this repo | The host measurements for the Sat 12:00 checkpoint are not in yet |
 | 2.1 C1 parameters | Done | In `burncal/core/params/`; Story 2.2 is unblocked |
-| 1.5 Web shell | Review | Draws Sumatra from the fixture; not committed yet. See below. |
+| 1.5 Web shell | Done | Draws Sumatra from the fixture. See below. |
+| 5.1 Scoring files and claims | Done | `evidence/claims.yaml` written and checked; the lead approved the wording. See below. |
 
 Branches: `teammate/1.1-scaffold`, then `teammate/1.2-contract`, then `lead/1.1-setup` on top. Nothing is merged to `master` yet.
 
@@ -41,6 +42,14 @@ cd web && npm install && npm run typecheck && npm run test && npm run build
 - Checked in the browser at 1280 px and 375 px: newest year at the top, the 2021/2022 rule with its note, hatching for months outside the record, the month to date outlined, and no horizontal scroll at 375 px.
 - Not done: hero sentence and ruler (Story 3.7), plain-table view, colour-vision check (Story 3.10), and a legend label for an incomplete year's hollow bar, which `messages.yaml` lacks. There is also no sentence for "service unreachable"; the page shows interim words, marked TODO in `web/src/pages/CalendarPage.tsx`.
 
+## Story 5.1: scoring files and fixed claims
+
+- `evidence/scoring/` was already copied and committed with Story 2.1's inputs. Rechecked: all eight files match the planning record byte for byte and their manifest hashes, and hold aggregate scores only (no coordinates, no per-cell rows).
+- `evidence/claims.yaml` holds the eleven fixed sentences. Each number in a sentence is a figure with a pointer into a scoring file; no value is typed in. Format and fields are described at the top of the file.
+- `evidence/test_claims.py` resolves every pointer and checks the formatted value against the sentence, the banned wording, the manifest and the reported-only labelling. Story 5.2's build should reuse the same figure list.
+- Two of the story's sentences were wrong against the files and were corrected (see `DECISIONS.md`): Punjab 1A is 29.45, not 29.46; and southern Africa flags were under half right for the candidates and baselines, but the region-month comparator reached 0.510.
+- For the lead: on the final set the comparator (`cmp`) passed the (b) test, and C1 missed the fixed margin against 4A (3.9% lower error, below the 5% bar). No claim mentions either. Stories 5.3 to 5.5 will need to.
+
 ## Contract 0.2.0: what changed from the first draft
 
 The first draft passed its tests but an independent review found it could not carry the product. The rewrite:
@@ -59,7 +68,7 @@ The points where the plan left room are listed in `DECISIONS.md` ("Contract 0.2.
 ## Next
 
 1. Data owner: Story 1.3 (service stub answering from `contract/fixture/`) and Story 2.2 (C1 in `core`, parity within 1e-6).
-2. Lead: review and commit Story 1.5, then the evidence track from Story 5.1.
+2. Lead: Story 5.2 (evidence build and its checks).
 
 ## Checkpoints (flags, not deadlines; times in SGT)
 
