@@ -1,6 +1,6 @@
 # Web
 
-Static React client (Vite, React, TypeScript) for the burning activity calendar. It renders what the read-only data service returns and computes no numbers. It is currently a placeholder page.
+Static React client (Vite, React, TypeScript) for the burning activity calendar. It renders what the read-only data service returns and computes no numbers.
 
 Requires Node 26 (see `.nvmrc`).
 

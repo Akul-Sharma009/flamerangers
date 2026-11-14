@@ -16,6 +16,7 @@ Updated: Sat 14 Nov 2026, late evening SGT (PRs 3 to 11 merged; the lead's revie
 | 2.2 C1 in core | Done | Full parity PASS on the lead's machine (worst miss 2.1e-9). Merged (PR 2) |
 | 1.5 Web shell | Review | Draws Sumatra from the fixture; committed. See below. |
 | 5.1 Scoring files and claims | Done | `evidence/claims.yaml` written and checked; the lead approved the wording. See below. |
+| 6.2 README and fresh-clone run | In progress | Lead's sections (web against the fixture, evidence rebuild) on `lead/6-2-readme`; the data owner's (run the service, rebuild one region) on `teammate/2.8-coverage` (6384b21). See below. |
 | 6.6 Pitch storyline | Done | Drafted in `docs/pitch/storyline.md` as a 7-slide deck. See below. |
 | 5.2 Evidence build and checks | Done | Merged to `master`. See below. |
 | 5.3 The outcome in plain words | Done | Merged to `master`. See below. |
@@ -434,6 +435,12 @@ One year (2024) of FIRMS standard data, MODIS_SP (Aqua and Terra rows) and VIIRS
 | AC3 the sentence reads like the example, using only served values | `card.test.tsx` AC3 block (with the suggested template the card writes "So far this month: 412 hotspots, 2.3× the 2003–2025 median for the same days of November." from served values; 0.3.0 gives no template and the web types none; a template with a missing or null value is not filled; every number on the card is served). **Waits on the template in contract 0.4.0.** |
 | AC4 a median of 0 shows the count and "no typical activity", with no ratio | `card.test.tsx` AC4 block (count and `no_typical_activity` shown, no "×" and no ratio figure, median shown as 0; a null current month says "Not loaded yet." with no 0; a null count or median shows "–") |
 | AC5 NOAA-20: not part of the validation; once 2.10 has run, its comparison with Suomi NPP from served figures, labelled reported only | `card.test.tsx` AC5 block (`validated_satellite_false` on the fixture's NOAA-20 month; "not been run yet" while `noaa20_check` is null; the example meta gives "Reported only." and the pooled figures; a validated satellite gets none of these). **Real figures wait for Story 2.10.** |
+
+## Story 6.2: README, the lead's sections (branch `lead/6-2-readme`)
+
+- README gains "Run the web against the fixture" (no service; or the service with no store, at `VITE_SERVICE_BASE_URL=http://localhost:8000`) and "Rebuild the evidence" (`evidence/build.py`, `--check`, `pytest evidence`, then the web build and `evidence/wording.py`). Both sit just above "Status", away from the data owner's sections (above "Layout" on `teammate/2.8-coverage`), so the two should merge without a README conflict.
+- **Checked on the lead's machine (15 Nov, on master plus this branch):** evidence check passed, 109 evidence tests passed, web build passed, wording check passed. Web with no service: calendar, `#/evidence` and the placeholder banner render, no console errors. Web against the service with no store: `/meta` and `/calendar` answered 200 (CORS preflight 200), the same page and banner, no console errors.
+- **Still open for 6.2:** the data owner's fresh-clone check ran on `teammate/2.8-coverage`, which starts before Stories 3.4, 3.5 and 3.7 (71 web tests; master has 139). Rerun the fresh clone on master once 2.8 and this branch are merged. A fresh clone cannot publish converted counts (from January 2022) without the parity case from the planning record; the README says the case is needed but not that it is not public. The lead decides whether the README says so plainly or the case is published.
 
 ## Contract 0.3.0
 
