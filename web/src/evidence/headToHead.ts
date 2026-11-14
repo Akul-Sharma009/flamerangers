@@ -136,15 +136,15 @@ export interface HeadToHeadView {
   selection: SelectionNotes | null;
 }
 
-class Missing extends Error {}
+export class Missing extends Error {}
 
-function tableById(evidence: Evidence, id: string): EvidenceTable {
+export function tableById(evidence: Evidence, id: string): EvidenceTable {
   const t = evidence.tables.find((x) => x.id === id);
   if (!t) throw new Missing(`evidence.json has no table "${id}"`);
   return t;
 }
 
-function claimById(evidence: Evidence, id: string): Claim {
+export function claimById(evidence: Evidence, id: string): Claim {
   const c = evidence.claims.find((x) => x.id === id);
   if (!c) throw new Missing(`evidence.json has no claim "${id}"`);
   return c;
@@ -160,28 +160,31 @@ function titleRegion(title: string): string {
   return title.slice(title.indexOf(", ") + 2, title.lastIndexOf(", "));
 }
 
-/** The scales a set has, in the build's order, from its pooled approach tables. */
-export function scaleOptions(evidence: Evidence, set: SetKey): Option[] {
-  const prefix = `${set}.approaches.`;
+/** The two families of score tables: against real Aqua, and against the Terra referee (with (c)). */
+export type Family = "approaches" | "terra";
+
+/** The scales a set has, in the build's order, from its pooled tables of one family. */
+export function scaleOptions(evidence: Evidence, set: SetKey, family: Family = "approaches"): Option[] {
+  const prefix = `${set}.${family}.`;
   const suffix = `.${POOLED}`;
   return evidence.tables
     .filter((t) => t.id.startsWith(prefix) && t.id.endsWith(suffix))
     .map((t) => ({ key: t.id.slice(prefix.length, -suffix.length), label: titleScale(t.title) }));
 }
 
-/** The regions a set has at a scale, pooled first, from its approach tables. */
-export function regionOptions(evidence: Evidence, set: SetKey, scale: string): Option[] {
-  const prefix = `${set}.approaches.${scale}.`;
+/** The regions a set has at a scale, pooled first, from its tables of one family. */
+export function regionOptions(evidence: Evidence, set: SetKey, scale: string, family: Family = "approaches"): Option[] {
+  const prefix = `${set}.${family}.${scale}.`;
   return evidence.tables
     .filter((t) => t.id.startsWith(prefix) && !t.id.slice(prefix.length).includes("."))
     .map((t) => ({ key: t.id.slice(prefix.length), label: titleRegion(t.title) }));
 }
 
 /** A choice the set holds: an unknown region or scale falls back to pooled and the default scale. */
-export function normalise(evidence: Evidence, choice: Choice): Choice {
-  const scales = scaleOptions(evidence, choice.set);
+export function normalise(evidence: Evidence, choice: Choice, family: Family = "approaches"): Choice {
+  const scales = scaleOptions(evidence, choice.set, family);
   const scale = scales.some((s) => s.key === choice.scale) ? choice.scale : DEFAULT_SCALE;
-  const regions = regionOptions(evidence, choice.set, scale);
+  const regions = regionOptions(evidence, choice.set, scale, family);
   const region = regions.some((r) => r.key === choice.region) ? choice.region : POOLED;
   return { set: choice.set, scale, region };
 }
@@ -196,9 +199,10 @@ const sub = {
 /** The measures Story 5.4 names, in its order; the counts go under the rate they explain. */
 const SCORE_KEYS = ["mae", "bias", "abs_bias_median", "precision", "recall", "spearman", "topk_overlap", "year_pair_share", "peak_month_error", "season_length_diff"];
 
-function scoresOf(table: EvidenceTable): HeadToHeadView["scores"] {
+/** A score table's rows in `order` and the measures it holds at that level. Story 5.5 reuses it for the Terra referee. */
+export function scoresOf(table: EvidenceTable, order: readonly string[] = ROW_ORDER): HeadToHeadView["scores"] {
   const byKey = new Map(table.rows.map((r) => [r.key, r]));
-  const rows = ROW_ORDER.map((k) => byKey.get(k)).filter((r): r is EvidenceTable["rows"][number] => r !== undefined);
+  const rows = order.map((k) => byKey.get(k)).filter((r): r is EvidenceTable["rows"][number] => r !== undefined);
   // A measure the file holds at no row of this level (count error when pooled, the
   // median across regions for one region) is left out rather than shown as dashes.
   const columns = SCORE_KEYS.filter((key) => rows.some((r) => r.cells[key] != null)).map((key) => {
