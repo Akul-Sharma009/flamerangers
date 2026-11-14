@@ -1,0 +1,36 @@
+{
+  "name": "burncal-web",
+  "private": true,
+  "version": "0.1.0",
+  "type": "module",
+  "engines": {
+    "node": ">=26 <27"
+  },
+  "scripts": {
+    "dev": "vite",
+    "build": "tsc --noEmit && vite build",
+    "test": "vitest run",
+    "typecheck": "tsc --noEmit",
+    "gen:types": "npm exec --yes --package=openapi-typescript@7.13.0 --package=typescript@5.9.3 -- openapi-typescript ../contract/openapi.yaml -o src/api/schema.d.ts",
+    "smoke:types": "npm exec --yes --package=openapi-typescript@7.13.0 --package=typescript@5.9.3 -- openapi-typescript smoke/two-field.openapi.yaml -o smoke/.generated/schema.d.ts && tsc --noEmit -p smoke/tsconfig.json"
+  },
+  "dependencies": {
+    "d3": "7.9.2",
+    "maplibre-gl": "6.18.0",
+    "react": "19.3.1",
+    "react-dom": "19.3.1",
+    "terra-draw": "1.39.0",
+    "terra-draw-maplibre-gl-adapter": "1.5.0"
+  },
+  "devDependencies": {
+    "@playwright/test": "1.65.0",
+    "@types/d3": "7.4.3",
+    "@types/node": "26.6.6",
+    "@types/react": "19.3.0",
+    "@types/react-dom": "19.3.0",
+    "@vitejs/plugin-react": "6.3.0",
+    "typescript": "7.0.2",
+    "vite": "8.3.8",
+    "vitest": "5.1.0"
+  }
+}

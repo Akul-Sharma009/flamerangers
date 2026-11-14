@@ -1,0 +1,22 @@
+openapi: 3.1.0
+info:
+  title: Two-field smoke test
+  version: 0.0.0
+paths:
+  /pair:
+    get:
+      operationId: getPair
+      responses:
+        "200":
+          description: An object with exactly two fields
+          content:
+            application/json:
+              schema:
+                type: object
+                required: [name, count]
+                additionalProperties: false
+                properties:
+                  name:
+                    type: string
+                  count:
+                    type: integer
