@@ -9,6 +9,7 @@ import numpy as np
 import shapely
 
 from burncal.core import aoi as core_aoi
+from burncal.core import regions as core_regions
 from burncal.core import grids, record
 from burncal.service.store import SATELLITES, Version
 
@@ -45,13 +46,7 @@ def meta(v: Version, regions: dict) -> dict:
 def _aoi(v: Version, geom, name, regions) -> tuple[dict, object]:
     cells = v.cells_1deg_of(geom)
     counts = {k: int((cells["evidence_class"] == k).sum()) for k in EVIDENCE}
-    sa = regions.get("southern_africa")
-    if sa is not None and shapely.area(shapely.intersection(geom, sa[2])) > 0:
-        caveat = "southern_africa"
-    elif counts["tuned"] < len(cells):
-        caveat = "untuned_region"
-    else:
-        caveat = "none"
+    caveat = core_regions.region_caveat(geom, {rid: g for rid, (_, _, g) in regions.items()})
     return {"aoi_id": core_aoi.aoi_id(geom), "name": name, "area_km2": r1(core_aoi.area_km2(geom)),
             "evidence_class_counts": counts, "region_caveat": caveat}, cells
 

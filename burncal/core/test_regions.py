@@ -74,3 +74,14 @@ def test_2_4_ac3_build_extent_snaps_to_whole_5deg_tiles():
     assert regions.tile_extent((94.8, -6.6, 107.0, 6.3)) == (90.0, -10.0, 110.0, 10.0)
     assert regions.tile_extent((20.0, -18.0, 35.0, -8.0)) == (20.0, -20.0, 35.0, -5.0)
     assert regions.is_tile_extent((90.0, -10.0, 110.0, 10.0)) and not regions.is_tile_extent((94.8, -6.6, 107.0, 6.3))
+
+
+def test_2_6_region_caveat_from_the_area_shape():
+    # lead's call (14 Nov): from the area against the boundaries, not from cell classes
+    geoms = {"sumatra": shapely.box(100, -2, 102, 0), "southern_africa": shapely.box(20, -18, 35, -8),
+             "punjab": shapely.box(73.5, 29.5, 77, 32.5)}
+    assert regions.region_caveat(shapely.box(100.2, -1.8, 101.9, -0.1), geoms) == "none"
+    assert regions.region_caveat(shapely.box(100, -2, 102, 0), geoms) == "none"  # the region itself
+    assert regions.region_caveat(shapely.box(101.5, -1.0, 102.5, -0.5), geoms) == "untuned_region"
+    assert regions.region_caveat(shapely.box(74, 30, 75, 31), geoms) == "untuned_region"
+    assert regions.region_caveat(shapely.box(34, -9, 36, -7), geoms) == "southern_africa"

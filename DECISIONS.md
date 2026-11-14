@@ -313,6 +313,7 @@ Each entry has: a status (**ASSUMED** or **TESTED**), its evidence, and a "revis
   - Coverage comes from `coverage.json` beside the raw files: the extent and, per FIRMS source, the date ranges downloaded and available. `inputs[].days` counts covered days per satellite and quality, standard beating NRT per day. A month gets `missing_days` when a day of the record has no covered feeding satellite. The NOAA-20 2024 gap shows as zero NOAA-20 days, so `raw.noaa20` is null there.
   - Fast path: whole 0.25° cells inside the area come from the grid; cells the edge cuts come from point rows. A point on the area's edge is inside.
   - An area must lie wholly inside the store's extent; otherwise `outside_coverage` (404).
+  - `region_caveat` comes from the area's shape against the region boundaries (lead's call, 14 Nov): `southern_africa` when the area overlaps that region, `untuned_region` when any part lies outside the three tuning regions, else `none`. It no longer depends on cell classes.
   - Scale cautions compare the area (on a sphere) with a 1° and a 0.25° box at the area's latitude, so a long thin strip is not cautioned.
   - A range ending on `data_through` does not cut the current month (`range_cut` only when the range ends before the data does).
   - Until Stories 3.1 and 3.2, the statistics fields are null or empty, `rank` is null and `current_month` is null. `cells_flagged_*` and `cells_total` are already served. The CSV endpoints still answer from the fixture until Stories 2.7, 4.1 and 4.2.
