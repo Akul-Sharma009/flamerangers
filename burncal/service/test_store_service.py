@@ -179,3 +179,47 @@ def test_2_6_cells_answer_from_the_store(client, versions):
     c = r.json()
     valid(c, "Cells")
     assert len(c["cells"]) == 4 * 4 and any(x["partly_inside"] for x in c["cells"])
+
+
+# --- Story 3.1: statistics served ---------------------------------------------------
+def test_3_1_ac2_cut_and_partial_months_whole_counts_never_ranked(client, versions):
+    full = {m["month"]: m for m in client.post("/calendar", json=_body(versions[0])).json()["months"]}
+    cut = client.post("/calendar", json=_body(versions[0], start="2010-03-15", end="2012-06-10")).json()
+    cm = {m["month"]: m for m in cut["months"]}
+    valid(cut, "Calendar")
+    assert cm["2010-03"]["count"] == full["2010-03"]["count"] and "range_cut" in cm["2010-03"]["partial_reasons"]
+    assert cm["2010-03"]["complete"] is True  # range_cut labels the month; it stays complete
+    for k in ("2002-07", "2024-02", "2026-11"):
+        assert full[k]["complete"] is False and full[k]["rank"] is None
+    c = client.post("/calendar", json=_body(versions[0])).json()
+    ranked = {t["month"] for t in c["statistics"]["top_months"]}
+    assert not ranked & {"2002-07", "2024-02", "2026-11"}
+    assert c["statistics"]["record_high"]["month"] not in {"2002-07", "2024-02", "2026-11"}
+    years = {y["year"]: y for y in c["year_totals"]}
+    assert years[2002]["rank"] is None and years[2024]["rank"] is None and years[2026]["rank"] is None
+    assert cut["year_totals"][0]["rank"] is None  # 2010 is cut by the range: not ranked
+    assert all(m["rank"] is None for m in cm.values() if m["month"] < "2010-03")
+
+
+def test_3_1_ac3_zero_median_has_no_ratio(client, versions):
+    c = client.post("/calendar", json=_body(versions[0], PUNJAB, name=None)).json()
+    for m in c["months"]:
+        if m["median"] == 0:
+            assert m["no_typical_activity"] is True and m["ratio_to_median"] is None
+        elif m["median"] is not None:
+            assert m["no_typical_activity"] is False
+
+
+def test_3_1_ac4_numbers_rounded_once_from_unrounded_values(client, versions, store_root):
+    c = client.post("/calendar", json=_body(versions[0], AMAZON, name=None)).json()
+    assert c["reference_period"] == {"start_year": 2003, "end_year": 2025}
+    v = Store(store_root).latest()
+    sums = v.count_points(shape(AMAZON))[:, 0]
+    months = {m["month"]: m for m in c["months"]}
+    sep = [sums[(y - 2002) * 12 + 8] for y in range(2003, 2026)
+           if months[f"{y}-09"]["complete"]]
+    mean = float(np.mean(sep))
+    m = months["2015-09"]
+    assert m["reference_mean"] == round(mean, 1)
+    assert m["anomaly_count"] == round(sums[(2015 - 2002) * 12 + 8] - mean, 1)
+    assert m["anomaly_pct"] == round(100 * (sums[(2015 - 2002) * 12 + 8] - mean) / mean, 2)

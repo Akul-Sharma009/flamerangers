@@ -319,3 +319,15 @@ Each entry has: a status (**ASSUMED** or **TESTED**), its evidence, and a "revis
   - Until Stories 3.1 and 3.2, the statistics fields are null or empty, `rank` is null and `current_month` is null. `cells_flagged_*` and `cells_total` are already served. The CSV endpoints still answer from the fixture until Stories 2.7, 4.1 and 4.2.
 - **Evidence:** `uv run pytest burncal/pipeline/test_publish.py burncal/service/test_store_service.py`. Fast path against brute force on Sumatra, an Amazon polygon and the Punjab box: equal for every month (synthetic store), and on the real Sumatra version (largest difference 9.6e-10).
 - **Revisit if:** an area partly outside the extent should get a partial answer instead of 404, or the lead wants statistics before the web switches off the fixture.
+
+## Story 3.1: statistics follow the fixture's methods (14 Nov)
+
+- **Status:** ASSUMED (the methods were set when both owners froze the contract fixture; lead to confirm for real data)
+- **Decision:** `burncal/core/stats.py` is the one implementation, taking unrounded counts:
+  - Median and mean per calendar month over the complete months of the reference period (2003 to the last complete year before the current month). This includes converted years from 2022.
+  - Colour breaks per area: 0, 1, then the floored 30th, 55th, 75th, 90th and 97th percentiles (nearest rank) of the positive months shown. Anomaly breaks are fixed at −100, −50, −20, 20, 50, 100 percent.
+  - Ranks are competition ranks, with ties judged on the value as shown (1 decimal). Top months and years keep every tie at rank 5. Busiest calendar months are ranked by mean over the ranked months.
+  - Only complete months inside the range are ranked; a `range_cut` month stays complete. A year is ranked only when all 12 months are complete and the range holds January and December. `record_high` looks at every complete month of the record.
+  - A month's colour class uses its shown count; its anomaly class uses its shown percentage. Incomplete months still show their median and anomaly against the whole-month reference; the like-for-like comparison for the current month is the card (Story 3.2).
+- **Evidence:** `uv run pytest burncal/core/test_stats.py burncal/service/test_store_service.py`. Sumatra: record high September 2015 (12,120.0), top years 2006 and 2015.
+- **Revisit if:** the lead wants the reference period to stop at 2021 (Aqua only), or quantile breaks that ignore one very large month.

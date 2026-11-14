@@ -123,6 +123,20 @@ Not in the repo: the Vercel trial used a two-line `index.py` entrypoint and a `r
 | AC3 standard beats NRT per satellite-day | `test_2_3_ac3_*` in `test_ingest.py` and `test_build_extent.py`; 3,949 NRT rows replaced in the Sumatra build |
 | AC4 tuning-year Aqua counts agree, or differences listed with causes | `test_2_3_ac4_*` in `test_compare_tuning.py`; `uv run python -m burncal.pipeline.compare_tuning`; `docs/cleaning-differences.md` |
 
+## Story 3.1: statistics for the calendar (branch `teammate/3.1-statistics`, on top of 2.6)
+
+- `burncal/core/stats.py`: reference median and mean per calendar month (complete months of the reference period only), ratio to the median (none when the median is 0, with `no_typical_activity`), anomaly as a count and a percentage, per-area colour breaks, fixed anomaly breaks, competition ranks with ties, top 5 months and years, busiest calendar months, year totals and the record high. Methods are those of the frozen fixture (`DECISIONS.md`, Story 3.1).
+- `/calendar` now serves all of these from the store. The service rounds once (counts 1 decimal, ratios and percentages 2) and states the reference period. The current-month card is still null (Story 3.2).
+- Sumatra: record high September 2015 (12,120.0, 5.0 × the September median of 2,424.0); top years 2006 (39,244.0) and 2015 (36,027.0); September is the busiest calendar month. Calendar answer in 0.05 s locally.
+- Checks: `uv run pytest` 238 passed, 9 skipped; import check passed.
+
+| Criterion | Test or evidence |
+| --- | --- |
+| AC1 median and reference mean over complete prior years, anomaly count and %, year totals, medians, breaks, area, top 5 months and years, busiest months, ties as ties | `test_3_1_ac1_*` in `burncal/core/test_stats.py` |
+| AC2 cut, July 2002, current and missing-days months keep whole-month counts; only complete months and years ranked or in the reference | `test_3_1_ac2_*` in `burncal/service/test_store_service.py`, `test_3_1_ac1_reference_*` |
+| AC3 zero median: no ratio, and the answer says so | `test_3_1_ac3_*` (core and service) |
+| AC4 rounded once from unrounded values; reference period stated | `test_3_1_ac4_*` |
+
 ## Story 2.6: publish a version and serve real counts (branch `teammate/2.6-publish-serve`, on top of 2.5)
 
 - Publish: `uv run python -m burncal.pipeline.publish <record dir> <grids dir> <raw dir> store/published <data_through>`. The raw dir needs `coverage.json` (extent and downloaded date ranges per FIRMS source). Prints the new `record_version`.
