@@ -189,6 +189,22 @@ Not in the repo: the Vercel trial used a two-line `index.py` entrypoint and a `r
 - Largest area served locally: Southern Africa's whole 15×15° extent, p50 1.15 s (target 10 s). Hosted, add about 0.8 s.
 - To rebuild: download each region (`burncal.pipeline.download`), link its planned files into `store/staged/<region_id>/` (the extent's name in the version is that folder's name), then clean, convert, aggregate as in the README with outputs under `store/build/`, and publish all six triples in one command. Peak memory 4.4 GB (Southern Africa).
 
+### 2.8 AC2: global history planned from a measured sample (15 Nov; no global download made)
+
+- **Country files (no key):** the last year is **2025**, complete to 31 December 2025, standard processing (MODIS version 61.03, VIIRS version 2), for MODIS (`modis`), Suomi NPP (`viirs-snpp`) and NOAA-20 (`viirs-jpss1`). There is no 2026 file, and NOAA-21 (`viirs-jpss2`) has no country files at all. Each year also exists as one all-countries zip (`data/country/zips/<source>_<year>_all_countries.zip`): MODIS 65–90 MB a year (2002–2025), Suomi NPP 307–385 MB (2012–2025), NOAA-20 260–401 MB (2018–2025). Checked with HEAD and byte-range requests only.
+- **Area API (key):** quota 5,000 transactions per 10 minutes. Measured: a request costs **2 transactions per day of range**, whatever the area (100 to 525 deg²) or the rows (294 to 27,641). Whether a world-sized request costs the same is not measured.
+- **Rows:** our CSVs compress to 16.3–17.5 bytes a row (zip), so the all-countries zips hold about 4.7M MODIS and about 21M rows a year for each VIIRS satellite (Southern Africa's 4.3 GB raw folder checks out at this rate: 54M rows).
+- **Estimates, July 2002 to 13 November 2026, area API, world:**
+
+| Scope | 5-day requests | Transactions | Quota-bound time | Rows | CSV | Download at 0.6–2 MB/s | Store version (six-region ratios) |
+| --- | --- | --- | --- | --- | --- | --- | --- |
+| All five satellites, every day | 3,763 | 37,612 | 1.3 h | about 680M | about 54 GB | 25 h to 7.5 h | about 25 GB (points 8 GB) |
+| The product's plan (as the six regions) | 2,785 | 27,818 | 0.9 h | about 400M | about 31 GB | 14 h to 4 h | about 15 GB (points 4 GB) |
+
+- The download rate was measured on Southern Africa (4.3 GB in 1.9 h, 0.62 MB/s with 4 workers while other downloads ran); smaller regions were slower per byte because each request is small. A world request carries about 290,000 VIIRS rows (23 MB) per 5 days, so the rate is likelier bandwidth-bound; the upper figure is not measured.
+- **What it means:** the raw CSVs alone (31–54 GB) do not fit on the data owner's disk (29 GB free), and the store version (15–25 GB) does not fit any host measured so far. A world run needs either a pipeline that drops each raw year after building it, or a bigger machine, and a store read by range from object storage. These are the lead's calls (AC3); nothing needs money yet.
+- **To confirm before any world run (needs the lead's go-ahead, it is a global download):** one day of each source for the world (8 requests, about 20 MB) measures the weight of a world request and its time.
+
 | Criterion | Test or evidence |
 | --- | --- |
 | AC1 each region's calendar loads | `test_2_8_ac1_each_region_calendar_loads` (6 regions, every record month non-null) |
@@ -197,7 +213,7 @@ Not in the repo: the Vercel trial used a two-line `index.py` entrypoint and a `r
 | AC1 numbers agree in every region | `tools/check_numbers.py store/published`; `test_2_8_check_numbers_searches_every_region_the_version_holds` |
 | AC1 thresholds | `test_2_5_ac2_*` on the whole-tile builds |
 | One version holds several extents | `test_2_8_one_version_holds_several_extents`; `test_2_8_build_one_satellite_year_at_a_time_equals_the_whole_extent` |
-| AC2 global plan from a measured sample | Not done: needs the lead's go-ahead for a global sample |
+| AC2 global plan from a measured sample | 2.8 AC2 above: country files end in 2025; transactions, time and size estimated from regional requests and the all-countries zips. Open: the weight of a world request (needs a one-day world sample) |
 | AC3 one global year measured, the lead sees it first | Not done (no global download without the lead) |
 | AC4 world run, continental areas against 10 s | Not done; largest served area so far 1.15 s locally |
 | AC5 too-large areas reported | Size finding above reported to the lead; no limit added |
