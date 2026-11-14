@@ -1,0 +1,83 @@
+/* Story 3.3: the locator and the area picker. Ledger look (UI-CONCEPT.md):
+   paper ground, rules not cards, no shadows, no rounded corners. Tokens come from styles.css. */
+
+.locator-row { display: grid; grid-template-columns: 132px minmax(0, 1fr); gap: 14px; align-items: start; }
+.areamap { position: relative; border: 1px solid var(--rule); background: var(--paper); }
+.areamap-locator { width: 132px; height: 104px; }
+.areamap-draw { width: 100%; height: 340px; margin: 8px 0; touch-action: none; }
+.areamap .maplibregl-canvas { outline: none; }
+.areamap-draw .maplibregl-canvas:focus-visible { outline: 2px solid var(--ink); outline-offset: -2px; }
+
+.locator .place .name { overflow-wrap: anywhere; }
+
+.locator button {
+  font: inherit; font-size: 13px; color: var(--ink); background: transparent;
+  border: 1px solid var(--ink); border-radius: 0; padding: 5px 10px; cursor: pointer;
+  min-height: 32px;
+}
+.locator button:hover { background: var(--faint); }
+.locator button:focus-visible, .locator input:focus-visible, .locator textarea:focus-visible {
+  outline: 2px solid var(--ink); outline-offset: 2px;
+}
+.locator button:disabled { color: var(--muted); border-color: var(--rule); cursor: default; background: transparent; }
+.locator button.primary { background: var(--ink); color: var(--paper); }
+.locator button.primary:disabled { background: transparent; color: var(--muted); }
+
+.place .change {
+  display: block; margin-top: 8px; text-transform: none; letter-spacing: 0;
+  border: none; border-bottom: 1px solid var(--ink); padding: 2px 0; min-height: 0;
+}
+.place .change:hover { background: transparent; border-bottom-width: 2px; }
+
+.picker { margin-top: 14px; padding-top: 10px; border-top: 3px double var(--ink); }
+.picker-tabs { display: flex; flex-wrap: wrap; gap: 0 16px; border-bottom: 1px solid var(--rule); margin-bottom: 10px; }
+.locator .picker-tabs button {
+  border: none; border-bottom: 2px solid transparent; padding: 4px 0 6px; min-height: 32px;
+}
+.locator .picker-tabs button[aria-selected="true"] { border-bottom-color: var(--ink); font-weight: 600; }
+.locator .picker-tabs button:hover { background: transparent; }
+.locator .picker-tabs .picker-close { margin-left: auto; color: var(--muted); }
+
+ul.featured { list-style: none; margin: 0; padding: 0; }
+ul.featured li { border-bottom: 1px solid var(--faint); }
+.locator ul.featured button {
+  display: block; width: 100%; text-align: left; border: none; padding: 7px 0;
+  font-family: var(--serif); font-size: 16px; min-height: 36px;
+}
+.locator ul.featured button[aria-current="true"]::before { content: "\25B8\00A0"; }
+.locator ul.featured button[aria-current="true"] { font-weight: 600; }
+
+.drawmodes { display: flex; gap: 0; }
+.locator .drawmodes button + button { border-left: none; }
+.locator .drawmodes button[aria-pressed="true"] { background: var(--ink); color: var(--paper); }
+
+.picker-actions { display: flex; gap: 10px; margin-top: 10px; }
+
+.typed-forms { display: flex; flex-wrap: wrap; gap: 4px 18px; font-size: 13px; margin-bottom: 10px; }
+.typed-forms label { display: inline-flex; align-items: center; gap: 6px; min-height: 32px; }
+.corners { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 8px 14px; }
+.corners label, .typed .vertices { display: flex; flex-direction: column; gap: 3px; font-size: 13px; }
+.typed small { color: var(--muted); font-size: 11.5px; }
+.typed input, .typed textarea {
+  font-family: var(--num); font-size: 14px; color: var(--ink); background: #fffdf8;
+  border: 1px solid var(--rule); border-radius: 0; padding: 6px 7px; width: 100%;
+}
+.typed textarea { resize: vertical; }
+.typed .typed-forms input { width: auto; margin: 0; accent-color: var(--ink); }
+/* The fields at fault: a heavier rule and a margin mark, not colour alone. */
+.typed .bad input, .typed .bad textarea { border: 2px solid var(--ink); }
+.typed .bad > span::after { content: " \2020"; font-weight: 600; }
+.typed .problem { font-size: 14.5px; margin: 10px 0 0; }
+.typed .problem .lines { font-family: var(--num); font-size: 12.5px; }
+
+.locator > .problem { margin-top: 12px; }
+.locator .caution {
+  margin: 10px 0 0; padding-left: 10px; border-left: 3px double var(--ink);
+  font-size: 13px; line-height: 1.45;
+}
+
+@media (max-width: 800px) {
+  .locator-row { grid-template-columns: 104px minmax(0, 1fr); gap: 12px; }
+  .areamap-locator { width: 104px; height: 84px; }
+  .areamap-draw { height: 300px; }
+}

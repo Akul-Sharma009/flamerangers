@@ -2,7 +2,7 @@
 
 Short running status for the next session. Facts only; decisions and their status are in `DECISIONS.md`, story status in `sprint-status.yaml`.
 
-Updated: Sat 14 Nov 2026, evening SGT (Story 5.4).
+Updated: Sat 14 Nov 2026, evening SGT (Stories 5.4 and 3.3).
 
 ## Where things stand
 
@@ -19,7 +19,8 @@ Updated: Sat 14 Nov 2026, evening SGT (Story 5.4).
 | 6.6 Pitch storyline | Done | Drafted in `docs/pitch/storyline.md` as a 7-slide deck. See below. |
 | 5.2 Evidence build and checks | Done | Merged to `master`. See below. |
 | 5.3 The outcome in plain words | Done | Merged to `master`. See below. |
-| 5.4 Head-to-head table | Review | On branch `claude/5-4-head-to-head-fb232e`, not committed yet. See below. |
+| 5.4 Head-to-head table | Done | Reviewed by the lead and merged to master. See below. |
+| 3.3 Select an area | Done | Reviewed by the lead and merged to master. See below. |
 
 `master` holds Stories 1.1 to 1.5, 2.1, 2.2 and 5.1. New work branches from `master`.
 
@@ -172,7 +173,7 @@ Not in the repo: the Vercel trial used a two-line `index.py` entrypoint and a `r
 | AC2 C1 in plain language (transfer table, per-footprint detection model, weighted by fire season), changes only months from January 2022 | "the method is explained in plain words…" |
 | AC3 links to the guardrails, the test plan and the selection record in the public repo | "it links to the guardrails…", "with no repository address the files are named, not linked"; browser check of the three hrefs. The copies themselves are Story 6.3 (lead). |
 
-## Story 5.4: head-to-head table (branch `claude/5-4-head-to-head-fb232e`)
+## Story 5.4: head-to-head table
 
 - The evidence view now has a full-width "Head to head" section under the first screen (`web/src/components/HeadToHead.tsx`, `HeadToHead.css`; view model in `web/src/evidence/headToHead.ts`). The reader picks the set (final, selection), the region (pooled or one region) and the scale (0.25°, 1°, whole region). The section shows:
   - the scores for C1, 4A, 1A, (b), (a) and the comparator;
@@ -192,6 +193,26 @@ Not in the repo: the Vercel trial used a two-line `index.py` entrypoint and a `r
 | AC3 each difference with its 95% interval and a beyond-noise mark, blocks stated, the close-call note | "AC3: every difference has its interval and a beyond-noise mark", "AC3: the number of blocks is stated…" |
 | AC4 final set: "used once", best-of-three, "comparator, never picked", the rule the final pick used | "AC4: final-set results carry…", "AC4: those final-set notes are not shown on the selection set…" |
 
+## Story 3.3: select an area
+
+- The calendar page's left column opens with a small locator: the area on a still map (Natural Earth 1:110m), its served name and km², and "Change area". That opens a picker with three tabs: featured areas from `contract/regions.geojson`, drawing (rectangle or polygon, MapLibre + terra-draw on a 1:50m map), and typed coordinates (box corners or polygon vertices). Sumatra is selected on first load.
+- Code is in `web/src/area/` (`AreaLocator`, `AreaPicker`, `MapView`, `typed.ts`, `load.ts`, `featured.ts`, `basemap.ts`, `words.ts`, styles in `area.css`). `web/src/pages/CalendarPage.tsx` now keeps the selected area and its answer; `loadDefaultCalendar` in `client.ts` is no longer used by the page.
+- A refused area (`no_land`, `outside_coverage`, ...) shows its `messages.yaml` sentence and no calendar. Scale cautions show from the served `cautions`.
+- New packages, exact pins: `world-atlas` 2.0.2, `topojson-client` 3.1.0; dev `@types/topojson-client` 3.1.5, `@types/geojson` 7946.0.16. Map code and land data load on demand (own chunks; MapLibre 1.1 MB, 300 KB gzipped).
+- MapLibre needs its worker URL set explicitly under Vite (done in `MapView`); without it no map draws in dev.
+- The built-in browser pane pauses map rendering while it is hidden, so the maps were checked with a headless Chrome script instead (Playwright's installed Chromium 1243 via `executablePath`; Playwright 1.65 expects a newer build that is not downloaded). Steps: first load, open the picker, type a bad box, a good box, draw a rectangle, draw a polygon, type an open polygon, pick Punjab; at 1366 px and 375 px, against `vite` and `vite preview`.
+- Checks: `npm run typecheck`, `npm run test` (57 passed, 32 of them Story 3.3), `npm run build`, `uv run python evidence/wording.py` passed.
+- Typed boxes with west greater than east cross 180° and are sent as a MultiPolygon split at the antimeridian (the lead's decision); "out of order" is south ≥ north only.
+- Missing sentences, for the lead's contract 0.3.0 bump: typed coordinates out of range, out of order (latitude) and not closed, and possibly a box with no width. Each shows `invalid_aoi` for now, with the fields at fault marked.
+- For the lead: the decisions headed "Story 3.3" in `DECISIONS.md` (five ASSUMED, four TESTED).
+
+| Criterion | Test or evidence |
+| --- | --- |
+| AC1 draw, type or pick; the area shows on the map with its km² and the calendar loads; Sumatra on first load | `area.test.tsx` AC1 block: featured list and default, first request is Sumatra, fixture mode, picked and typed requests, served km² shown, no km² before the answer, locator and picker render, draw tab. Drawing by mouse: headless Chrome check (rectangle and polygon). |
+| AC2 out of range, out of order, not closed give a clear message | `area.test.tsx` AC2 block (parsers, corner marking, vertex lines); headless check of both forms |
+| AC3 no land / outside coverage show their sentence, never a calendar of zeros | `area.test.tsx` AC3 block (both codes, no grid, no size; version retry) |
+| AC4 cautions below 1° and 0.25° | `area.test.tsx` AC4 block (both, one, none served) |
+
 ## Contract 0.2.0: what changed from the first draft
 
 The first draft passed its tests but an independent review found it could not carry the product. The rewrite:
@@ -210,7 +231,7 @@ The points where the plan left room are listed in `DECISIONS.md` ("Contract 0.2.
 ## Next
 
 1. Data owner: Stories 1.3 and 2.2 are merged; next is Story 2.3 (ingest and cleaning for one extent).
-2. Lead: review Story 5.4 (layout, the typed rule sentence, the per-year period rows); then Stories 5.5 and 5.6 below it on the same page, and the open points in Story 6.6's storyline.
+2. Lead: Story 3.4 adds the dates tab to the same picker; Stories 5.5 and 5.6 go below the head-to-head table on the evidence page.
 
 ## Checkpoints (flags, not deadlines; times in SGT)
 

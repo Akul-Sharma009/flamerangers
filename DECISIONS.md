@@ -294,3 +294,66 @@ Each entry has: a status (**ASSUMED** or **TESTED**), its evidence, and a "revis
 - **Decision:** the choices "0.25°", "1°", "whole region" and the region names are read from the approach tables' titles in `evidence.json` (the part after the last comma, and between the first and last). So the web types no digit. Every figure on the section carries its scoring-file pointer as a tooltip, and the test checks that each one matches `evidence.json`. Styles live in `web/src/components/HeadToHead.css`, not `styles.css`. Wide tables scroll inside their own box on a phone, with the approach column fixed. Screen-reader-only text is positioned inside that box; otherwise it widened the page to 835 px at 375 px.
 - **Evidence:** the tests; the browser check (document width 375 at 375 px).
 - **Revisit if:** `build.py` changes its title format. The AC2 test would fail first.
+
+## Story 3.3: typed-coordinate refusals show the invalid_aoi sentence and mark the field (14 Nov 2026)
+
+- **Status:** ASSUMED. Flag to the lead: three sentences are missing from `messages.yaml`.
+- **Decision:** typed coordinates are checked in the browser for unreadable, out of range (longitude −180 to 180, latitude −90 to 90), out of order (south < north), no width, not closed and too few vertices. `messages.yaml` 0.2.0 has one sentence for all of these (`problems.invalid_aoi`, which names the three checks), so every case shows it, and the form names the problem by marking the exact corner fields (`aria-invalid`, a heavier rule and a † mark) or listing the vertex lines at fault. The code keeps the specific case (`data-problem`), so specific sentences drop in through `web/src/area/words.ts` once they exist. Marked `TODO(label)` like the existing "service unreachable" gap.
+- **Evidence:** Story 3.3 AC2; `web/src/area/area.test.tsx` (AC2 block); headless Chrome check at 1366 px and 375 px.
+- **Revisit if:** the lead adds `out_of_range`, `out_of_order` and `not_closed` sentences in the planned contract 0.3.0 bump (the lead keeps this fallback until then and edits `contract/` personally). Then `typedProblemText` picks them by case and the test checks each.
+
+## Story 3.3: basemap from world-atlas, loaded on demand (14 Nov 2026)
+
+- **Status:** TESTED (browser check, dev server and production build)
+- **Decision:** the land outlines are Natural Earth via `world-atlas` 2.0.2 (TopoJSON, ISC licence over public-domain data), turned into GeoJSON in the browser by `topojson-client` 3.1.0. The locator uses 1:110m (55 KB), the drawing map 1:50m (546 KB, 179 KB gzipped). MapLibre, terra-draw and the land data load with dynamic `import()` when a map mounts, so they stay out of the first bundle. No tiles, no key, no network call outside the site. Rings that cross 180° are unwrapped (`web/src/area/basemap.ts`) because MapLibre otherwise draws a line across the map. Added, pinned exactly: `world-atlas`, `topojson-client`, and dev `@types/topojson-client` 3.1.5, `@types/geojson` 7946.0.16.
+- **Evidence:** screenshots of the locator and drawing map; the unwrap test in `area.test.tsx`. Alternatives: committing a generated GeoJSON (a second copy of the data to keep in step) or downloading Natural Earth files (needs a download step); both rejected as more moving parts.
+- **Revisit if:** the 50m chunk is too slow on a phone (use 110m for both), or the lead wants country borders.
+
+## Story 3.3: MapLibre's worker URL is set explicitly (14 Nov 2026)
+
+- **Status:** TESTED (headless Chrome against `vite` and `vite preview` of the build)
+- **Decision:** `MapView` imports `maplibre-gl/dist/maplibre-gl-worker.mjs?url` and calls `setWorkerUrl` before creating a map. MapLibre 6 looks for its worker beside its own file, which Vite's dependency bundling moves, so without this no map loads in dev ("Worker failed to load").
+- **Evidence:** console error before, maps drawing after, in dev and in the build (the worker is emitted as `assets/maplibre-gl-worker-*.mjs`).
+- **Revisit if:** MapLibre or Vite is upgraded; check whether the default works again.
+
+## Story 3.3: a typed box with west greater than east crosses 180° (14 Nov 2026)
+
+- **Status:** TESTED (the lead's decision, 14 Nov; `area.test.tsx`)
+- **Decision:** west > east is not an error: the box crosses the antimeridian. The web splits it there into a MultiPolygon (west to 180, then −180 to east) before sending, as the spine's Conventions say. A part with no width (west exactly 180, or east exactly −180) is dropped, leaving one Polygon. "Out of order" now means south ≥ north only. West equal to east (or west 180 and east −180) leaves a box with no width and is refused as `no_width`, showing the `invalid_aoi` sentence like the other typed cases. Whether a crossing box spans too much longitude is left to the service (`invalid_aoi`), so the web sends even a box wider than half the world. Drawn shapes still stay within −180 to 180 (the maps don't render world copies), and a self-intersecting typed polygon is left to the service. The locator frames a crossing box as the whole world, because the map does not render past 180.
+- **Evidence:** the lead's message of 14 Nov; tests "reads west greater than east as a box across 180°…", "leaves the span to the service…", "drops a part with no width…", "refuses a box with no width", "sends a typed box across 180° as a MultiPolygon". This replaces the earlier ASSUMED entry "no area crosses 180° yet".
+- **Revisit if:** contract 0.3.0 adds the out-of-order sentence (proposed: "The south edge must be less than the north edge.") or a sentence for a box with no width; or drawing across 180° is needed (then the maps need world copies and the drawn ring needs the same split).
+
+## Story 3.3: a typed polygon must be closed by the user (14 Nov 2026)
+
+- **Status:** ASSUMED
+- **Decision:** the last typed vertex must repeat the first. An open ring is refused as "not closed", not closed silently. Fewer than three corners is refused too. A vertex is "longitude, latitude" (comma, space or semicolon between), one per line; blank lines are skipped. An empty field is unreadable, never zero.
+- **Evidence:** Story 3.3 AC2 lists "not closed" as a message, so the user is expected to close the ring; GeoJSON requires closed rings. Tests in `area.test.tsx`.
+- **Revisit if:** user testing shows people expect the ring to close itself.
+
+## Story 3.3: the name and km² both come from the served answer (14 Nov 2026)
+
+- **Status:** ASSUMED. Flag to the lead.
+- **Decision:** the locator shows `calendar.aoi.name` and `calendar.aoi.area_km2` from the same response, and no size until that response arrives. A drawn or typed area is sent with `name: null` and labelled "Your area". While loading, or when the service refuses the area, the locator shows the requested name and outline but no size. In fixture mode every area returns the Sumatra fixture, so any drawn area is labelled "Sumatra, 1,071,229.5 km²" under the placeholder banner.
+- **Evidence:** AD-8 (km² is a served field); the contract says `aoi.name` echoes the request, so with the real service the two agree. Showing the requested name beside the fixture's size would pair a name with another area's size.
+- **Revisit if:** the fixture-mode labelling confuses a demo; then the fixture client could echo the request's name (still never the size).
+
+## Story 3.3: a refused area draws no calendar (14 Nov 2026)
+
+- **Status:** TESTED (`area.test.tsx`, AC3 block)
+- **Decision:** a problem answer for the area (`no_land`, `outside_coverage`, or any other code) shows the code's `messages.yaml` sentence under the locator as an alert, and the calendar column, the notes and the size are left out. `version_superseded` reloads `/meta` and asks once more. A network failure keeps the existing interim "could not be loaded" words (TODO, already raised).
+- **Evidence:** Story 3.3 AC3; "missing is not zero" rule.
+- **Revisit if:** the lead wants the last good calendar kept on screen, greyed, after a refusal.
+
+## Story 3.3: the control says "Change area" until dates exist (14 Nov 2026)
+
+- **Status:** ASSUMED
+- **Decision:** UI-CONCEPT.md names the control "change area or dates". Dates are Story 3.4 and not built, so the control reads "Change area"; Story 3.4 adds a dates tab and renames it. The picker has three tabs: featured areas (picking loads at once), draw (rectangle or polygon, then "Show this area") and type coordinates (box corners or polygon vertices). Short labels like these, the field hints and "Your area" are typed in the web as labels, as the shell already does ("Area", "Loading…"); every sentence comes from `messages.yaml`.
+- **Evidence:** UI-CONCEPT.md section 3; Story 1.5's shell labels.
+- **Revisit if:** the lead wants labels in `messages.yaml` too.
+
+## Story 3.3: how the criteria are tested (14 Nov 2026)
+
+- **Status:** ASSUMED
+- **Decision:** Vitest covers the logic (parsing, the request sent, problem and caution handling) and static renders of the locator, picker and page states, with no DOM library added. Clicking, drawing on the map and typing into the form were checked by a headless Chrome script (Playwright, from the existing dev dependency) at 1366 px and 375 px against both `vite` and the production build. The script is not committed.
+- **Evidence:** `area.test.tsx` (32 tests); the browser run: rectangle and polygon drawn, typed refusals shown, picking Punjab, no horizontal scroll at 375 px.
+- **Revisit if:** Story 3.10 adds Playwright end-to-end tests; the script's steps are written up in `docs/handoff.md` to port.
