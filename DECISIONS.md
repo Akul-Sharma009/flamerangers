@@ -280,3 +280,15 @@ Each entry has: a status (**ASSUMED** or **TESTED**), its evidence, and a "revis
 - **Decision:** The land mask is Natural Earth 1:10m land v5.1.1, read from the GeoJSON in that release (no shapefile reader is pinned). Points are tested with `shapely.contains_xy`, as the harness did.
 - **Evidence:** The harness-rule comparison matches exactly, so the GeoJSON copy and the shapefile give the same land test for Sumatra.
 - **Revisit if:** another region's comparison differs at the coast.
+
+## Story 2.4: how the convert step applies C1 per row (14 Nov)
+
+- **Status:** ASSUMED (each point below; lead to confirm)
+- **Decision:**
+  - A row uses a tuning region's rules when it lies strictly inside that region's polygon in `contract/regions.geojson` (`shapely.contains_xy`, the harness's test; a point exactly on the edge is outside). Every other row uses the pooled rules.
+  - Each row takes the 4A ratio of its own area. A 1A footprint's term uses the rules of its anchor row's area, and the blend weight of the anchor's month and area. Footprints are built over all feeding rows of one satellite in the build extent.
+  - Fire season: tuning regions use C1's stored months. Southern Africa, Siberia and Punjab use their own 2003–2011 cleaned Aqua history. Everywhere else uses the history of a fixed 5° tile (AD-4's untested extension). The history counts Aqua rows with `excluded_reason` `none`. When a build extent cuts a tile, only the part inside the extent counts.
+  - The 1A anchor tie rule (equal FRP goes to the earlier row) runs on rows sorted by satellite, time, latitude and longitude. The harness's own row order is not available for new data.
+  - The `evidence_class` of a 1° cell is the strongest class of any region that overlaps the cell with positive area (tuned, then tested_unseen, then reported_only, else not_evaluated). A cell that only touches a boundary along an edge is not inside. Cells are counted before the land mask.
+- **Evidence:** `uv run pytest burncal/core/test_c1.py burncal/core/test_regions.py burncal/pipeline/test_convert.py`. With every row in one tuning region, the per-row weights equal Story 2.2's weights, and parity still passes with the case set.
+- **Revisit if:** the lead wants a cell's class taken from its centre, or a region-wide build reveals cut tiles at the extent edge that change a season.

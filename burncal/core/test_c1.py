@@ -144,3 +144,44 @@ def test_2_2_season_rule_edges(params):
     assert not c1.season_months(params, np.zeros(12)).any()  # no history: no season
     totals = np.array([10.0, 90.0] + [0.0] * 10)  # month 1 holds exactly 10%
     assert c1.season_months(params, totals)[0]
+
+
+# --- Story 2.4: C1 with rules chosen per row ------------------------------------
+def test_2_4_ac3_mixed_weights_equal_row_weights_inside_one_tuning_region(params):
+    x = _toy()
+    n = len(x["lat"])
+    season = params["season"]["sumatra"][c1._month(x["time_utc"]) - 1]
+    got = c1.row_weights_mixed(params, np.array(["sumatra"] * n, object), season, **x)
+    assert np.allclose(got, c1.row_weights(params, "sumatra", **x), rtol=0, atol=1e-12)
+
+
+def test_2_4_ac3_pooled_rules_outside_the_tuning_regions(params):
+    x = _toy()
+    n = len(x["lat"])
+    season = np.ones(n, bool)
+    got = c1.row_weights_mixed(params, np.array([""] * n, object), season, **x)
+    w = params["w_season"]
+    no_night = {k: v for k, v in x.items() if k != "night"}
+    expected = (1 - w) * c1.row_4a(params, "", x["time_utc"], x["night"]) + w * c1.footprint_1a(params, "", **no_night)
+    assert np.allclose(got, expected, rtol=0, atol=1e-12)
+    assert not np.allclose(got, c1.row_weights_mixed(params, np.array(["sumatra"] * n, object), season, **x))
+
+
+def test_2_4_ac3_each_row_gets_its_own_4a_and_the_anchor_decides_the_1a_rules(params):
+    x = _toy()
+    regions = np.array(["sumatra", "", "", ""], object)  # anchor of the first footprint is row 1 (pooled)
+    season = np.zeros(4, bool)
+    got = c1.row_weights_mixed(params, regions, season, **x)
+    w = params["w_off"]
+    no_night = {k: v for k, v in x.items() if k != "night"}
+    r4a = np.r_[c1.row_4a(params, "sumatra", x["time_utc"][:1], x["night"][:1]),
+                c1.row_4a(params, "", x["time_utc"][1:], x["night"][1:])]
+    term = c1.footprint_1a(params, "", **no_night)  # every anchor (rows 1 and 3) is in the pooled area
+    assert np.allclose(got, (1 - w) * r4a + w * term, rtol=0, atol=1e-12)
+
+
+def test_2_4_ac3_mixed_weights_are_zero_for_rows_not_included(params):
+    x = _toy()
+    keep = np.array([True, False, True, True])
+    got = c1.row_weights_mixed(params, np.array(["sumatra"] * 4, object), np.ones(4, bool), **x, include=keep)
+    assert got[1] == 0.0

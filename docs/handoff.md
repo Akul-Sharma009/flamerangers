@@ -123,6 +123,22 @@ Not in the repo: the Vercel trial used a two-line `index.py` entrypoint and a `r
 | AC3 standard beats NRT per satellite-day | `test_2_3_ac3_*` in `test_ingest.py` and `test_build_extent.py`; 3,949 NRT rows replaced in the Sumatra build |
 | AC4 tuning-year Aqua counts agree, or differences listed with causes | `test_2_3_ac4_*` in `test_compare_tuning.py`; `uv run python -m burncal.pipeline.compare_tuning`; `docs/cleaning-differences.md` |
 
+## Story 2.4: weights and the harmonized record (branch `teammate/2.4-weights`, on top of 2.3)
+
+- Run: `uv run python -m burncal.pipeline.convert <clean dir> <out dir>`. Prints counts only.
+- `burncal/core/record.py`: which rows feed the record (Aqua through 2021-12-31; Suomi NPP 2022-01-01 to 2026-11-02; NOAA-20 from 2026-11-03, `validated_satellite` false; Terra and NOAA-21 never), each row's weight (1, the C1 weight, or 0; always 0 when excluded), and `month_state` (null before July 2002, July 2002 partial `record_start`, data-through month partial).
+- `burncal/core/regions.py`: tuning-region rules per row, the 5° season tiles and `evidence_class` per 1° cell. `c1.row_weights_mixed` applies C1 when rows lie in different areas. The choices are in `DECISIONS.md` (Story 2.4, ASSUMED).
+- `burncal/pipeline/convert.py` adds `region_id`, `rules_region`, `in_season`, `feeds_record`, `validated_satellite` and `weight` to every row, and writes `evidence_1deg.parquet`.
+- **Sumatra record:** 2,733,073 rows in 13 s (2.3 GB peak memory), 81 MB. 586,172 rows feed and count. Weight sums: Aqua 374,490.0, Suomi NPP 29,439.7, NOAA-20 216.9 (1,460 rows from 3 Nov 2026). No excluded or non-feeding row has weight. Rules: 2,409,453 rows Sumatra, 323,620 pooled (bounding box outside the polygon).
+- Checks: `uv run pytest` 201 passed, 9 skipped (C1 parity passes with the case set); import check passed.
+
+| Criterion | Test or evidence |
+| --- | --- |
+| AC1 Aqua weight 1 through 2021, feeding VIIRS the C1 weight from 2022, others 0 | `test_2_4_ac1_*` in `burncal/core/test_record.py` and `burncal/pipeline/test_convert.py`; Sumatra record above |
+| AC2 Suomi NPP through 2 Nov 2026, NOAA-20 from 3 Nov unvalidated, NOAA-21 never | `test_2_4_ac2_*` in `test_record.py` and `test_convert.py` |
+| AC3 tuning-region rules inside, pooled outside, `evidence_class` per 1° cell | `test_2_4_ac3_*` in `burncal/core/test_c1.py`, `burncal/core/test_regions.py`, `test_convert.py` |
+| AC4 null before July 2002, July 2002 partial | `test_2_4_ac4_*` in `test_record.py` (served by Story 2.6) |
+
 ## Store size probe (14 Nov, branch `teammate/2.3-ingest`)
 
 One year (2024) of FIRMS standard data, MODIS_SP (Aqua and Terra rows) and VIIRS_SNPP_SP, over the bounding boxes of Sumatra and Southern African savanna (`contract/regions.geojson`). 2024 is outside the tuning, selection and final years. Client: `burncal/pipeline/firms.py`. The files sit in `store/probe/` (git-ignored).
