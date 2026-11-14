@@ -364,3 +364,24 @@ Each entry has: a status (**ASSUMED** or **TESTED**), its evidence, and a "revis
 - **Decision:** `messages.yaml` gains `notes.year_incomplete` and a new `client` section for states the web finds itself, which the service never sends: `coordinates_out_of_range`, `latitude_out_of_order`, `polygon_not_closed`, `service_unreachable` and `evidence_unavailable`. The version moves to 0.3.0 in `messages.yaml`, `openapi.yaml`, the README and the generated fixtures. No endpoint, field or number changes. The web now uses these sentences in place of the four `TODO(label)` stand-ins, and the legend shows the hollow year-total bar. Typed cases without their own sentence (unreadable, no width, too few vertices) still show `invalid_aoi`. All six go in one bump, not one bump per gap.
 - **Evidence:** `uv run pytest` (the contract test now also checks the `client` section), and `npm test`, `npm run build` and the wording check all pass.
 - **Revisit if:** the data owner objects to a `client` section in a contract file, or a sentence for a box with no width is wanted.
+
+## Static mask: the scored rule (14 Nov)
+
+- **Status:** TESTED (lead's decision, 14 Nov)
+- **Decision:** A 30 arc-second cell is static if it has hotspots on 50 or more distinct UTC days in one tuning year (2014, 2016, 2017, 2020), counting MODIS (Aqua, Terra) and Suomi NPP rows on land. This is the rule the scoring harness used, so the published record is cleaned the way C1 was scored, and the world run needs only those four years of three satellites to build the mask. The product has no region boundary at this step, so it uses every row in the build extent. Static rows are marked, never deleted. Offshore takes precedence over static.
+- **Evidence:** Sumatra tuning-year Aqua counts equal the harness's exactly: 41,377 detections, 3,600 cell-months, 0 differences (`uv run python -m burncal.pipeline.compare_tuning`, `docs/cleaning-differences.md`). The earlier rule (2014–2021, all satellites) gave 0.04% fewer.
+- **Revisit if:** hotspots after 2020 cluster on fixed sources such as new gas flares.
+
+## NOAA-20 standard data missing for 7 windows of 2024 (14 Nov)
+
+- **Status:** ASSUMED (lead accepted the gap, 14 Nov)
+- **Decision:** Keep the gap for now. NOAA-20 does not feed the record in 2024 (Suomi NPP does through 2 Nov 2026), so no published count changes. Three follow-ups: (1) the served `inputs[].days` must show the true day count for NOAA-20 in the affected months, not the calendar length (Story 2.6); (2) retry the download once before Story 2.10; (3) Story 2.10 drops the missing days from both satellites before comparing NOAA-20 with Suomi NPP.
+- **Evidence:** FIRMS returned errors for 7 five-day windows of `VIIRS_NOAA20_SP` 2024 on every retry; NRT does not cover 2024.
+- **Revisit if:** the retry fills the gap, or NOAA-20 is ever needed to feed 2024.
+
+## Land layer read as GeoJSON (14 Nov)
+
+- **Status:** TESTED
+- **Decision:** The land mask is Natural Earth 1:10m land v5.1.1, read from the GeoJSON in that release (no shapefile reader is pinned). Points are tested with `shapely.contains_xy`, as the harness did.
+- **Evidence:** The harness-rule comparison matches exactly, so the GeoJSON copy and the shapefile give the same land test for Sumatra.
+- **Revisit if:** another region's comparison differs at the coast.

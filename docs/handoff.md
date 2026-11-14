@@ -108,6 +108,49 @@ Not in the repo: the Vercel trial used a two-line `index.py` entrypoint and a `r
 | Season rule reproduces the stored seasons (lead's request) | `test_2_2_season_rule_reproduces_the_stored_seasons`, `test_2_2_season_rule_edges` |
 | AC5 Sat 18:00 checkpoint report | This entry; full parity by `tools/parity_full.py` on the lead's machine |
 
+## Story 2.3: ingest and cleaning, Sumatra (branch `teammate/2.3-ingest`)
+
+- Run: `uv run python -m burncal.pipeline.build_extent <raw CSV dir> <land GeoJSON> <out dir>`. Prints counts only.
+- `burncal/pipeline/ingest.py` normalizes FIRMS area-API CSVs for Aqua, Terra, Suomi NPP, NOAA-20 and NOAA-21. It keeps every FIRMS column (FIRMS's own satellite code as `satellite_firms`) and adds `satellite` (contract enum), `quality` (SP/NRT) and the UTC time. Standard rows replace NRT rows per satellite-day.
+- `burncal/core/clean.py` (pure) holds the solar zenith angle and day/night rule (day when the angle is below 85°), the 30 arc-second static cells and `excluded_reason`. `burncal/pipeline/clean.py` handles the land layer. Rows are marked `offshore` (not on Natural Earth 1:10m land, v5.1.1) or `static` (30 arc-second cell with hotspots on 50 or more days in one tuning year, 2014, 2016, 2017 or 2020, from MODIS and Suomi NPP rows on land: the scored rule, lead's decision), never deleted.
+- **Sumatra store** (bounding box of the contract polygon, July 2002 to 14 Nov 2026): 2,737,022 rows in, 3,949 NRT rows replaced by standard rows, **2,733,073 rows stored**, 79 MB of Parquet with every column, 77 files. By reason: none 2,603,794; offshore 88,621; static 40,658.
+- Known gap, accepted by the lead: NOAA-20 standard data for 7 five-day windows of 2024 (FIRMS errors on every retry; NRT does not cover 2024). NOAA-20 does not feed 2024. To do: `inputs[].days` shows the true day count (2.6), retry once before 2.10, and 2.10 drops those days from both satellites. See `DECISIONS.md`.
+- **Comparison with the harness (AC4):** cleaned Aqua counts match the harness exactly: 41,377 detections over 3,600 tuning-year cell-months, 0 differences. Details: `docs/cleaning-differences.md`.
+- Checks: `uv run pytest` passes; import check passed.
+
+| Criterion | Test or evidence |
+| --- | --- |
+| AC1 every row kept with FIRMS attributes, `quality`, recomputed `daynight`, `excluded_reason` | `test_2_3_ac1_*` in `burncal/pipeline/test_ingest.py`, `test_build_extent.py`, `burncal/core/test_clean.py`, `burncal/pipeline/test_clean.py`; Sumatra build above |
+| AC2 offshore and static rows marked, not deleted | `test_2_3_ac2_*` in the clean tests; `test_2_3_ac1_every_row_kept_with_quality_daynight_and_reason` |
+| AC3 standard beats NRT per satellite-day | `test_2_3_ac3_*` in `test_ingest.py` and `test_build_extent.py`; 3,949 NRT rows replaced in the Sumatra build |
+| AC4 tuning-year Aqua counts agree, or differences listed with causes | `test_2_3_ac4_*` in `test_compare_tuning.py`; `uv run python -m burncal.pipeline.compare_tuning`; `docs/cleaning-differences.md` |
+
+## Store size probe (14 Nov, branch `teammate/2.3-ingest`)
+
+One year (2024) of FIRMS standard data, MODIS_SP (Aqua and Terra rows) and VIIRS_SNPP_SP, over the bounding boxes of Sumatra and Southern African savanna (`contract/regions.geojson`). 2024 is outside the tuning, selection and final years. Client: `burncal/pipeline/firms.py`. The files sit in `store/probe/` (git-ignored).
+
+| Region, source, 2024 | Rows | CSV | Parquet, all columns | Parquet, lean | Lean bytes/row |
+| --- | --- | --- | --- | --- | --- |
+| Southern Africa, MODIS_SP (406,125 Aqua, 92,891 Terra) | 499,016 | 37.9 MB | 6.2 MB | 3.9 MB | 8.3 |
+| Southern Africa, VIIRS_SNPP_SP | 1,833,804 | 138.1 MB | 33.4 MB | 17.1 MB | 9.8 |
+| Sumatra, MODIS_SP (4,728 Aqua, 2,625 Terra) | 7,353 | 0.5 MB | 0.15 MB | 0.10 MB | 14.2 |
+| Sumatra, VIIRS_SNPP_SP | 26,845 | 2.0 MB | 0.6 MB | 0.33 MB | 13.0 |
+
+- Parquet with zstd compression, sorted by time. "Lean" keeps only the columns a hotspot row needs: latitude and longitude as float32, time, satellite, confidence, frp, daynight and type, plus feeds_record, excluded_reason and weight. In the probe those last three hold constant values, so real lean files will be somewhat larger.
+- Download: 296 requests (5-day windows, 4 at a time), 0 failures, 193 s, 186 MB of CSV.
+- The 5 to 15 GB store figure in the planning notes is an estimate, not a measurement.
+
+### Object-storage timing: cold Sumatra calendar (14 Nov)
+
+- Store: Sumatra 2002-07 to 2026-08 from FIRMS standard data (Suomi NPP 2023 missing: FIRMS kept returning errors for those dates), 1,925,775 rows, one lean Parquet file of 17.0 MB (9.3 bytes/row), on a public Hugging Face dataset (`adk7712/burncal-store-trial`). `weight` and `feeds_record` are placeholders until Story 2.4.
+- Query: monthly `SUM(weight)` of feeding rows inside Sumatra's bounding box, all 290 months, DuckDB reading the Parquet where it sits (`hf://`, range requests). Nothing is downloaded first.
+- Service bundle with FastAPI and DuckDB only: under Vercel's standard size, so no dependency install at instance start (the full set with pyarrow and pandas installs for 2.8 s).
+
+| Where | Cold (new instance or process) | Warm |
+| --- | --- | --- |
+| Vercel Hobby function, iad1, request from Singapore, after 20 idle minutes | 4.07 s end to end; inside: imports 0.57 s, DuckDB httpfs install 0.82 s, query 1.34 s | 0.37–0.40 s end to end; query 0.10 s |
+| Laptop in Singapore, fresh process | 2.8–5.6 s (httpfs 0.9–1.6 s, query 1.6–3.7 s) | query 0.29 s |
+
 ## Story 1.5: the web shell
 
 - `cd web && npm run dev` opens the calendar page: placeholder banner, top navigation (calendar, evidence stub, about stub), Sumatra's year × month grid drawn with D3, and the legend.
