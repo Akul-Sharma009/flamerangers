@@ -38,14 +38,14 @@ development_status:
   epic-1: in-progress
   1-1-repo-scaffold-and-guardrails-both: done
   1-2-data-contract-and-sumatra-fixture-both: done
-  1-3-service-stub-at-a-public-address-t: backlog
+  1-3-service-stub-at-a-public-address-t: done
   1-4-ui-concept-chosen-a: done
   1-5-web-shell-showing-the-fixture-calendar-a: review
   epic-1-retrospective: optional
 
   epic-2: backlog
   2-1-export-c1-s-parameters-and-parity-targets-a: done
-  2-2-c1-in-core-matching-the-scored-predictions-t: backlog
+  2-2-c1-in-core-matching-the-scored-predictions-t: done
   2-3-ingest-and-cleaning-for-one-extent-t: backlog
   2-4-weights-and-the-harmonized-record-t: backlog
   2-5-grids-thresholds-and-flags-t: backlog

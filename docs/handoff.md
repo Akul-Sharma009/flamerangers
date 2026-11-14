@@ -11,11 +11,12 @@ Updated: Sat 14 Nov 2026, afternoon SGT (Story 1.5).
 | 1.1 Repo scaffold | Done | Reviewed by the lead |
 | 1.2 Contract and fixture | Done | Contract 0.2.0 is frozen (14 Nov). A change needs both owners and a version bump. |
 | 1.4 UI concept | Done | `UI-CONCEPT.md` in the planning record |
-| 1.3 Service stub | Not started in this repo | The host measurements for the Sat 12:00 checkpoint are not in yet |
-| 2.1 C1 parameters | Done | In `burncal/core/params/`; Story 2.2 is unblocked |
-| 1.5 Web shell | Review | Draws Sumatra from the fixture; not committed yet. See below. |
+| 1.3 Service stub | Done | On contract 0.2.0; Vercel trial measured (see below). Merged (PR 1) |
+| 2.1 C1 parameters | Done | In `burncal/core/params/` |
+| 2.2 C1 in core | Done | Full parity PASS on the lead's machine (worst miss 2.1e-9). Merged (PR 2) |
+| 1.5 Web shell | Review | Draws Sumatra from the fixture; committed. See below. |
 
-Branches: `teammate/1.1-scaffold`, then `teammate/1.2-contract`, then `lead/1.1-setup` on top. Nothing is merged to `master` yet.
+Branches: `teammate/1.1-scaffold`, then `teammate/1.2-contract`, then `lead/1.1-setup` on top. Stories 1.3 (PR 1) and 2.2 (PR 2) are merged into `lead/1.1-setup`. Nothing is merged to `master` yet.
 
 ## What exists
 
@@ -33,9 +34,46 @@ uv run python tools/check_imports.py
 cd web && npm install && npm run typecheck && npm run test && npm run build
 ```
 
+## Story 1.3: service stub (branch `teammate/1.3-service-stub`, on top of `lead/1.1-setup`)
+
+- `burncal/service/app.py` answers every contract 0.2.0 endpoint from `contract/fixture/` when there is no store: `GET /meta`, and `POST /calendar`, `/cells`, `/hotspots.csv`, `/analytics.csv` with JSON bodies. Run: `uv run uvicorn burncal.service.app:app --port 8000`, then open `http://localhost:8000/meta`.
+- An old `record_version` gets `410` with `problems/version_superseded.json`. A malformed body gets `400` problem+json, never `422` (see `DECISIONS.md`).
+- Both CSVs follow `contract/CSV_SPEC.md`: header block, column line, rows; `null` is an empty cell. `counting_limits` and `citation` are stand-ins until Stories 5.7 and 6.1 (see `DECISIONS.md`).
+- CORS: exact origins from `CORS_ORIGINS` (comma-separated, not a secret), default `http://localhost:5173`, GET and POST. The service reads no other environment variable.
+- `Dockerfile` for a container host: non-root user, listens on `$PORT` (default 7860), `.env` kept out by `.dockerignore`.
+- Checks: `uv run pytest` 56 passed (13 of them service tests); import check passed.
+- The hosted trial below still runs the contract 0.1.0 stub.
+
+### Hosted trial: Vercel (Hobby, free), 14 Nov
+
+Trial only; the lead chooses and owns the final host. Public URL: `https://burncal-stub.vercel.app` (the per-deployment URLs sit behind Vercel's sign-in). Deployed as a Python function (not a container): Python 3.14, the pinned runtime dependencies from `pyproject.toml`, region iad1.
+
+| Measure | Result |
+| --- | --- |
+| Build | 12 s; bundle 343 MB, over Vercel's standard size, so dependencies are installed when an instance starts |
+| Cold start | 4.9 s for the first request after 20 idle minutes, from Singapore (then 0.28 s). Of that, 2.8 s is the dependency install on each new instance (runtime log) |
+| Warm request from Singapore | 0.28 to 0.59 s (mostly the round trip to iad1) |
+| Memory | about 2.2 GB available, 2 vCPU; 156 MB used with fastapi, duckdb, pyarrow, pandas, shapely and numpy loaded |
+| Disk | `/tmp` 525 MB, of which 158 MB free after the dependency install; everything else is read-only |
+| Endpoints | all five answer `200`; old `record_version` gives `410`; `placeholder: true` |
+| CORS | `http://localhost:5173` allowed; other origins get no CORS header |
+| Secrets | no environment variables set on the project |
+
+What it means for the real service: the store (5 to 15 GB) cannot sit on this host's disk. It would need object storage read over the network, and the bundle is already close to the 500 MB limit. A container host with a mounted disk avoids both.
+
+Not in the repo: the Vercel trial used a two-line `index.py` entrypoint and a `requirements.txt` with the same pins. A throwaway project `burncal-probe` measured the limits.
+
+| Criterion | Test or evidence |
+| --- | --- |
+| AC1 answers every endpoint from the fixture | `test_1_3_ac1_every_contract_path_is_answered`, `..._meta_is_the_fixture_and_a_placeholder`, `..._calendar_is_the_fixture_and_valid`, `..._cells_is_the_fixture_and_valid`, `..._analytics_csv_follows_the_spec`, `..._hotspots_csv_follows_the_spec` |
+| AC1 contract tests pass | `uv run pytest contract`, plus schema checks inside the service tests; `..._old_record_version_gets_410_problem`, `..._malformed_request_gets_400_problem_not_422` |
+| AC2 cold start, memory, disk on a host | Hosted trial table above (Vercel) |
+| AC3 CORS web origin and localhost only | `test_1_3_ac3_cors_allows_each_listed_origin`, `..._cors_refuses_unlisted_origins`, `..._cors_defaults_to_local_web_only`; checked on the hosted URL |
+| AC3 no secret on the host | `test_1_3_ac3_service_reads_no_secret`; hosted project has no environment variables |
+
 ## Story 2.2: C1 in core (branch `teammate/2.2-c1-core`)
 
-- `burncal/core/c1.py` rebuilds C1 from `burncal/core/params/c1_params.json` alone: the 4A table per row, the 1A view angle, footprints, logistic and miss term, and the season blend. Numpy only; it reads no clock, network or other file.
+- `burncal/core/c1.py` rebuilds C1 from `burncal/core/params/c1_params.json` alone: the 4A table per row, the 1A view angle, footprints, logistic and miss term, and the season blend. Numpy only; it reads no file, clock or network. `burncal/pipeline/c1_params.py` reads `c1_params.json`, checks its SHA-256 and passes the parsed JSON to `c1.load_params`.
 - Row weight = (1 − w) × r4A, plus w × (k × p + miss) on the row that anchors its 1A footprint. Excluded rows form no footprint and weigh 0.
 - **Parity, Sumatra September 2015 (the exported case):**
 
@@ -48,7 +86,7 @@ cd web && npm install && npm run typecheck && npm run test && npm run build
   All are within the 1e-6 tolerance. Footprints, anchors and view angles also match the harness row for row.
 - **Full parity (lead runs it, option 1):** the other 23 Sumatra months and Australian grassland and Amazon forest for 2015 and 2018 need the selection-year inputs, which stay on the lead's machine. Command:
   `uv run python tools/parity_full.py --snpp-dir <planning repo>/data/heldout/inputs/processed/snpp`
-  It prints aggregate misses only and exits 0 on PASS. Plumbing checked here on the Sumatra 2015-09 case (`--only 2015-09`): same misses as above, PASS.
+  It prints aggregate misses only and exits 0 on PASS. **Result on the lead's machine, 14 Nov: PASS** for 4A, 1A and C1 in all three tuning regions at 1° and 0.25°, every month of 2015 and 2018. Worst miss 2.1e-9 (4A, Sumatra, 1°); tolerance 1e-6.
 - The parity case is never copied here. To run those tests, set `BURNCAL_PARITY_CASE_DIR` to the planning record's `exports/c1/out/intermediate` folder; without it they are skipped.
 - Season rule: `c1.season_months` applies the frozen rule (a month is fire season if it holds at least 10% of the 2003–2011 Aqua annual total). It reproduces the stored seasons for Sumatra, Australian grassland and Amazon forest from `history_aqua_month_totals_2003_2011_by_region`. Other regions get their seasons from their own 2003–2011 Aqua history in Stories 2.4/2.5; until then `blend_weight` refuses them.
 - Checks: with the case path set, all 14 Story 2.2 tests pass; without it the 9 case tests are skipped. Import check passed.
@@ -58,7 +96,7 @@ cd web && npm install && npm run typecheck && npm run test && npm run build
 | AC1 parity within 1e-6 at 1° and 0.25° for 4A, 1A, C1 | `test_2_2_ac1_parity_sumatra_201509[*]` (6 cases), `..._footprints_match_the_harness`, `..._view_angle_matches_the_harness` |
 | AC2 only feeding, non-excluded rows form footprints; 1A term on the anchor | `test_2_2_ac2_excluded_rows_form_no_footprints_and_weigh_nothing` |
 | AC3 weight formula; weights sum to the gridded prediction | `test_2_2_ac3_row_weight_formula`, `..._weights_of_a_region_month_sum_to_the_gridded_prediction` |
-| AC4 imports nothing from tests; reads only the parameter file | `test_2_2_ac4_c1_imports_no_tests_and_reads_only_the_param_file`, `tools/check_imports.py` |
+| AC4 imports nothing from tests; core reads no file | `test_2_2_ac4_c1_imports_no_tests_and_reads_no_file`, `burncal/pipeline/test_c1_params.py`, `tools/check_imports.py` |
 | Season rule reproduces the stored seasons (lead's request) | `test_2_2_season_rule_reproduces_the_stored_seasons`, `test_2_2_season_rule_edges` |
 | AC5 Sat 18:00 checkpoint report | This entry; full parity by `tools/parity_full.py` on the lead's machine |
 
