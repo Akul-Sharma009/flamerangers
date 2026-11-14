@@ -1,6 +1,8 @@
 import { useEffect, useState, type ReactNode } from "react";
 import { messages } from "../api/messages";
+import { AquaOnly } from "../components/AquaOnly";
 import { HeadToHead } from "../components/HeadToHead";
+import { ScoresLimits } from "../components/ScoresLimits";
 import { REPO_URL } from "../config";
 import { COPY, RECORD_FILES, outcomeView, repoLink, type OutcomeView } from "../evidence/outcome";
 import type { Evidence } from "../evidence/types";
@@ -30,7 +32,13 @@ export function EvidencePage() {
   if (state.kind === "problem") {
     return <main className="page"><p className="problem" role="alert">{messages.client.evidence_unavailable}</p></main>;
   }
-  return <EvidenceOutcome view={state.view} repoUrl={REPO_URL}><HeadToHead evidence={state.evidence} /></EvidenceOutcome>;
+  return (
+    <EvidenceOutcome view={state.view} repoUrl={REPO_URL}>
+      <HeadToHead evidence={state.evidence} />
+      <AquaOnly evidence={state.evidence} />
+      <ScoresLimits evidence={state.evidence} />
+    </EvidenceOutcome>
+  );
 }
 
 /** The first screen: the outcome, what it means for the record, the method, and the planning files.

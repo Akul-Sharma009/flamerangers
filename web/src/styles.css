@@ -83,6 +83,6 @@ main.evidence { display: grid; grid-template-columns: minmax(0, 7fr) minmax(0, 5
   header.mast { padding: 8px 16px; }
   .mast nav a { margin-left: 0; margin-right: 12px; font-size: 12.5px; }
   main.page { padding: 14px 16px 24px; }
-  main.ledger { grid-template-columns: 1fr; gap: 16px; }
+  main.ledger { grid-template-columns: minmax(0, 1fr); gap: 16px; }
   .place .name { font-size: 24px; }
 }

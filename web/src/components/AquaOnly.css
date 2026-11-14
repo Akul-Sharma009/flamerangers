@@ -1,0 +1,27 @@
+/* Story 5.5: Aqua only and the incumbent. Builds on HeadToHead.css (the section carries
+   the h2h class) and the page tokens in styles.css. Ledger rules, no cards, no colour
+   for states: a failed check reads "no", beyond noise is a filled mark. */
+
+.aqua .aqua-cols { display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 1.4fr); gap: 0 40px; margin-top: 4px; }
+.aqua .aqua-cols p { max-width: 68ch; }
+.aqua .setlabel { font-family: var(--num); font-size: 12.5px; margin: 6px 0 0; color: var(--muted); }
+
+.h2h-table.aqua-test td { white-space: nowrap; }
+.h2h-table.aqua-test td .iv { white-space: nowrap; }
+.h2h-table.aqua-test td[data-col="pass"] { font-weight: 600; }
+
+/* The incumbent leads the referee table and is ruled off from the rest. */
+.h2h-table.scores tr.incumbent > * { border-bottom: 1px solid var(--ink); }
+.h2h-table.scores tr.incumbent th { font-weight: 600; }
+
+.aqua-incumbents { margin: 6px 0 0; }
+.aqua-incumbents > div { display: grid; grid-template-columns: 16em minmax(0, 1fr); gap: 0 18px; padding: 8px 0; border-top: 1px solid var(--faint); }
+.aqua-incumbents > div:first-child { border-top: 1px solid var(--rule); }
+.aqua-incumbents dt { font-family: var(--serif); font-weight: 600; }
+.aqua-incumbents dd { margin: 0; max-width: 72ch; }
+.aqua-incumbents dd strong { font-family: var(--num); font-weight: 600; }
+
+@media (max-width: 760px) {
+  .aqua .aqua-cols { grid-template-columns: minmax(0, 1fr); }
+  .aqua-incumbents > div { grid-template-columns: minmax(0, 1fr); }
+}

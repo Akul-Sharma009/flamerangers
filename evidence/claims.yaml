@@ -261,3 +261,66 @@ claims:
       - {name: "C1 bias in southern Africa, reported-only set", display: "16.8%", format: pct1_abs, sign: negative, source: {file: reported_only, pointer: "/approaches/C1/1/regions/southern_africa/bias"}}
       - {name: "1A error in Punjab, reported-only set", display: "29.45", format: fix2, source: {file: reported_only, pointer: "/approaches/1A/1/regions/punjab/mae"}}
       - {name: "C1 error in Punjab, reported-only set", display: "31.59", format: fix2, source: {file: reported_only, pointer: "/approaches/C1/1/regions/punjab/mae"}}
+
+  - id: aqua-only-every-method-failed-precision
+    used_for_pick: true
+    # Approved by the lead on 15 Nov (Story 5.5). Same file and set as aqua-through-2021.
+    text: >-
+      On the final set, against the Terra referee, every method failed the
+      non-inferiority test against (c), Aqua only, on flag precision and passed it on
+      month-rank correlation, peak month and season length.
+    figures:
+      - {name: "(a) precision against (c)", display: "false", format: bool, expect: false, source: {file: final, pointer: "/decisions/not used for the pick/non_inferior_to_c/a/checks/precision"}}
+      - {name: "(a) spearman against (c)", display: "true", format: bool, expect: true, source: {file: final, pointer: "/decisions/not used for the pick/non_inferior_to_c/a/checks/spearman"}}
+      - {name: "(a) peak month against (c)", display: "true", format: bool, expect: true, source: {file: final, pointer: "/decisions/not used for the pick/non_inferior_to_c/a/checks/peak_month"}}
+      - {name: "(a) season length against (c)", display: "true", format: bool, expect: true, source: {file: final, pointer: "/decisions/not used for the pick/non_inferior_to_c/a/checks/season_length"}}
+      - {name: "(b) precision against (c)", display: "false", format: bool, expect: false, source: {file: final, pointer: "/decisions/not used for the pick/non_inferior_to_c/b/checks/precision"}}
+      - {name: "(b) spearman against (c)", display: "true", format: bool, expect: true, source: {file: final, pointer: "/decisions/not used for the pick/non_inferior_to_c/b/checks/spearman"}}
+      - {name: "(b) peak month against (c)", display: "true", format: bool, expect: true, source: {file: final, pointer: "/decisions/not used for the pick/non_inferior_to_c/b/checks/peak_month"}}
+      - {name: "(b) season length against (c)", display: "true", format: bool, expect: true, source: {file: final, pointer: "/decisions/not used for the pick/non_inferior_to_c/b/checks/season_length"}}
+      - {name: "comparator precision against (c)", display: "false", format: bool, expect: false, source: {file: final, pointer: "/decisions/not used for the pick/non_inferior_to_c/cmp/checks/precision"}}
+      - {name: "comparator spearman against (c)", display: "true", format: bool, expect: true, source: {file: final, pointer: "/decisions/not used for the pick/non_inferior_to_c/cmp/checks/spearman"}}
+      - {name: "comparator peak month against (c)", display: "true", format: bool, expect: true, source: {file: final, pointer: "/decisions/not used for the pick/non_inferior_to_c/cmp/checks/peak_month"}}
+      - {name: "comparator season length against (c)", display: "true", format: bool, expect: true, source: {file: final, pointer: "/decisions/not used for the pick/non_inferior_to_c/cmp/checks/season_length"}}
+      - {name: "4A precision against (c)", display: "false", format: bool, expect: false, source: {file: final, pointer: "/decisions/not used for the pick/non_inferior_to_c/4A/checks/precision"}}
+      - {name: "4A spearman against (c)", display: "true", format: bool, expect: true, source: {file: final, pointer: "/decisions/not used for the pick/non_inferior_to_c/4A/checks/spearman"}}
+      - {name: "4A peak month against (c)", display: "true", format: bool, expect: true, source: {file: final, pointer: "/decisions/not used for the pick/non_inferior_to_c/4A/checks/peak_month"}}
+      - {name: "4A season length against (c)", display: "true", format: bool, expect: true, source: {file: final, pointer: "/decisions/not used for the pick/non_inferior_to_c/4A/checks/season_length"}}
+      - {name: "1A precision against (c)", display: "false", format: bool, expect: false, source: {file: final, pointer: "/decisions/not used for the pick/non_inferior_to_c/1A/checks/precision"}}
+      - {name: "1A spearman against (c)", display: "true", format: bool, expect: true, source: {file: final, pointer: "/decisions/not used for the pick/non_inferior_to_c/1A/checks/spearman"}}
+      - {name: "1A peak month against (c)", display: "true", format: bool, expect: true, source: {file: final, pointer: "/decisions/not used for the pick/non_inferior_to_c/1A/checks/peak_month"}}
+      - {name: "1A season length against (c)", display: "true", format: bool, expect: true, source: {file: final, pointer: "/decisions/not used for the pick/non_inferior_to_c/1A/checks/season_length"}}
+      - {name: "C1 precision against (c)", display: "false", format: bool, expect: false, source: {file: final, pointer: "/decisions/not used for the pick/non_inferior_to_c/C1/checks/precision"}}
+      - {name: "C1 spearman against (c)", display: "true", format: bool, expect: true, source: {file: final, pointer: "/decisions/not used for the pick/non_inferior_to_c/C1/checks/spearman"}}
+      - {name: "C1 peak month against (c)", display: "true", format: bool, expect: true, source: {file: final, pointer: "/decisions/not used for the pick/non_inferior_to_c/C1/checks/peak_month"}}
+      - {name: "C1 season length against (c)", display: "true", format: bool, expect: true, source: {file: final, pointer: "/decisions/not used for the pick/non_inferior_to_c/C1/checks/season_length"}}
+
+  - id: caveat-untuned-region
+    used_for_pick: false
+    # Approved by the lead on 15 Nov, for Story 3.6, which reads it by id.
+    text: >-
+      The conversion was not tuned here. In the one untuned region scored, southern
+      Africa's savanna, C1's counts ran 16.8% low in the reported-only run, and its flags
+      were right less than half the time on the final set (0.453).
+    figures:
+      - {name: "C1 bias in southern Africa, reported-only set", display: "16.8%", format: pct1_abs, sign: negative, source: {file: reported_only, pointer: "/approaches/C1/1/regions/southern_africa/bias"}}
+      - {name: "C1 precision in southern Africa", display: "0.453", format: fix3, source: {file: final, pointer: "/approaches/C1/1/regions/southern_africa/flags/precision"}}
+
+  - id: caveat-southern-africa
+    used_for_pick: false
+    # Approved by the lead on 15 Nov, for Story 3.6, which reads it by id.
+    text: >-
+      In this region C1's counts ran 16.8% low in the reported-only run, and its flags
+      were right less than half the time on the final set (0.453).
+    figures:
+      - {name: "C1 bias in southern Africa, reported-only set", display: "16.8%", format: pct1_abs, sign: negative, source: {file: reported_only, pointer: "/approaches/C1/1/regions/southern_africa/bias"}}
+      - {name: "C1 precision in southern Africa", display: "0.453", format: fix3, source: {file: final, pointer: "/approaches/C1/1/regions/southern_africa/flags/precision"}}
+
+  - id: tiers-not-checked-everywhere
+    used_for_pick: false
+    # Approved by the lead on 15 Nov, for Story 5.6's tiers note. tiers-selection-only
+    # stays for other pages.
+    text: >-
+      The two flag tiers were checked on selection years only, not in southern Africa or
+      Siberia, and were added after the final-set scores had been seen.
+    figures: []

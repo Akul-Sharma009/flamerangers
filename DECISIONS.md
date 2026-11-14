@@ -358,6 +358,41 @@ Each entry has: a status (**ASSUMED** or **TESTED**), its evidence, and a "revis
 - **Evidence:** `area.test.tsx` (32 tests); the browser run: rectangle and polygon drawn, typed refusals shown, picking Punjab, no horizontal scroll at 375 px.
 - **Revisit if:** Story 3.10 adds Playwright end-to-end tests; the script's steps are written up in `docs/handoff.md` to port.
 
+## Story 3.4: a refused date range uses the browser's own message until messages.yaml has one (14 Nov 2026)
+
+- **Status:** ASSUMED. Flag to the lead: `contract/messages.yaml` 0.3.0 has no sentence for a refused date range, and no problem code covers one.
+- **Decision:** the two date fields are `<input type="date">` with `required`, `min` and `max` set from the served bounds (first day of `record_start` to `data_through`), and each field's limit tied to the other (From's max is To, To's min is From). The browser then refuses an empty, unreadable, too early, too late or reversed range before submit and says why in its own words ("Value must be 15/03/2010 or earlier."). `web/src/area/dates.ts` `checkRange` checks the same four cases (`unreadable`, `before_record`, `after_data_through`, `out_of_order`) on submit, marks the fields at fault (`aria-invalid`, heavier rule, † mark) and keeps the case in `data-problem`, so a sentence can drop in by case. Marked `TODO(label)`. The web types no sentence of its own.
+- **Evidence:** `web/src/area/dates.test.tsx` (refused-ranges block); built-in browser check at 1280 px: From 10 June 2012, To 15 March 2010 is not submitted and both fields carry the browser's message.
+- **Revisit if:** the lead adds sentences in a contract bump. Suggested `client` keys and words: `date_unreadable` "Enter each date as a day, month and year.", `date_before_record` "The record starts in July 2002. Choose a later first date.", `date_after_data_through` "The record runs only to the data-through date. Choose an earlier last date.", `dates_out_of_order` "The first date must be on or before the last date." Also: the service does not refuse a reversed or out-of-record range itself (`burncal/service/app.py` checks only that each is a real date); that is the data owner's to decide.
+
+## Story 3.4: the range is days, sent as typed; null means the whole record (14 Nov 2026)
+
+- **Status:** TESTED
+- **Decision:** the range is a first and last day, sent unchanged as `start` and `end` (never snapped to months: AC2 needs a range that starts or ends inside a month, and the service labels such months `range_cut` and serves their whole count). `CalendarPage` keeps `range: DateRange | null`; null is the whole record, built from the served `/meta` as the first day of `record_start` to `data_through`, so after a `version_superseded` reload it follows the new `data_through`. "Whole record" sends null. The area and the range are kept apart: changing one keeps the other. Every request that takes a range builds its body with `rangeRequest` in `web/src/api/client.ts`; the client gains `postAnalyticsCsv` and `postHotspotsCsv` for Story 4.4 to call. `/cells` takes one month and no range (`CellsRequest`, closed schema), so nothing is added to it.
+- **Evidence:** `dates.test.tsx` (AC1, "every request", AC2 blocks); `test_3_4_ac3_...` in `burncal/service/test_store_service.py`.
+- **Revisit if:** the lead wants month-only pickers, or the range should reset when the area changes.
+
+## Story 3.4: fixture mode serves no CSV (14 Nov 2026)
+
+- **Status:** ASSUMED
+- **Decision:** in fixture mode (`VITE_SERVICE_BASE_URL` unset) `postAnalyticsCsv` and `postHotspotsCsv` reject with an error, because `contract/fixture/` holds no CSV. No download control exists yet.
+- **Evidence:** `contract/fixture/` contents.
+- **Revisit if:** Story 4.4 needs downloads to work on the fixture (then a fixture CSV is a contract change, or the controls are hidden in fixture mode).
+
+## Story 3.4: the reference period is shown as a labelled served value (14 Nov 2026)
+
+- **Status:** ASSUMED. Flag to the lead: no sentence says that rankings follow the dates while medians and anomalies keep the reference period.
+- **Decision:** AC3 asks that the median and anomalies "still use the stated reference period". The service already does this (rankings are over complete months and years inside the range; `median`, `reference_mean`, `ratio_to_median`, anomalies and `calendar_month_medians` are over `reference_period` whatever the range). The dates tab states the served `reference_period` as a label and value ("Reference period 2003 to 2025") beside the record's bounds; the locator shows the served `range` under the area's name, and the grid's heading names the served range's first and last months. No explaining sentence is typed.
+- **Evidence:** `test_3_4_ac3_rankings_follow_the_range_median_and_anomalies_keep_the_reference_period` (service); `dates.test.tsx` AC3 block (rank marks are the served ones; the period is the served one).
+- **Revisit if:** the lead adds a note, for example `notes.range_and_reference` "Rankings cover the dates you chose. Medians and anomalies always use the reference period.", or Story 3.7's line defining "usual" covers it.
+
+## Story 3.4: how the criteria are tested (14 Nov 2026)
+
+- **Status:** ASSUMED
+- **Decision:** as in Story 3.3: Vitest on the logic and static renders, a service test for AC3, and a built-in browser check. The "cut" mark on the grid is Story 3.5's; this story's evidence for AC2 is the request sent as typed, the served whole-month count, and the `range_cut` sentence in each cut month's cell title (the grid model as it stands on master).
+- **Evidence:** `dates.test.tsx` (19 tests); browser check in `docs/handoff.md`, Story 3.4.
+- **Revisit if:** Story 3.5 changes how partial reasons reach the cell title, or Story 3.10 adds end-to-end tests.
+
 ## Contract 0.3.0: six sentences the web needed (14 Nov 2026)
 
 - **Status:** TESTED (agreed by both owners, 14 Nov; checks below).
@@ -556,3 +591,237 @@ Each entry has: a status (**ASSUMED** or **TESTED**), its evidence, and a "revis
   3. **Serve the regions that fit** in one version under 120 MB: Sumatra and Punjab (58.3 MB), or Sumatra with Siberia (81.4 MB) or Amazon forest (96.0 MB). Australian grassland and Southern Africa do not fit with this layout.
   4. **Make the points smaller.** About 40% of the rows feed the record; the rest are kept for raw counts and the all-satellites CSV. Moving those to a coarser table would shrink the file, but changes how raw counts are served, so it needs the lead (AD-8).
 - **Revisit if:** the lead picks an option, or the world run is approved (the store grows by roughly the global-to-six-region area ratio).
+
+## Story 3.5: React draws the grid's SVG, not D3 (14 Nov 2026)
+
+- **Status:** ASSUMED
+- **Decision:** The grid is still one SVG drawn from the served `/calendar` answer, but React renders it from a pure layout (`web/src/grid/layout.ts`) instead of D3 drawing into a ref. The look is unchanged from Story 1.5. D3 stays a dependency for the ruler (Story 3.7).
+- **Evidence:** Story 3.5 needs focus, arrow keys, hover and tap on every cell, and tests for each criterion. With React the cells take event handlers and a roving tab stop directly, and the whole grid renders with `renderToStaticMarkup`, so every criterion is tested without adding a DOM library (`grid.test.tsx`, 23 tests). UI-CONCEPT.md section 7 names D3 as the drawing tool.
+- **Revisit if:** the lead wants D3 kept as the drawing layer; the grid then needs a DOM test library.
+
+## Story 3.5: marks that are not colour (14 Nov 2026)
+
+- **Status:** ASSUMED
+- **Decision:** Besides Story 1.5's marks (hatching for outside the record, dots for not loaded, a dashed outline for the month to date, a triangle and a circle for strong and marginal flags), a month carries letter marks after its count, as printed statistical tables flag figures: `n` near real time (any input that feeds the record has quality NRT), `*` incomplete (partial reason `record_start` or `missing_days`), `c` cut by the date range (`range_cut`). Below about 700 px, where cells show tint only, the letters sit in the cell's top-right corner. The table view shows the same letters. The legend gives each mark the contract's sentence. A month to date is not also given `*`; its dashed outline says it.
+- **Evidence:** UI-CONCEPT.md section 6 ("outline, hatching, symbol or text"); `grid.test.tsx` AC3 block; checked at 1280 px and 375 px in the built-in browser.
+- **Revisit if:** the lead or a user test finds the letters unclear, or real data puts a letter on most recent months.
+
+## Story 3.5: what the cell card says (14 Nov 2026)
+
+- **Status:** ASSUMED
+- **Decision:** Hovering, focusing or tapping a month shows a card and gives the cell the same text as its accessible name: the month, the exact served count with the unit label, the `source` sentence, each input that feeds the record with its served day count ("From Suomi NPP (VIIRS), 30 days"), the quality sentence for each quality among them, every partial-reason sentence, and the flag sentence. Year totals and medians are focusable too and say their served value, rank and incomplete-year note. Arrow keys, Home and End move between months, totals and medians; Escape or leaving the grid closes the card. The validation labels for NOAA-20 and the after-pick years are left to Story 3.6. Short labels ("Grid", "Table", "From", "days", "year total", "median", "Rank n of the complete years shown") are typed in the web, as Story 3.3 did; every sentence comes from `messages.yaml`.
+- **Evidence:** Story 3.5 AC4; `grid.test.tsx` AC4 block; keyboard and tap checked in the built-in browser.
+- **Revisit if:** Story 3.6 needs the card laid out differently, or the lead wants these labels in `messages.yaml`.
+
+## Story 3.5: a median of 0 shows as 0 (14 Nov 2026)
+
+- **Status:** TESTED (`grid.test.tsx`, AC5 block)
+- **Decision:** Story 1.5 showed "–" for a calendar-month median of 0 with `no_typical_activity`. It now shows "0" with the "No typical activity" sentence in its card; only a `null` median shows "–".
+- **Evidence:** CLAUDE.md "missing is not zero".
+- **Revisit if:** never, unless the contract changes what `null` means.
+
+## Story 3.5: the grid at phone width (14 Nov 2026)
+
+- **Status:** ASSUMED
+- **Decision:** Below 700 px the year-total column shows the served total as a number (no bar), an incomplete year's total sits in a hollow box (the legend's incomplete-year mark), rank circles sit before the number, and the medians are written vertically under their columns. The table view scrolls sideways inside its own box. The page's one-column layout in `web/src/styles.css` is now `minmax(0, 1fr)` instead of `1fr`, so wide content cannot widen the page.
+- **Evidence:** at 375 px, page width 375 in grid and table views (built-in browser, dev and production build).
+- **Revisit if:** the vertical medians read badly on a real phone.
+
+## Story 3.5: the sensor-change rule falls between two rows (14 Nov 2026)
+
+- **Status:** ASSUMED
+- **Decision:** Rows are years, so the rule is drawn between the row of the year of `meta.record_switch.viirs_from` and the row below it. This is right because the switch is at a year boundary (January 2022).
+- **Evidence:** `grid.test.tsx` AC2 block.
+- **Revisit if:** the switch ever moves off a January; the rule would then have to step inside a row.
+
+## Story 3.7: the card's sentences wait for contract 0.4.0 (14 Nov 2026)
+
+- **Status:** ASSUMED. Flag to the lead and the data owner: wording for 0.4.0 below.
+- **Decision:** `messages.yaml` 0.3.0 has no sentence for the card's headline, its "usual" line, the flagged-cells caution, the ruler caption, the highest-month sentence or the NOAA-20 comparison, so the web types none. Until the contract has them, the card shows the same served values as labelled figures (a ledger list: "Same-days median 456.4"), with short labels typed in the web as Stories 3.3 and 3.5 did. The headline is the served count ("261.3 hotspots"). `web/src/card/words.ts` already reads an optional `sentences:` section; once 0.4.0 adds these keys, the card writes sentences with no web change. A template with an unknown placeholder or a null value is not filled, and the figures show instead. Suggested section:
+  ```yaml
+  sentences:
+    current_month: "So far this month: {count} hotspots, {ratio}× the {reference_start}–{reference_end} median for the same days of {month_name}."
+    current_month_count: "So far this month: {count} hotspots."
+    current_month_usual: "Usual = the {reference_start}–{reference_end} median for days 1 to {day} of {month_name}: {median} hotspots. This month differs by {difference}. Data through {data_through}."
+    cells_flagged: "{strong} of {total} one-degree cells are flagged strong and {marginal} marginal, a caution and not an alarm."
+    ruler_caption: "Days 1 to {day} of {month_name} in each year from {reference_start} to {reference_end}."
+    record_high: "The highest month on record here is {month}, with {count} hotspots."
+    noaa20_compared: "From {period_start} to {period_end}, converted NOAA-20 counts differed from converted Suomi NPP counts by {bias_pct}% overall, with a mean absolute difference of {mean_abs_difference} per one-degree cell-month."
+  ```
+  `current_month_count` is the median-of-0 case: it is followed by `notes.no_typical_activity` and no ratio.
+- **Evidence:** `card.test.tsx` AC3 block: with these templates the card writes the criterion's example sentence exactly from served values; with contract 0.3.0 `contractSentences()` is empty and no sentence is typed; every number on the card is a served value.
+- **Revisit if:** the lead changes the wording (the keys and placeholders are what the web relies on), or the data owner objects to a `sentences:` section.
+
+## Story 3.7: the ruler's axis (14 Nov 2026)
+
+- **Status:** ASSUMED
+- **Decision:** The ruler is an SVG drawn by React at the column's measured width, with a symmetric-log axis from the smallest to the largest of the served marks (each reference year's same-days count, the median, this year's count). The axis has no tick values; the only labels are served values: this year's mark ("2026: 261.3"), the median tick ("median 456.4"), and each year's count on hover. A table view under it holds every year's served count. This year's mark slides along the axis on load (the concept's one transition), off under reduced motion.
+- **Evidence:** UI-CONCEPT.md section 3, item 4, and section 6. A symlog axis from 0 crowded Sumatra's 23 years into the right third at 343 px; from the smallest mark they spread across the axis (checked in the built-in browser at 1280 and 375 px). The extent is found with `d3.extent`: a drawing range, never shown, so AD-8 holds for what the reader sees. A plain log axis has no place for 0; symlog does. `card.test.tsx` AC2 block: marks in the served order of their counts, inside the drawing at both widths; a 0 count at the left end.
+- **Revisit if:** the lead reads the extent as a computed number under AD-8 (the service could serve a position or share per mark, as it does `share_of_max`), or readers misread a log axis without ticks.
+
+## Story 3.7: what the card shows beyond the sentence (14 Nov 2026)
+
+- **Status:** ASSUMED
+- **Decision:** Under the headline: the figures (ratio, same-days median, difference, same days "1–d Month", reference period, data-through date, flagged 1° cells "n strong · n marginal · of N", and the satellites that fed the month with their served day counts), then the contract's sentences: the quality label (NRT or SP), `validated_satellite_false` when the satellite is not validated, `monthly_validation_only`, and `provisional` (the current month is never complete). When `validated_satellite` is false, `meta.noaa20_check` null gives `noaa20_check_not_run`; once served, `noaa20_check` ("Reported only. …") and the pooled figures (period, bias, mean absolute difference, cell-months). With a median of 0 the card shows the count, the median 0 and `no_typical_activity`, and no ratio, not even a dash. A null `current_month` shows the month and "Not loaded yet."; a null count or median (should one ever be served) shows "–", never 0. The second sentence is the served `statistics.record_high`, which the contract defines over the whole record whatever the range. The card sits in the left column under the locator, before the footnotes.
+- **Evidence:** `card.test.tsx` (24 tests, one block per criterion); built-in browser at 1280 and 375 px.
+- **Revisit if:** Story 2.10 serves per-region figures the lead wants on the card (only the pooled ones are shown), or the lead wants the figure list shorter once the sentences exist.
+
+## Story 5.5: no new claim; the precision failure is shown check by check (15 Nov 2026)
+
+- **Status:** TESTED. The lead approved the drafted claim on 15 Nov ("Approve all", relayed by the lead's session); it is now `aqua-only-every-method-failed-precision` in `claims.yaml`.
+- **Decision:** `claims.yaml` has no sentence saying every method failed against (c) on flag precision, and a new claim needs the lead's approval. So the section shows it as data: a table of every approach's non-inferiority result and its four checks (flag precision, month-rank correlation, peak month, season length), each a yes/no figure read from `decisions`, with the paired difference against (c) and its interval under it. On the final set every row reads "no" overall and "no" on precision, "yes" on the other three. The fixed claim `aqua-through-2021` ("every method failed against Aqua only") is printed above it. Drafted for the lead, not added:
+  > On the final set, against the Terra referee, every method failed the non-inferiority test against (c), Aqua only, on flag precision and passed it on month-rank correlation, peak month and season length.
+  (Figures: the 24 `non_inferior_to_c` checks for C1, 4A, 1A under `/decisions/final/` and for (a), (b) and the comparator under `/decisions/not used for the pick/`.)
+- **Evidence:** `aquaOnly.test.tsx` "AC1: on the final set it shows that every method failed on precision…"; `evidence/test_aqua_only.py` `test_5_5_ac1_on_the_final_set_every_method_failed_on_precision_alone`.
+- **Update, 15 Nov:** approved and added as `aqua-only-every-method-failed-precision` (used for the pick; 24 bool figures from `/decisions/not used for the pick/non_inferior_to_c/`, the same file and set as `aqua-through-2021`). The section now prints it word for word at the top of the "test against (c)" block; the data table stays under it. Two caveat claims were added in the same change for Story 3.6, which reads them by id: `caveat-untuned-region` and `caveat-southern-africa` (both not used for the pick; C1's reported-only bias and final-set flag precision in southern Africa). Story 5.5 does not show them.
+- **Evidence:** `aquaOnly.test.tsx` checks the claim is printed in the test block and its figures equal the table's checks; `evidence/build.py --check` and `test_claims.py` check every figure against its source.
+- **Revisit if:** the lead rewords any of the three claims.
+
+## Story 5.5: the selection set is shown as it is, where most methods passed against (c) (15 Nov 2026)
+
+- **Status:** ASSUMED
+- **Decision:** On the selection set every approach except (a) passed the non-inferiority test against (c); only on the final set did every method fail. The section has the same set, region and scale choice as the head-to-head table, defaults to the final set, and shows the selection set's results as its file holds them, with a typed line that the final pick used the final set. Any sentence that every method failed must say "on the final set".
+- **Evidence:** `selection.decisions` rows `/decisions/non_inferior_to_c/*/pass` in `evidence.json`; `aquaOnly.test.tsx` "AC1: each set's test is shown check by check as its file holds it".
+- **Revisit if:** the lead wants the section to show the final set only.
+
+## Story 5.5: words that explain the test and the incumbents (15 Nov 2026)
+
+- **Status:** ASSUMED. Needs the lead's OK on the copy.
+- **Decision:** The section's own words are in `web/src/evidence/aquaOnly.ts` (`AQUA_COPY`) and hold no number. They: name (c) as today's practice and INPE Queimadas's rule (test plan, incumbents table); explain non-inferiority from the test plan's Terra-referee section and P1 (Aqua would be the answer key; Terra shares the instrument and algorithm, so the referee favours (c); a known-answer test can't tell methods apart; Terra is the only independent MODIS-unit record). The margin's size is not quoted, because it is not in a scoring file, and the page points to the test plan for it. They also give why the record does not use Aqua only after the switch (test plan, outcome table: Aqua is less reliable after its last orbit adjustment and has no values once it ends), and the GWIS reason in Story 5.5's words (data check D5: its files hold burned area and fire events, not hotspot counts). NASA FIRMS is listed as an incumbent that gives inputs, not a series (test plan). "Fire events" is GWIS's own product name and is not used for hotspots.
+- **Evidence:** test plan sections 2, 6 and 11 and data check D5 in the planning record; `aquaOnly.test.tsx` "the words typed for this section hold no number and never say fires"; wording check on the fresh build.
+- **Revisit if:** the lead rewords any of it, or the "fire events" name is read as breaking the hotspots rule.
+
+## Story 3.6: what a cell says about its inputs (15 Nov 2026)
+
+- **Status:** ASSUMED
+- **Decision:** A cell's card and accessible name list every input that feeds the month (`feeds_record` true), one entry each, with its served days and its own quality: "From Suomi NPP (VIIRS), 2 days, near real time; NOAA-20 (VIIRS), 11 days, near real time". A satellite served at both qualities in one month gets two entries. The quality words are the first sentence of `labels.quality` with a lower-case first letter ("standard quality", "near real time"); the full NRT sentence follows once, because it says why the count can change. Inputs that do not feed the record (Terra, NOAA-21, Aqua after 2021) are not listed: they are held, not inputs to the number shown. Partial months list every served partial reason, as before.
+- **Evidence:** `web/src/grid/provenance.test.tsx` AC1 block (every feeding input of every fixture month in the accessible name; a mixed SP and NRT month; the focused cell's card). Checked by keyboard and hover in the built-in browser.
+- **Revisit if:** the lead reads "every input satellite" as including the satellites that do not feed the month; they would then need a contract sentence such as "held, not counted".
+
+## Story 3.6: the complete-month sentence (15 Nov 2026)
+
+- **Status:** ASSUMED. Wording approved by the lead on 15 Nov ("Approve all"); added to the contract 0.4.0 draft on `lead/contract-0.4.0`, not on master.
+- **Decision:** `messages.yaml` 0.3.0 on master has no sentence for a complete month, so the web types none (`TODO(label)` in `web/src/grid/model.ts`, `completeNote()`). A partial month already says why it is partial. The web reads an optional `notes.month_complete` and shows it on every counted month whose served `complete` is true, so contract 0.4.0 switches it on with no web change. Approved wording: `month_complete: "Complete month: every day of input data is in."`
+- **Evidence:** `provenance.test.tsx` AC1 block ("contract 0.3.0 has no sentence for a complete month, so none is typed"; with the key set, exactly the complete counted months carry it).
+- **Revisit if:** contract 0.4.0 merges without the key, or under another name (then `completeNote()` and the `TODO(label)` change with it).
+
+## Story 3.6: provenance labels follow served fields (15 Nov 2026)
+
+- **Status:** ASSUMED
+- **Decision:** "Satellite not part of the validation" (`notes.validated_satellite_false`) is on every counted month whose served `validated_satellite` is false, not only the first NOAA-20 month. "Outside the years used for the pick" (`notes.after_pick_years`) is on every month whose served `source` is `viirs_converted`, which by AD-1 is every counted month from January 2022; a null month gets neither. The 3 November 2026 change is the month of `meta.satellite_switch.noaa20_from` (string slicing), which also gets `notes.satellite_switch` in its card.
+- **Evidence:** `provenance.test.tsx` AC2 and AC3 blocks, including a later NOAA-20 month and a moved switch date.
+- **Revisit if:** the pick years ever differ from "converted months" (for example if 2012–2013 Aqua months should carry a reported-only note too).
+
+## Story 3.6: how the satellite change is marked, and what is not drawn (15 Nov 2026)
+
+- **Status:** ASSUMED
+- **Decision:** The switch month gets one short ink rule on its left edge, one cell high: the same rule as the sensor change, scaled down, because the switch falls inside a month (3 November). The table view gives that cell a left rule; the legend explains it with `notes.satellite_switch`. The validation and pick labels are words only (card, accessible name, table title), with no glyph, so the grid draws one new mark in all. The region caveat stays off the grid.
+- **Evidence:** `provenance.test.tsx` "markers do not dominate" block (one `satswitch` in the whole grid; a converted, validated month draws only its tint and count; an untuned area's grid markup equals Sumatra's). Sumatra at 1280 px in the built-in browser looks as before apart from the one rule.
+- **Revisit if:** a viewer misses the rule; a margin note like the sensor change's would be next.
+
+## Story 3.6: the caveat quotes its own claim (15 Nov 2026)
+
+- **Status:** ASSUMED. Claims approved by the lead on 15 Nov ("Approve all"), with the untuned wording changed.
+- **Decision:** Where the caveat shows follows the served `aoi.region_caveat` only. It opens with the contract's sentence (`labels.region_caveat.untuned_region` or `.southern_africa`), then quotes one fixed claim from `evidence.json` by id, whole: `caveat-untuned-region` or `caveat-southern-africa` (`CAVEAT_CLAIM` in `web/src/provenance/caveat.ts`). If `evidence.json` lacks that claim, the caveat shows only the contract's sentence; no other claim stands in. If `evidence.json` fails to load, `client.evidence_unavailable` follows that sentence. The earlier stand-in, which quoted `reported-only-regions` (with its Punjab sentence) and `southern-africa-flags` while the claims did not exist, is removed.
+- **The approved claims** (in `evidence/claims.yaml`, copied unchanged from the Story 5.5 branch, figures 16.8% and 0.453 from the scoring files):
+  - `caveat-untuned-region`: "The conversion was not tuned here. In the one untuned region scored, southern Africa's savanna, C1's counts ran 16.8% low in the reported-only run, and its flags were right less than half the time on the final set (0.453)."
+  - `caveat-southern-africa`: "In this region C1's counts ran 16.8% low in the reported-only run, and its flags were right less than half the time on the final set (0.453)." As proposed.
+- **Why the untuned claim was reworded:** it reports one region's results and makes no prediction. It shows on every untuned area, including ones that are not savanna (the Central Kalimantan example is not evaluated at all), so "counts are likely too low in savanna and grassland" would have predicted a bias the scores do not show for those areas. It also drops "and grassland": the one grassland region scored is a tuning region.
+- **Open, for the lead:** "the one untuned region scored" may not hold. `meta.coverage` serves Siberia as `tested_unseen` (scored, not tuned) and Punjab as `reported_only`. If Siberia's final-set results count, the claim should name southern Africa without "the one". Not changed here: `claims.yaml` must stay identical to the 5.5 branch.
+- **Evidence:** `web/src/provenance/caveat.test.tsx` AC4 to AC6 blocks (each caveat quotes exactly its own claim and no other, no Punjab sentence; the contract sentence comes first; no "likely", "may" or "could" in the southern Africa caveat; with the claim missing only the contract sentence shows; every number shown is a `display` of the quoted claim's figures; the claim is the object from `evidence.json`).
+- **Revisit if:** either claim is renamed or reworded in `claims.yaml` (the web reads them by id), or the lead settles the Siberia point.
+
+## Story 3.6: the evidence-class map is a 1° cell map inside the caveat (15 Nov 2026)
+
+- **Status:** ASSUMED
+- **Decision:** The locator map (`web/src/area/MapView.tsx`, MapLibre) was outside this story's files, so the cells are marked on a small SVG map of the area's 1° cells inside the caveat, beside the locator: one square per cell from `POST /cells` (served `sw_lon`, `sw_lat`, `evidence_class`), north up. Tuned cells are plain; tested-but-not-tuned get horizontal lines, reported-only vertical lines, not evaluated a cross-hatch, all in ink, so no class rests on colour and none reuses the grid's hatching or dots. A key gives `labels.evidence_class` for each class the area holds (served `evidence_class_counts` not 0). The map shows only when the area carries a caveat; Sumatra shows none and loads neither `/cells` nor `evidence.json`. The `/cells` call lives in `web/src/provenance/cells.ts`, not in `ServiceClient`, because `web/src/api/` was outside scope; a failed call leaves the map out and keeps the words. evidence.json is loaded lazily, sharing the evidence view's chunk.
+- **Evidence:** `caveat.test.tsx` AC4 block (each served cell drawn with its class's pattern; four distinct fills; no colour fill; the key; north-up placement; the `/cells` request body; a refused call gives no map). Built-in browser with a scratch mock service serving the contract's untuned and savanna examples: 1280 and 375 px, page width 375, patterns readable at 28 px a cell.
+- **Revisit if:** the lead wants the classes drawn on the locator itself (move the patterns into `MapView`), or `postCells` is added to `ServiceClient` (move the loader there), or a very large area makes 3 px squares unreadable.
+
+## Story 6.5: which claims the submission text quotes (15 Nov 2026)
+
+- **Status:** ASSUMED. Needs the lead's OK.
+- **Decision:** The Project Summary quotes two claims, `count-error-vs-b` and `flag-precision-vs-b`, so the failed test sits beside the result in the shortest field. The Project Details quotes the ten claims the storyline puts on slides 5 and 6 (every `used_for_pick` claim plus `comparator-vs-b`). The three reported-only claims are left out of the form, as the storyline keeps them for questions. Each is quoted word for word with its id; the id label is dropped when pasting.
+- **Evidence:** Story 6.5 AC1 (summary and details use the `claims.yaml` sentences); `docs/pitch/storyline.md` slides 5 and 6 and "If a judge asks"; `docs/submission/test_text.py` checks the quotes word for word and that both fields carry the failed test.
+- **Revisit if:** the live form has a limit the details field exceeds (cut order is given under the field), or the lead wants the reported-only results in the form.
+
+## Story 6.5: word counts and product names in the submission text (15 Nov 2026)
+
+- **Status:** ASSUMED
+- **Decision:** No word or character limit is known: Story 6.5 gives none and the brief's field list (organisers' email, judging guide) gives none. Each field states its word count as pasted (claim labels dropped, pending markers counted as they stand), checked by `docs/submission/test_text.py`. The official names of the FIRMS products, which contain the word the project does not use, are left to Story 6.1 and the lead; the draft says "hotspot products".
+- **Evidence:** Story 6.5 criteria; the brief's "Singapore organisers' email" and "Eligibility for global judging" lists in the planning record.
+- **Revisit if:** the live form shows limits, or the lead rules that proper names are exempt from the "hotspots" rule.
+
+## Story 3.8: the anomaly view's diverging ramp and its neutral class (15 Nov 2026)
+
+- **Status:** ASSUMED. Approved by the lead on 15 Nov ("Approve all").
+- **Decision:** A "Counts / Anomalies" switch sits beside "Grid / Table". In the anomaly view each counted month is filled by its served `anomaly_class`, never by `anomaly_pct`. The neutral middle is the class that holds 0, as the contract defines it: the last served `anomaly_breaks` lower bound at or below 0 (`neutralIndex` in `web/src/grid/anomaly.ts`). That is a sign check on a served bound to pick a hue, not a number shown. Classes below it take one to three steps of a slate hue, classes above it one to three steps of an ochre-brown hue; a fourth step or beyond shares the darkest. Colours: `--a-cool3` #2f4f6b, `--a-cool2` #6f8ea8, `--a-cool1` #b9c7d2, `--a-neutral` #e6dfd0, `--a-warm1` #dcb98a, `--a-warm2` #b07a3e, `--a-warm3` #6e3a15 (`web/src/grid/grid.css`); no red. Ink text on every step but the two darkest. A counted month with no class (served `anomaly_class` null, which happens when the mean is 0) is left plain with a rule outline, not neutral, and its card gives `notes.no_typical_activity`. Cells show the served `anomaly_pct`, signed, at laptop width and tint only at phone width, as the count view does. The foot row shows the served `reference_mean` (the ramp's centre) under the label "mean".
+- **Evidence:** `web/src/grid/anomaly.test.tsx` AC1 block (tone from served class for every month; class beats percentage; neutral is class 2 for the fixture's breaks; legend lists each served break, signed; foot row is the served means; no red on the ramp). Built-in browser at 1280 and 375 px.
+- **Revisit if:** Story 3.10's colour-vision simulation fails a step (the slate and ochre steps were chosen by eye, not with the dataviz validator), the service serves more than three classes on one side, or the lead prefers a different hue pair.
+
+## Story 3.8: flags are stated per tier, never summed (15 Nov 2026)
+
+- **Status:** ASSUMED. Approved by the lead on 15 Nov ("Approve all"): AC2 is met per tier out of M, with no served total.
+- **Decision:** AC2 asks the detail to say "N of M cells flagged". The service serves `cells_flagged_strong`, `cells_flagged_marginal` and `cells_total`, but no flagged total, and the web never sums (AD-8). So each month's card says "Flagged 1° cells: 19 strong, 9 marginal, of 113" followed by `notes.flag_scale` (the 1° scale), and `notes.strong_tier` whenever the strong count is not 0. Once contract 0.4.0 merges, the card uses its `sentences.cells_flagged` instead ("19 of 113 one-degree cells are flagged strong and 9 marginal, ..."), with no web change. In the count view these lines follow the flag label on flagged months only; in the anomaly view they show on every counted month, so a large anomaly with no flag reads "0 strong, 0 marginal". The flag symbols are Story 3.5's (filled triangle for strong, ring for marginal); the legend now adds `notes.strong_tier` to the strong entry and `notes.flag_scale` as its own entry, in both views. Flag counts are read as possibly null, so contract 0.4.0's null outside the record gives no mark and no line.
+- **Evidence:** `anomaly.test.tsx` AC2 block (shapes in both views and at 375 px; per-tier line with the 1° note; the 0.4.0 sentence filled from served values; the strong-tier note wherever strong shows, and in both legends; "28" never written for 19 + 9; null counts give nothing).
+- **Revisit if:** the lead wants one "N of M" figure: that needs a served `cells_flagged` total in the contract, not a sum in the web.
+
+## Story 3.8: "not flaggable" is read per cell, in a panel for the picked month (15 Nov 2026)
+
+- **Status:** ASSUMED. Approved by the lead on 15 Nov ("Approve all").
+- **Decision:** A month carries `reference_year` and `provisional`, so its card reads `notes.reference_year` and `notes.provisional` when they are true, in both views. "Not flaggable" is a state of a 1° cell, not of a month (AD-9), and `Month` serves no count of such cells. So the anomaly view adds, under the legend, the flag state of each 1° cell for the month the user last focused or tapped (else the served current month): a north-up map with one square per served cell (filled triangle strong, ring marginal, plain none, dashed outline not flaggable, hatching outside the record), a key with `labels.flag_state` for all five states, the flag scale and strong-tier notes, the served flag reference years, `notes.provisional` when any cell is provisional, and the same cells as a table (corner, state, served count, served threshold, notes) behind "Each cell as a table". It asks `POST /cells` with the picked month, 250 ms after the last pick, once per month and record version. The panel is shown only in the anomaly view, so the count view sends no `/cells` request. `web/src/provenance/cells.ts` (Story 3.6) gained an optional `month` argument; with none it asks for the current month as before.
+- **Fixture mode:** the fixture holds one `/cells` answer (September 2015), served for every month, so locally the panel always shows September 2015. The heading names the served month, so the page shows what is served.
+- **Evidence:** `anomaly.test.tsx` AC3 block (each month's note matches its served boolean in both views; every flag state drawn and labelled from `cells_every_state.json`; the reference-year example reads the note; the request body carries the picked month; Story 3.6's call is unchanged; panel only in the anomaly view). Built-in browser: panel at 1280 and 375 px, the table's not-flaggable rows read the contract label.
+- **Revisit if:** the lead wants a not-flaggable figure on the month itself (needs a served field), or the panel should follow hover too.
+
+## Story 3.8: the anomaly words read the contract's sentences once 0.4.0 merges (15 Nov 2026)
+
+- **Status:** ASSUMED. Wording approved by the lead on 15 Nov ("Approve all"), with the anomaly sentence reworded; the keys go into the contract 0.4.0 draft (`lead/contract-0.4.0`), which did not hold them yet when this was built.
+- **Decision:** `web/src/grid/anomaly.ts` reads six optional keys, `sentences.anomaly`, `sentences.reference_mean`, `sentences.flag_reference`, `sentences.anomaly_scale`, `sentences.cells_heading` and `notes.partly_inside`, the way `web/src/card/words.ts` reads the card's (its `fill()`), alongside 0.4.0's `sentences.cells_flagged`. Each is filled from served values, formatted only, with each signed value keeping its served sign ("+19,674.4 hotspots (+277.55%)", "−1,139 hotspots (−81.34%)"); `{month_name}` is the month's calendar name and `{month}` the served month ("November 2026"). While master's contract (0.3.0) lacks a key, the label used so far shows instead, so merging 0.4.0 switches the words with no web change. A template with a placeholder whose value is null is not filled: the label shows, so no null is written as 0 or left blank (the anomaly sentence needs `anomaly_pct`, which is null when the mean is 0).
+- **The approved text:**
+  - `sentences.anomaly`: "Difference from the {reference_start}–{reference_end} mean for {month_name}: {anomaly_count} hotspots ({anomaly_pct}%)."
+  - `sentences.reference_mean`: "The {reference_start}–{reference_end} mean for {month_name} is {mean} hotspots."
+  - `sentences.flag_reference`: "Flag thresholds come from {flag_start}–{flag_end}, a different period from the mean, so a large anomaly can have no flag and a flag can come with a small anomaly."
+  - `sentences.anomaly_scale`: "Anomaly as a percentage of the {reference_start}–{reference_end} mean for the calendar month. Each class starts at the value shown."
+  - `sentences.cells_heading`: "Flag state of each one-degree cell in {month}."
+  - `notes.partly_inside`: "Partly inside the area. The count and flag are for the whole cell."
+- **The labels until then:** "Anomaly: {anomaly_count} {unit}, {anomaly_pct}%", "Reference mean {start}–{end}: {mean} {unit}", "Flag reference years {start}–{end}", "Anomaly, % of the {start}–{end} mean for the calendar month, lower bound of each class", "Flag state of each 1° cell, {month}", "Partly inside the area.". Labels that have no sentence planned stay as they are: "mean" under the foot row, "Each cell as a table" and the cell table's column heads.
+- **Evidence:** `web/src/grid/anomaly.test.tsx`, "Approved contract sentences" block, with the approved templates passed in as `card.test.tsx` does (master's contract has none of the six keys, so the labels show; each sentence filled from served values in the card, legend, table caption and cell panel; signs kept; a null value falls back to the label; only served numbers on screen). `uv run python evidence/wording.py` passed.
+- **Revisit if:** a key is renamed or reworded in the merged 0.4.0 (the web reads them by name), or a placeholder name changes.
+
+## Story 3.8: flag marks stay on both tiers (15 Nov 2026)
+
+- **Status:** ASSUMED. Decided by the lead on 15 Nov.
+- **Decision:** The grid keeps a mark on every flagged month, a filled triangle for strong and a ring for marginal-only months, rather than marking strong months only (the open question in `UI-CONCEPT.md`, section 5). Reason given by the lead: the planning record says showing strong flags only cuts recall from 0.848 to 0.656, and the strong tier is a display tier, not the scored rule. The clutter in 2015 and 2019 seen in the browser comes from the fixture's invented data.
+- **Evidence:** the lead's decision, citing the planning record; browser check on the fixture (most months of 2015 and 2019 carry a mark).
+- **Revisit if:** real Sumatra data, once published, shows most months of most years carrying a mark, so the marks no longer single out unusual months.
+
+## Story 5.6: the eight limits are page copy with figures, not new claims (15 Nov 2026)
+
+- **Status:** TESTED. The lead approved the section's wording on 15 Nov ("Approve all", relayed by the lead's session).
+- **Decision:** The eight limits of test plan section 12 are typed in `web/src/evidence/limits.ts` (`LIMITS`), in the plan's order, as a numbered list. They state limits, not how C1 scored, so none was added to `claims.yaml`. Each number they quote is a figure from `evidence.json` named by table, row and cell: the last scored year (the final file's Sumatra years), the selection set's years, its blocks (28, from the file; the test plan's "about 30" was written before the count) and its one pair of years per region. Limit 3 prints the fixed claim `noaa20-untested`. Wording changes from the plan, each to fit the product: "not truth about fire" became "agreement with Aqua, not the truth on the ground" (the hotspots rule); "13 approaches" became "many approaches" (the 13 are in the first selection run, which `evidence.json` does not read); the precision margin's size is not quoted (it is in no scoring file; the page points to the test plan); the cropland limit adds that Punjab, a cropland region, is in the reported-only run only, so it neither overstates nor hides what was run. No limit says anything about how C1 scored.
+- **Evidence:** test plan sections 4, 8 and 12 and the outcome table (P2) in the planning record; `limits.test.tsx` "AC1: all eight limits of test plan section 12 are present…" (a checklist kept apart from the copy) and "AC1: the numbers in the limits are figures…"; `evidence/test_limits.py` checks each fact a limit relies on against the scoring files (scored years stop at the quoted year; tuning regions late years only; one year pair per region for every approach; no Punjab in the selection or final set).
+- **Revisit if:** the lead rewords a limit or wants any of them as a fixed claim.
+- **Update, 15 Nov:** approved by the lead with the rest of the section's wording.
+
+## Story 5.6: the tiers sentence (15 Nov 2026)
+
+- **Status:** TESTED. The lead approved the drafted claim on 15 Nov ("Approve all", relayed by the lead's session).
+- **Decision:** The tiers block prints the fixed claim `tiers-selection-only` ("checked on selection years only") between two typed sentences: "The calendar shows each flag as strong or marginal." and "They were not checked in southern Africa or Siberia, and the idea for them came after the final-set scores had been seen. The final set was not read again to check them." The last two facts are from the planning record's "Anomaly flags: two tiers" entry. Not added to `claims.yaml`; a drafted single claim, if the lead prefers one: "The two flag tiers were checked on selection years only, not in southern Africa or Siberia, and were added after the final-set scores had been seen." (no figures).
+- **Evidence:** planning `DECISIONS.md`, "Anomaly flags: two tiers"; `limits.test.tsx` "AC2".
+- **Revisit if:** the lead approves the drafted claim (then the block prints it instead of the claim plus typed sentence).
+- **Update, 15 Nov:** approved and added at the end of `claims.yaml` as `tiers-not-checked-everywhere` (not used for the pick, no figures; now seventeen claims). The tiers note now prints "The calendar shows each flag as strong or marginal." and then that claim by id; the typed sentence ("They were not checked in southern Africa or Siberia, and the idea for them came after the final-set scores had been seen. The final set was not read again to check them.") is removed. `tiers-selection-only` stays in `claims.yaml` for other pages. "The final set was not read again" is no longer on the page; it would need its own claim. After the change: evidence check passed, `uv run pytest evidence` 164 passed, `npm run test` 185 passed, `npm run build`, wording check passed.
+
+## Story 5.6: the reported-only run gets its own section, with Story 5.4's tables (15 Nov 2026)
+
+- **Status:** ASSUMED
+- **Decision:** The reported-only run (`9d5e7bf1d0d6`) is a second section, "The reported-only run", under "What the scores can't show", headed by a ruled "Not used for the pick" label and the run's own fields (run id, the final run it followed, last standard date, its note). It prints the three fixed claims on it word for word (`reported-only-vs-b`, `reported-only-4a`, `reported-only-regions`), the years it covers, every approach's results under the same tests as the final pick (against (a), against (b) with what each was worse on, and non-inferiority to (c)), and Story 5.4's score, by-year, paired-difference and block tables with its own region and scale choice (southern Africa and Punjab are regions there). The reported-only test against (c) is shown as its file holds it: (b) and the comparator passed, the candidates failed on precision. `HeadToHead.tsx` exports its by-year and paired-difference tables (`ByYear`, `Pairs`) with unchanged markup; `headToHead.ts` exports `pairsOf` and `byYearOf` and takes any set key in `scaleOptions`, `regionOptions` and `normalise`.
+- **Evidence:** `limits.test.tsx` "AC3" tests; `evidence/test_limits.py` (4A alone passed the (b) test; C1 not the lowest error in southern Africa or Punjab); Story 5.4 and 5.5 tests pass unchanged.
+- **Revisit if:** the lead wants the reported-only run shorter (for example the claims and the tests table only).
+
+## Story 5.6: the NOAA-20 result file, once Story 2.10 writes it (15 Nov 2026)
+
+- **Status:** ASSUMED. Story 2.10 has not run, so this is tested on a made-up file only.
+- **Decision:** The build reads the latest file named `noaa20_check_*.json` that `evidence/scoring/MANIFEST.json` lists, as the set `noaa20_check` (already in the schema), and fails unless its `label` says "reported only" and "not a validation against Aqua". Since its shape is Story 2.10's, the build makes no assumption about it: the table `noaa20_check.figures` holds every value in the file, one row per field, each a figure with its pointer. The page then prints the contract's `notes.noaa20_check` ("Reported only. … not a validation against Aqua."), the file's label and those figures. Until then it prints `notes.noaa20_check_not_run`, once, in the NOAA-20 block only. Also added: a `year` display format (no thousands comma), and per-set tables `{set}.years` and `{set}.about`. No schema change.
+- **Evidence:** `evidence/test_limits.py` `test_5_6_noaa20_*` (no file now; a listed file is read; a file without the label fails the build); `limits.test.tsx` "AC4" (both states).
+- **Revisit if:** Story 2.10 names its file differently or gives its figures a shape worth a proper table (then replace the field-by-field list).

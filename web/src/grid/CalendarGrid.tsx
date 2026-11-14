@@ -1,183 +1,324 @@
-import { useEffect, useMemo, useRef, useState } from "react";
-import { select } from "d3";
-import { messages } from "../api/messages";
-import { MONTH_INITIALS, formatCount } from "../format";
-import { buildGridModel, type Calendar, type Meta } from "./model";
+import { useEffect, useMemo, useRef, useState, type KeyboardEvent } from "react";
+import { MONTH_INITIALS } from "../format";
+import { CalendarTable } from "./CalendarTable";
+import { GAP, layoutGrid, move, type Layout } from "./layout";
+import { asSentence, buildGridModel, detailAt, type Calendar, type CellModel, type GridModel, type GridSentences, type Measure, type Meta, type Pos } from "./model";
 import "./grid.css";
 
-const NARROW = 700;
-// Below this cell width a 7-character count ("2,619.6") no longer fits, so cells show tint only.
-const MIN_NUM_CELL_W = 46;
-const GAP = 2;
-const YEAR_W = 40;
-const HEAD_H = 18;
-const FOOT_H = 22;
+type View = "grid" | "table";
 
-function wrap(text: string, maxChars: number): string[] {
-  const lines: string[] = [];
-  let cur = "";
-  for (const w of text.split(/\s+/)) {
-    if (cur && cur.length + 1 + w.length > maxChars) {
-      lines.push(cur);
-      cur = w;
-    } else cur = cur ? `${cur} ${w}` : w;
-  }
-  if (cur) lines.push(cur);
-  return lines;
-}
+const key = (p: Pos) => `${p.r}-${p.c}`;
+const same = (a: Pos | null, b: Pos) => a !== null && a.r === b.r && a.c === b.c;
 
-export function CalendarGrid({ calendar, meta }: { calendar: Calendar; meta: Meta }) {
+/**
+ * The year × month calendar (Story 3.5), with a table view of the same data,
+ * coloured by the count or, in the anomaly view (Story 3.8), by the anomaly.
+ * `width`, `initialView`, `initialMeasure` and `initialActive` let tests render
+ * a fixed state. `measure` with `onMeasureChange` lets the page hold the
+ * measure, so the legend and the cells panel follow it; `onPick` reports the
+ * month the user focused or tapped.
+ */
+export function CalendarGrid({
+  calendar, meta, width: fixedWidth, initialView = "grid", initialMeasure = "count", initialActive = null,
+  measure: heldMeasure, onMeasureChange, onPick, sentences,
+}: {
+  calendar: Calendar;
+  meta: Meta;
+  width?: number;
+  initialView?: View;
+  initialMeasure?: Measure;
+  initialActive?: Pos | null;
+  measure?: Measure;
+  onMeasureChange?: (m: Measure) => void;
+  onPick?: (month: string) => void;
+  /** The contract's sentences; tests pass their own. Default: messages.yaml. */
+  sentences?: GridSentences;
+}) {
   const wrapRef = useRef<HTMLDivElement>(null);
-  const svgRef = useRef<SVGSVGElement>(null);
-  const [width, setWidth] = useState(0);
-  const model = useMemo(() => buildGridModel(calendar, meta), [calendar, meta]);
+  const [measured, setMeasured] = useState(0);
+  const [view, setView] = useState<View>(initialView);
+  const [ownMeasure, setOwnMeasure] = useState<Measure>(initialMeasure);
+  const measure = heldMeasure ?? ownMeasure;
+  const setMeasure = (m: Measure) => {
+    setOwnMeasure(m);
+    onMeasureChange?.(m);
+  };
+  const model = useMemo(() => buildGridModel(calendar, meta, sentences), [calendar, meta, sentences]);
 
   useEffect(() => {
     const el = wrapRef.current;
-    if (!el) return;
-    setWidth(el.clientWidth);
-    const ro = new ResizeObserver(() => setWidth(el.clientWidth));
+    if (!el || fixedWidth !== undefined) return;
+    setMeasured(el.clientWidth);
+    const ro = new ResizeObserver(() => setMeasured(el.clientWidth));
     ro.observe(el);
     return () => ro.disconnect();
-  }, []);
+  }, [fixedWidth, view]);
 
-  useEffect(() => {
-    const svgEl = svgRef.current;
-    if (!svgEl || width <= 0) return;
-    const narrow = width < NARROW;
-    const rowH = narrow ? 17 : 22;
-    const totalW = narrow ? 26 : 140;
-    const cellW = (width - YEAR_W - totalW) / 12;
-    const showNums = !narrow && cellW >= MIN_NUM_CELL_W;
-    const barMax = 54;
-    const noteLines = wrap(messages.notes.record_switch, Math.max(20, Math.floor((width - 8) / 5.6)));
-    const noteH = noteLines.length * 13 + 12;
-
-    const svg = select(svgEl);
-    svg.selectAll("*").remove();
-
-    // y of each row
-    const ys: number[] = [];
-    let y = HEAD_H;
-    let ruleY: number | null = null;
-    let noteY = 0;
-    model.rows.forEach((r, i) => {
-      ys.push(y);
-      y += rowH + GAP;
-      if (r.year === model.switchYear && i < model.rows.length - 1) {
-        ruleY = y - GAP / 2 + 1;
-        noteY = y + 2;
-        y += noteH;
-      }
-    });
-    const footY = y + 4;
-    const height = footY + FOOT_H;
-    svg.attr("width", width).attr("height", height);
-
-    const defs = svg.append("defs");
-    const hatch = defs.append("pattern").attr("id", "hatch-record").attr("width", 5).attr("height", 5)
-      .attr("patternUnits", "userSpaceOnUse").attr("patternTransform", "rotate(45)");
-    hatch.append("line").attr("class", "hatch-line").attr("x1", 0).attr("y1", 0).attr("x2", 0).attr("y2", 5);
-    const dots = defs.append("pattern").attr("id", "hatch-coverage").attr("width", 5).attr("height", 5)
-      .attr("patternUnits", "userSpaceOnUse");
-    dots.append("circle").attr("class", "dot").attr("cx", 2.5).attr("cy", 2.5).attr("r", 1);
-
-    // header
-    const head = svg.append("g").attr("class", "head");
-    MONTH_INITIALS.forEach((m, i) => {
-      head.append("text").attr("class", "colhead").attr("x", YEAR_W + i * cellW + cellW / 2).attr("y", 12).text(m);
-    });
-    if (!narrow) {
-      head.append("text").attr("class", "colhead").attr("x", YEAR_W + 12 * cellW + 8).attr("y", 12)
-        .style("text-anchor", "start").text("Year total");
-    }
-
-    model.rows.forEach((row, ri) => {
-      const ry = ys[ri];
-      const g = svg.append("g").attr("class", "row").attr("data-year", row.year);
-      g.append("text").attr("class", "yr").attr("x", YEAR_W - 8).attr("y", ry + rowH / 2 + 4).text(row.year);
-
-      row.cells.forEach((c, ci) => {
-        const x = YEAR_W + ci * cellW;
-        const w = Math.max(1, cellW - GAP);
-        const h = rowH;
-        const isNull = c.count === null;
-        const state = !isNull ? "count" : (c.nullReason ?? "outside_record");
-        const cg = g.append("g")
-          .attr("class", `cell ${isNull ? "nullcell" : `k${c.colourClass ?? 0}`}`)
-          .attr("transform", `translate(${x},${ry})`)
-          .attr("data-month", c.month)
-          .attr("data-state", state);
-        if (c.flag) cg.attr("data-flag", c.flag);
-        if (c.monthToDate) cg.attr("data-mtd", "true");
-        cg.append("title").text(c.title);
-        if (isNull) {
-          const pat = c.nullReason === "outside_coverage" ? "hatch-coverage" : "hatch-record";
-          cg.append("rect").attr("width", w).attr("height", h).style("fill", "var(--paper)");
-          cg.append("rect").attr("width", w).attr("height", h).attr("fill", `url(#${pat})`)
-            .style("stroke", "var(--rule)").style("stroke-width", 0.5);
-          if (showNums) cg.append("text").attr("class", "dash").attr("x", w / 2).attr("y", h / 2 + 4).text("–");
-        } else {
-          cg.append("rect").attr("class", "bg").attr("width", w).attr("height", h);
-          if (showNums && c.count !== null) {
-            cg.append("text").attr("class", "num").attr("x", w - 3).attr("y", h / 2 + 4.5)
-              .text(formatCount(c.count));
-          }
-        }
-        if (c.monthToDate) {
-          cg.append("rect").attr("class", "mtd").attr("x", 1).attr("y", 1).attr("width", w - 2).attr("height", h - 2);
-        }
-        if (c.flag === "strong") {
-          cg.append("path").attr("class", "flag-strong").attr("d", "M1.5,1.5 L7,1.5 L1.5,7 Z");
-        } else if (c.flag === "marginal") {
-          cg.append("circle").attr("class", "flag-marginal").attr("cx", 4.5).attr("cy", 4.5).attr("r", 2.4);
-        }
-      });
-
-      // year total
-      const tx = YEAR_W + 12 * cellW + 8;
-      const tg = g.append("g").attr("class", "total").attr("transform", `translate(${tx},${ry})`);
-      const t = row.total;
-      if (t) {
-        const title = tg.append("title");
-        title.text(`${row.year}: ${t.total === null ? "–" : formatCount(t.total)}`);
-        if (!narrow) {
-          tg.append("rect").attr("class", `tot-bar${t.complete ? "" : " hollow"}`)
-            .attr("x", 0).attr("y", 4).attr("height", rowH - 8)
-            .attr("width", Math.max(0, (t.share_of_max ?? 0) * barMax));
-          tg.append("text").attr("class", "tot-num").attr("x", barMax + 6).attr("y", rowH / 2 + 4)
-            .text(t.total === null ? "–" : formatCount(t.total));
-        }
-      }
-      if (row.topRank !== null) {
-        const rg = tg.append("g").attr("class", "rank")
-          .attr("transform", `translate(${narrow ? 8 : totalW - 14},${rowH / 2})`);
-        rg.append("circle").attr("r", 7);
-        rg.append("text").attr("y", 3.3).text(row.topRank);
-      }
-    });
-
-    if (ruleY !== null) {
-      svg.append("line").attr("class", "switch-rule").attr("x1", YEAR_W).attr("x2", width)
-        .attr("y1", ruleY).attr("y2", ruleY);
-      const nt = svg.append("text").attr("class", "switch-note").attr("x", YEAR_W).attr("y", noteY + 10);
-      noteLines.forEach((l, i) => nt.append("tspan").attr("x", YEAR_W).attr("dy", i === 0 ? 0 : 13).text(l));
-    }
-
-    // medians foot
-    svg.append("line").attr("class", "foot-rule").attr("x1", YEAR_W).attr("x2", width).attr("y1", footY).attr("y2", footY);
-    svg.append("text").attr("class", "colhead foot-label").attr("x", YEAR_W - 8).attr("y", footY + 15)
-      .style("text-anchor", "end").text("median");
-    model.medians.forEach((m, i) => {
-      const t = svg.append("text").attr("class", "median").attr("x", YEAR_W + i * cellW + cellW / 2).attr("y", footY + 15);
-      t.text(showNums ? m.label : "");
-      t.append("title").text(m.title ? `${m.label}\n${m.title}` : m.label);
-    });
-  }, [model, width]);
+  const width = fixedWidth ?? measured;
 
   return (
-    <div className="calgrid" ref={wrapRef}>
-      <svg ref={svgRef} role="img" aria-label="Hotspots per month by year" />
+    <div className="calfigure">
+      <div className="switches">
+        <div className="viewswitch" role="group" aria-label="Calendar view">
+          <button type="button" aria-pressed={view === "grid"} onClick={() => setView("grid")}>Grid</button>
+          <button type="button" aria-pressed={view === "table"} onClick={() => setView("table")}>Table</button>
+        </div>
+        <div className="viewswitch" role="group" aria-label="Colour cells by">
+          <button type="button" aria-pressed={measure === "count"} onClick={() => setMeasure("count")}>Counts</button>
+          <button type="button" aria-pressed={measure === "anomaly"} onClick={() => setMeasure("anomaly")}>Anomalies</button>
+        </div>
+      </div>
+      {view === "grid" ? (
+        <div className="calgrid" ref={wrapRef} data-measure={measure}>
+          {width > 0 ? (
+            <GridSvg model={model} layout={layoutGrid(model, width)} measure={measure} initialActive={initialActive} onPick={onPick} />
+          ) : null}
+        </div>
+      ) : (
+        <CalendarTable model={model} measure={measure} />
+      )}
+    </div>
+  );
+}
+
+function GridSvg({
+  model, layout: L, measure, initialActive, onPick,
+}: {
+  model: GridModel;
+  layout: Layout;
+  measure: Measure;
+  initialActive: Pos | null;
+  onPick?: (month: string) => void;
+}) {
+  // pinned: set by focus or tap; hover: the pointer, shown over pinned while it lasts.
+  const [pinned, setPinnedState] = useState<Pos | null>(initialActive);
+  const anomaly = measure === "anomaly";
+  const setPinned = (p: Pos | null) => {
+    setPinnedState(p);
+    const month = p && p.c < 12 ? model.rows[p.r]?.cells[p.c]?.month : undefined;
+    if (month) onPick?.(month);
+  };
+  const [hover, setHover] = useState<Pos | null>(null);
+  const refs = useRef(new Map<string, SVGGElement>());
+  const shown = hover ?? pinned;
+  const tabStop: Pos = pinned ?? { r: 0, c: 0 };
+  const nRows = model.rows.length;
+
+  const onKey = (e: KeyboardEvent) => {
+    if (e.key === "Escape") {
+      setPinned(null);
+      setHover(null);
+      return;
+    }
+    // The focused element names its own place, so a key that arrives before the
+    // focus has re-rendered still moves from the right cell.
+    const at = (e.target as Element).closest?.("[data-pos]")?.getAttribute("data-pos");
+    const from = at ? { r: Number(at.split("-")[0]), c: Number(at.split("-")[1]) } : (pinned ?? tabStop);
+    const next = move(from, e.key, nRows);
+    if (!next) return;
+    e.preventDefault();
+    setHover(null);
+    setPinned(next);
+    refs.current.get(key(next))?.focus();
+  };
+
+  // Common props for every focusable place.
+  const focusable = (p: Pos, label: string) => ({
+    ref: (el: SVGGElement | null) => {
+      if (el) refs.current.set(key(p), el);
+      else refs.current.delete(key(p));
+    },
+    "data-pos": key(p),
+    tabIndex: same(tabStop, p) ? 0 : -1,
+    role: "gridcell",
+    "aria-label": label,
+    "aria-selected": same(pinned, p),
+    onFocus: () => setPinned(p),
+    onClick: () => setPinned(p),
+    onMouseEnter: () => setHover(p),
+  });
+
+  const cellX = (c: number) => L.yearW + c * L.cellW;
+  const w = Math.max(1, L.cellW - GAP);
+  const h = L.rowH;
+
+  return (
+    <div className="gridstage" onMouseLeave={() => setHover(null)}>
+      <svg
+        width={L.width}
+        height={L.height}
+        role="grid"
+        aria-label={`Hotspots per month by year, ${model.unitLabel}. Arrow keys move between months.`}
+        onKeyDown={onKey}
+        onBlur={(e) => {
+          // Leaving the grid (tapping elsewhere, tabbing on) closes the card.
+          if (!e.currentTarget.contains(e.relatedTarget as Node | null)) setPinned(null);
+        }}
+      >
+        <defs>
+          <pattern id="hatch-record" width="5" height="5" patternUnits="userSpaceOnUse" patternTransform="rotate(45)">
+            <line className="hatch-line" x1="0" y1="0" x2="0" y2="5" />
+          </pattern>
+          <pattern id="hatch-coverage" width="5" height="5" patternUnits="userSpaceOnUse">
+            <circle className="dot" cx="2.5" cy="2.5" r="1" />
+          </pattern>
+        </defs>
+
+        <g className="head" aria-hidden="true">
+          {MONTH_INITIALS.map((m, i) => (
+            <text key={i} className="colhead" x={cellX(i) + L.cellW / 2} y={12}>{m}</text>
+          ))}
+          <text className="colhead" x={L.totalX} y={12} style={{ textAnchor: "start" }}>{L.narrow ? "Total" : "Year total"}</text>
+        </g>
+
+        {model.rows.map((row, ri) => {
+          const ry = L.rowYs[ri];
+          return (
+            <g key={row.year} className="row" role="row" data-year={row.year}>
+              <text className="yr" role="rowheader" x={L.yearW - 6} y={ry + h / 2 + 4}>{row.year}</text>
+              {row.cells.map((c, ci) => (
+                <g
+                  key={c.month}
+                  className={`cell ${c.count === null ? "nullcell" : anomaly ? `a-${c.tone ?? "none"}` : `k${c.colourClass ?? 0}`}`}
+                  transform={`translate(${cellX(ci)},${ry})`}
+                  data-month={c.month}
+                  data-state={c.state}
+                  data-flag={c.flag ?? undefined}
+                  data-mtd={c.monthToDate || undefined}
+                  data-marks={c.marks || undefined}
+                  data-satswitch={c.satelliteSwitch || undefined}
+                  data-anomaly-class={anomaly && c.anomalyClass !== null ? c.anomalyClass : undefined}
+                  {...focusable({ r: ri, c: ci }, asSentence(anomaly ? c.anomalyDetail : c.detail))}
+                >
+                  <Cell c={c} w={w} h={h} showNums={L.showNums} anomaly={anomaly} />
+                  {same(shown, { r: ri, c: ci }) ? <rect className="ring" x={-1.5} y={-1.5} width={w + 3} height={h + 3} /> : null}
+                </g>
+              ))}
+              {row.total ? (
+                <g
+                  className={`total${row.total.complete ? "" : " incomplete"}`}
+                  transform={`translate(${L.totalX},${ry})`}
+                  {...focusable({ r: ri, c: 12 }, asSentence(row.total.detail))}
+                >
+                  <rect className="hit" width={L.totalW - 4} height={h} />
+                  {L.narrow ? (
+                    <>
+                      {!row.total.complete ? <rect className="tot-box" x={13} y={1.5} width={L.totalW - 15} height={h - 3} /> : null}
+                      <text className="tot-num narrow" x={L.totalW - 5} y={h / 2 + 3.5} style={{ textAnchor: "end" }}>{row.total.label}</text>
+                    </>
+                  ) : (
+                    <>
+                      <rect
+                        className={`tot-bar${row.total.complete ? "" : " hollow"}`}
+                        x={0} y={4} height={h - 8}
+                        width={Math.max(0, (row.total.shareOfMax ?? 0) * L.barMax)}
+                      />
+                      <text className="tot-num" x={L.barMax + 6} y={h / 2 + 4}>{row.total.label}</text>
+                    </>
+                  )}
+                  {row.total.topRank !== null ? (
+                    <g className={`rank${L.narrow ? " narrow" : ""}`} transform={`translate(${L.narrow ? 6 : L.totalW - 14},${h / 2})`}>
+                      <circle r={L.narrow ? 5.5 : 7} />
+                      <text y={L.narrow ? 3 : 3.3}>{row.total.topRank}</text>
+                    </g>
+                  ) : null}
+                  {same(shown, { r: ri, c: 12 }) ? <rect className="ring" x={-1.5} y={-1.5} width={L.totalW - 1} height={h + 3} /> : null}
+                </g>
+              ) : null}
+            </g>
+          );
+        })}
+
+        {L.rule ? (
+          <g className="switch" aria-hidden="true">
+            <line className="switch-rule" x1={0} x2={L.width} y1={L.rule.y} y2={L.rule.y} />
+            <text className="switch-note" x={L.yearW} y={L.rule.noteY + 10}>
+              {L.rule.lines.map((l, i) => (
+                <tspan key={i} x={L.yearW} dy={i === 0 ? 0 : 13}>{l}</tspan>
+              ))}
+            </text>
+          </g>
+        ) : null}
+
+        <line className="foot-rule" x1={L.yearW} x2={L.width} y1={L.footY} y2={L.footY} />
+        <g role="row" className="medians">
+          <text className="colhead foot-label" role="rowheader" x={L.yearW - 6} y={L.footY + 15} style={{ textAnchor: "end" }}>
+            {anomaly ? "mean" : L.narrow ? "med." : "median"}
+          </text>
+          {model.medians.map((m, i) => {
+            const p = { r: nRows, c: i };
+            const x = cellX(i);
+            // The anomaly view's foot row is the served reference mean, the centre of its ramp.
+            const footLabel = anomaly ? m.meanLabel : m.label;
+            return (
+              <g key={i} className="median" transform={`translate(${x},${L.footY})`} {...focusable(p, asSentence(anomaly ? m.meanDetail : m.detail))}>
+                <rect className="hit" width={w} height={L.footH} />
+                {L.narrow ? (
+                  <text className="median-num" transform={`translate(${w / 2 + 3},${L.footH - 3}) rotate(-90)`}>{footLabel}</text>
+                ) : (
+                  <text className="median-num" x={w / 2} y={15} style={{ textAnchor: "middle" }}>{footLabel}</text>
+                )}
+                {same(shown, p) ? <rect className="ring" x={-1.5} y={1} width={w + 3} height={L.footH - 1} /> : null}
+              </g>
+            );
+          })}
+        </g>
+      </svg>
+      {shown ? <DetailCard model={model} layout={L} pos={shown} measure={measure} /> : null}
+    </div>
+  );
+}
+
+function Cell({ c, w, h, showNums, anomaly }: { c: CellModel; w: number; h: number; showNums: boolean; anomaly: boolean }) {
+  const isNull = c.count === null;
+  const label = anomaly ? c.anomalyLabel : c.label;
+  // With numerals shown, marks sit after the count as superscripts (about 5.2 px a glyph).
+  const marksW = showNums && c.marks ? c.marks.length * 5.2 + 1 : 0;
+  return (
+    <>
+      {isNull ? (
+        <>
+          <rect width={w} height={h} className="null-bg" />
+          <rect width={w} height={h} className="null-pat" fill={`url(#${c.state === "outside_coverage" ? "hatch-coverage" : "hatch-record"})`} />
+          {showNums ? <text className="dash" x={w / 2} y={h / 2 + 4}>–</text> : null}
+        </>
+      ) : (
+        <>
+          <rect className="bg" width={w} height={h} />
+          {showNums && label ? <text className={`num${(marksW && label.length >= (anomaly ? 6 : 7)) || label.length >= 8 ? " tight" : ""}`} x={w - 3 - marksW} y={h / 2 + 4.5}>{label}</text> : null}
+        </>
+      )}
+      {c.monthToDate ? <rect className="mtd" x={1} y={1} width={w - 2} height={h - 2} /> : null}
+      {c.flag === "strong" ? <path className="flag-strong" d="M1.5,1.5 L7,1.5 L1.5,7 Z" /> : null}
+      {c.flag === "marginal" ? <circle className="flag-marginal" cx={4.5} cy={4.5} r={2.4} /> : null}
+      {/* The 3 November 2026 change of feeding satellite: a short rule on the month's left edge,
+          the same ink rule as the sensor change but one cell high (Story 3.6). */}
+      {c.satelliteSwitch ? <line className="satswitch" x1={-1} x2={-1} y1={-2} y2={h + 2} /> : null}
+      {c.marks ? <text className="marks" x={w - 2} y={showNums ? h / 2 + 0.5 : 7.5}>{c.marks}</text> : null}
+    </>
+  );
+}
+
+const CARD_W = 270;
+
+function DetailCard({ model, layout: L, pos, measure }: { model: GridModel; layout: Layout; pos: Pos; measure: Measure }) {
+  const lines = detailAt(model, pos, measure);
+  if (!lines) return null;
+  const isMedian = pos.r === model.rows.length;
+  const x = pos.c === 12 ? L.totalX : L.yearW + pos.c * L.cellW;
+  const cardW = Math.min(CARD_W, L.width);
+  const left = Math.max(0, Math.min(x, L.width - cardW));
+  const y = isMedian ? L.footY : L.rowYs[pos.r];
+  // Below the cell in the upper half of the grid, above it in the lower half.
+  const below = y < L.height / 2;
+  const style = below
+    ? { left, top: y + (isMedian ? L.footH : L.rowH) + 6, width: cardW }
+    : { left, bottom: L.height - y + 6, width: cardW };
+  return (
+    <div className="cellcard" style={style} aria-hidden="true" data-pos={key(pos)}>
+      <strong>{lines[0]}</strong>
+      <span className="count">{lines[1]}</span>
+      {lines.slice(2).map((l, i) => <span key={i}>{l}</span>)}
     </div>
   );
 }

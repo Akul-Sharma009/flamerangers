@@ -2,9 +2,9 @@
 // the area on a still map, its name and served size, the scale cautions, and a
 // control that opens the picker. There is no large map on the page.
 import { useState } from "react";
-import type { Calendar } from "../api/client";
+import { wholeRecord, type Calendar, type DateRange, type Meta } from "../api/client";
 import { messages } from "../api/messages";
-import { formatCount } from "../format";
+import { formatCount, formatDay } from "../format";
 import { AreaPicker, type PickerTab, type TypedForm } from "./AreaPicker";
 import type { AoiInput } from "./featured";
 import { MapView } from "./MapView";
@@ -19,6 +19,11 @@ export interface LocatorProps {
   problemText: string | null;
   loading: boolean;
   onSelect: (aoi: AoiInput) => void;
+  /** The served /meta, once known: the dates tab's bounds and reference period. */
+  meta?: Meta | null;
+  /** The range asked for; null is the whole record. */
+  range?: DateRange | null;
+  onSelectRange?: (range: DateRange | null) => void;
   initialOpen?: boolean;
   initialTab?: PickerTab;
   initialForm?: TypedForm;
@@ -28,10 +33,14 @@ export interface LocatorProps {
 export const UNNAMED_AREA = "Your area";
 
 export function AreaLocator({
-  selected, calendar, problemText, loading, onSelect, initialOpen = false, initialTab, initialForm,
+  selected, calendar, problemText, loading, onSelect, meta = null, range = null, onSelectRange = () => undefined,
+  initialOpen = false, initialTab, initialForm,
 }: LocatorProps) {
   const [open, setOpen] = useState(initialOpen);
   const name = calendar ? calendar.aoi.name : selected.name ?? null;
+  const dates = meta
+    ? { bounds: wholeRecord(meta), referencePeriod: meta.reference_period, current: range ?? wholeRecord(meta) }
+    : null;
 
   return (
     <section className="locator" aria-label="Area">
@@ -45,6 +54,11 @@ export function AreaLocator({
           ) : loading ? (
             <span className="size">Loading…</span>
           ) : null}
+          {calendar ? (
+            <span className="range" data-field="range">
+              {formatDay(calendar.range.start)} to {formatDay(calendar.range.end)}
+            </span>
+          ) : null}
           <button
             type="button"
             className="change"
@@ -52,7 +66,7 @@ export function AreaLocator({
             aria-controls="area-picker"
             onClick={() => setOpen(!open)}
           >
-            Change area
+            Change area or dates
           </button>
         </div>
       </div>
@@ -62,6 +76,11 @@ export function AreaLocator({
           currentName={selected.name ?? null}
           initialTab={initialTab}
           initialForm={initialForm}
+          dates={dates}
+          onSelectRange={(r) => {
+            setOpen(false);
+            onSelectRange(r);
+          }}
           onClose={() => setOpen(false)}
           onSelect={(aoi) => {
             setOpen(false);

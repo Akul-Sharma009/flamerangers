@@ -1,0 +1,34 @@
+/* Story 5.6: what the scores can't show, and the reported-only run. Builds on
+   HeadToHead.css (both sections carry the h2h class) and the page tokens in styles.css.
+   The limits are numbered footnotes on ledger rules; "not used for the pick" is a
+   ruled label in ink, not a colour. */
+
+.limit-list { margin: 10px 0 0; padding-left: 1.8em; max-width: 78ch; }
+.limit-list > li { padding: 8px 0 8px 4px; border-top: 1px solid var(--faint); }
+.limit-list > li:first-child { border-top: 1px solid var(--rule); }
+.limit-list > li::marker { font-family: var(--num); font-size: 13px; color: var(--muted); }
+.limit-list .limit-title { font-family: var(--serif); font-weight: 600; }
+.limit-list [data-source] { font-family: var(--num); font-variant-numeric: tabular-nums; }
+
+.limit-years { margin: 6px 0 2px; font-size: 13px; }
+.limit-years > div { display: grid; grid-template-columns: 13em minmax(0, 1fr); gap: 0 14px; padding: 2px 0; }
+.limit-years dt { color: var(--muted); }
+.limit-years dd { margin: 0; font-family: var(--num); font-variant-numeric: tabular-nums; }
+
+.limit-block { max-width: 78ch; }
+.limit-block .not-run { font-style: italic; }
+.h2h .claim-inline { font-family: var(--serif); }
+
+.reported .not-for-pick { margin: 4px 0 6px; display: flex; flex-wrap: wrap; align-items: baseline; gap: 4px 12px; }
+.reported .tag { font-size: 11.5px; letter-spacing: .06em; text-transform: uppercase; font-weight: 600; border: 1px solid var(--ink); padding: 1px 6px; }
+.reported .setlabel { font-family: var(--num); font-size: 12.5px; color: var(--muted); overflow-wrap: anywhere; }
+.reported .h2h-blocks.about { margin-bottom: 6px; }
+.reported .h2h-blocks.about > div { min-width: 0; max-width: 100%; }
+.reported .h2h-blocks.about dd { min-width: 0; overflow-wrap: anywhere; }
+.reported .claim { max-width: 78ch; }
+.h2h-table.ro-tests td { white-space: nowrap; }
+
+@media (max-width: 760px) {
+  .limit-list { padding-left: 1.4em; }
+  .limit-years > div { grid-template-columns: minmax(0, 1fr); }
+}

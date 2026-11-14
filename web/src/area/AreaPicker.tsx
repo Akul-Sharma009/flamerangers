@@ -1,5 +1,8 @@
-// The expanded "change area" panel: pick a featured area, draw one, or type it.
+// The expanded "change area or dates" panel: pick a featured area, draw one,
+// type it, or set the date range (Story 3.4).
 import { useState, type FormEvent } from "react";
+import type { DateRange } from "../api/client";
+import { DatesPanel, type DatesSetting } from "./DatesPanel";
 import { featuredAreas, type AoiInput, type FeaturedArea } from "./featured";
 import { MapView, type DrawMode } from "./MapView";
 import {
@@ -7,7 +10,7 @@ import {
 } from "./typed";
 import { typedProblemText } from "./words";
 
-export type PickerTab = "featured" | "draw" | "type";
+export type PickerTab = "featured" | "draw" | "type" | "dates";
 export type TypedForm = "corners" | "vertices";
 
 interface Props {
@@ -20,12 +23,19 @@ interface Props {
   /** For tests: a refused typed entry to show as if just submitted. */
   initialRefusal?: { corners?: Corners; vertices?: string };
   areas?: FeaturedArea[];
+  /** The dates tab's served bounds and the range on show; null until /meta is served. */
+  dates?: DatesSetting | null;
+  /** A checked range, or null for the whole record. */
+  onSelectRange?: (range: DateRange | null) => void;
+  /** For tests: a refused range to show as if just submitted. */
+  initialRangeRefusal?: DateRange;
 }
 
 const TABS: { id: PickerTab; label: string }[] = [
   { id: "featured", label: "Featured areas" },
   { id: "draw", label: "Draw" },
   { id: "type", label: "Type coordinates" },
+  { id: "dates", label: "Dates" },
 ];
 
 const CORNERS: { field: CornerField; label: string; hint: string }[] = [
@@ -44,6 +54,7 @@ function typedAoi(geometry: Polygon | MultiPolygon): AoiInput {
 
 export function AreaPicker({
   currentName, onSelect, onClose, initialTab = "featured", initialForm = "corners", initialRefusal, areas,
+  dates = null, onSelectRange = () => undefined, initialRangeRefusal,
 }: Props) {
   const list = areas ?? featuredAreas();
   const [tab, setTab] = useState<PickerTab>(initialTab);
@@ -74,7 +85,7 @@ export function AreaPicker({
 
   return (
     <div className="picker" id="area-picker">
-      <div className="picker-tabs" role="tablist" aria-label="Ways to choose an area">
+      <div className="picker-tabs" role="tablist" aria-label="Ways to choose an area or dates">
         {TABS.map((t) => (
           <button
             key={t.id}
@@ -92,6 +103,10 @@ export function AreaPicker({
           Close
         </button>
       </div>
+
+      {tab === "dates" ? (
+        <DatesPanel dates={dates} onSelectRange={onSelectRange} initialRefusal={initialRangeRefusal} />
+      ) : null}
 
       {tab === "featured" ? (
         <div role="tabpanel" id="picker-panel-featured" aria-labelledby="picker-tab-featured">

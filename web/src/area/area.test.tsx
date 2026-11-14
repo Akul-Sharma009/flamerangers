@@ -45,6 +45,8 @@ function stubClient(answer: (req: CalendarRequest) => Calendar | Problem): Servi
       if ("code" in a && "status" in a) throw new ProblemError(a as Problem);
       return a as Calendar;
     },
+    postAnalyticsCsv: async () => "",
+    postHotspotsCsv: async () => "",
   };
 }
 
@@ -53,7 +55,7 @@ if (!typed.ok) throw new Error("the test box should parse");
 const typedBox: AoiInput = { name: null, geometry: typed.geometry };
 
 function page(result: AreaResult | null, selected: AoiInput = defaultArea().aoi, initialOpen = false): string {
-  return renderToStaticMarkup(<CalendarView view={{ selected, result }} onSelect={() => undefined} initialOpen={initialOpen} />);
+  return renderToStaticMarkup(<CalendarView view={{ selected, range: null, result }} onSelect={() => undefined} initialOpen={initialOpen} />);
 }
 
 describe("Story 3.3 AC1: choose an area by drawing, typing or picking", () => {
@@ -136,7 +138,7 @@ describe("Story 3.3 AC1: choose an area by drawing, typing or picking", () => {
     const closed = page({ status: "ready", meta, calendar: sumatra });
     expect(closed).toContain("areamap-locator");
     expect(closed).not.toContain("areamap-draw");
-    expect(closed).toMatch(/aria-expanded="false"[^>]*>Change area</);
+    expect(closed).toMatch(/aria-expanded="false"[^>]*>Change area or dates</);
     const open = page({ status: "ready", meta, calendar: sumatra }, defaultArea().aoi, true);
     expect(text(open)).toContain("Featured areas");
     expect(text(open)).toContain("Draw");
@@ -286,6 +288,8 @@ describe("Story 3.3 AC3: no land, or outside coverage, never a calendar of zeros
     const newer = { ...meta, record_version: "20261115-00000000" };
     const asked: string[] = [];
     const service: ServiceClient = {
+      postAnalyticsCsv: async () => "",
+      postHotspotsCsv: async () => "",
       getMeta: async () => newer,
       async postCalendar(req) {
         asked.push(req.record_version);

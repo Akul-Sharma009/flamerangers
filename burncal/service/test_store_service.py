@@ -569,3 +569,25 @@ def test_2_6_sync_copies_the_current_version_and_fetches_the_previous_on_use(sto
     body = _body(versions[1], AMAZON, name=None)
     assert app.post("/calendar", json=body).json() == direct.post("/calendar", json=body).json()
     assert (local / "versions" / versions[1] / "points.parquet").exists()
+
+# --- Story 3.4: a changed date range ------------------------------------------------
+def test_3_4_ac3_rankings_follow_the_range_median_and_anomalies_keep_the_reference_period(client, versions):
+    full = client.post("/calendar", json=_body(versions[0])).json()
+    cut = client.post("/calendar", json=_body(versions[0], start="2010-03-15", end="2012-06-10")).json()
+    valid(cut, "Calendar")
+    assert cut["range"] == {"start": "2010-03-15", "end": "2012-06-10"}
+    # The reference period does not move with the range, and neither does anything computed from it.
+    assert cut["reference_period"] == full["reference_period"]
+    assert cut["calendar_month_medians"] == full["calendar_month_medians"]
+    fm = {m["month"]: m for m in full["months"]}
+    for m in cut["months"]:
+        for k in ("median", "reference_mean", "ratio_to_median", "anomaly_count", "anomaly_pct", "anomaly_class"):
+            assert m[k] == fm[m["month"]][k], (m["month"], k)
+    # Rankings follow the range: only months and years inside it are ranked.
+    top_months = cut["statistics"]["top_months"]
+    assert top_months and all("2010-03" <= t["month"] <= "2012-06" for t in top_months)
+    assert {t["year"] for t in cut["statistics"]["top_years"]} <= {2011}  # 2010 and 2012 are cut
+    assert top_months != full["statistics"]["top_months"]
+    assert all(m["rank"] is None for m in cut["months"] if not "2010-03" <= m["month"] <= "2012-06")
+    # The record high is the whole record's, whatever the range (contract: record_high).
+    assert cut["statistics"]["record_high"] == full["statistics"]["record_high"]

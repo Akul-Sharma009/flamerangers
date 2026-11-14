@@ -27,8 +27,8 @@ describe("buildGridModel", () => {
   });
   it("finds the switch year and top ranks", () => {
     expect(model.switchYear).toBe(2022);
-    expect(model.rows.find((r) => r.year === 2015)?.topRank).toBe(1);
-    expect(model.rows.find((r) => r.year === 2003)?.topRank).toBeNull();
+    expect(model.rows.find((r) => r.year === 2015)?.total?.topRank).toBe(1);
+    expect(model.rows.find((r) => r.year === 2003)?.total?.topRank).toBeNull();
   });
   it("passes counts and flags through unchanged", () => {
     const served = new Map(calendar.months.map((m) => [m.month, m]));
