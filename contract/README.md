@@ -1,6 +1,6 @@
 # Contract
 
-The only interface between the data side and the web. Version 0.2.0, **draft**: not frozen until both owners agree. After the freeze, a change needs both owners and a version bump.
+The only interface between the data side and the web. Version 0.2.0, **frozen on 14 Nov 2026**. A change needs both owners and a version bump.
 
 | File | What it is |
 | --- | --- |

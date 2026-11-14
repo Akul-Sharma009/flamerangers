@@ -30,7 +30,7 @@ Each entry has: a status (**ASSUMED** or **TESTED**), its evidence, and a "revis
 
 ## Contract 0.2.0: how the plan was read where it left room (14 Nov 2026)
 
-- **Status:** ASSUMED. The contract is a draft until both owners agree to freeze it.
+- **Status:** ASSUMED. Both owners agreed and the contract was frozen on 14 Nov 2026; the readings below are agreed but not yet tested against a built service or screen.
 - **Decision:** the rewritten `contract/openapi.yaml` settles these points, each of which the plan left open or the first draft read differently:
   1. **One reference period for every month.** Medians, means and anomalies use the complete calendar years from 2003 that end before the current month (2003 to 2025 today), not a rolling "all prior years" window per month. Flag thresholds use 2003 to 2011. The two are served as separate fields.
   2. **Ratio against the median, anomaly against the mean.** `ratio_to_median` is count over median and is null when the median is 0. `anomaly_count` and `anomaly_pct` are measured from the reference mean, because the anomaly view is centred on it.
@@ -40,7 +40,7 @@ Each entry has: a status (**ASSUMED** or **TESTED**), its evidence, and a "revis
   6. **Large hotspot downloads** answer 413 `too_large_for_sync` with the estimated size and the list of years; the web then asks one year at a time. No separate estimate endpoint.
   7. **POST with a JSON body** for every endpoint except `GET /meta`, as the architecture lists them. `record_version` is required in every body.
 - **Evidence:** read against the architecture rules AD-8, AD-9, AD-11, AD-12, AD-15 to AD-17, epics Stories 1.2, 3.1 to 3.9, 4.1 and 4.2, and the UI concept. An independent review of the first draft found the gaps this closes. 44 tests pass, including every fixture validating, every enum value present, and closed schemas. Not tested: a real service or web screen built against it.
-- **Revisit if:** the data owner disagrees with any point before the freeze; `core.stats` cannot produce a field cheaply; or building the web shell (Story 1.5) shows a number with no served field.
+- **Revisit if:** `core.stats` cannot produce a field cheaply; or building the web shell (Story 1.5) shows a number with no served field.
 
 ## Fixtures are generated, with invented numbers (14 Nov 2026)
 

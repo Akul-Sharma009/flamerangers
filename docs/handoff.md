@@ -9,7 +9,7 @@ Updated: Sat 14 Nov 2026, 13:00 SGT.
 | Story | Status | Notes |
 | --- | --- | --- |
 | 1.1 Repo scaffold | Done | Reviewed by the lead |
-| 1.2 Contract and fixture | Review | Contract 0.2.0 is written and tested. Not frozen: the data owner has not yet agreed to it. |
+| 1.2 Contract and fixture | Done | Contract 0.2.0 is frozen (14 Nov). A change needs both owners and a version bump. |
 | 1.3 Service stub | Not started in this repo | The host measurements for the Sat 12:00 checkpoint are not in yet |
 | 2.1 C1 parameters | Done | In `burncal/core/params/`; Story 2.2 is unblocked |
 
@@ -44,13 +44,12 @@ The first draft passed its tests but an independent review found it could not ca
 - The plan's names: `cells_flagged_strong`, `cells_flagged_marginal`, `cells_total`; `AQUA`, `TERRA`, `SNPP`, `NOAA20`, `NOAA21`; cells by `sw_lon`, `sw_lat`.
 - Closed schemas, so a misspelt field fails, and tests that scan every enum in the document.
 
-The points where the plan left room are listed in `DECISIONS.md` ("Contract 0.2.0"). **The data owner should read those seven points first**; each is open until the freeze.
+The points where the plan left room are listed in `DECISIONS.md` ("Contract 0.2.0"). Both owners have agreed to them.
 
 ## Next
 
-1. Data owner: read contract 0.2.0 and the seven points; agree or object. Then both owners freeze it.
-2. Data owner: Story 1.3 (service stub answering from `contract/fixture/`) and Story 2.2 (C1 in `core`, parity within 1e-6).
-3. Lead: Story 1.5 (web shell drawing `calendar.json`), then the evidence track from Story 5.1.
+1. Data owner: Story 1.3 (service stub answering from `contract/fixture/`) and Story 2.2 (C1 in `core`, parity within 1e-6).
+2. Lead: Story 1.5 (web shell drawing `calendar.json`), then the evidence track from Story 5.1.
 
 ## Checkpoints (flags, not deadlines; times in SGT)
 

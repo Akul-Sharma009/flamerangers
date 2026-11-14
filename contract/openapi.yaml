@@ -6,8 +6,8 @@ info:
     Read-only API over one published store version. Every number is computed in
     burncal/core or the service and rounded once there (counts to 1 decimal,
     ratios to 2); the web only formats and draws. null means outside the record
-    or outside coverage; 0 means no hotspots. DRAFT until both owners freeze it
-    (Story 1.2). After the freeze a change needs both owners and a version bump.
+    or outside coverage; 0 means no hotspots. FROZEN on 14 Nov 2026 (Story 1.2):
+    a change needs both owners and a version bump.
 servers:
   - url: http://localhost:8000
 paths:
