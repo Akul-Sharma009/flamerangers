@@ -13,7 +13,7 @@ from burncal.core import regions as core_regions
 from burncal.core import grids, record, stats
 from burncal.service.store import SATELLITES, Version
 
-CONTRACT_VERSION = "0.2.0"
+CONTRACT_VERSION = "0.3.0"  # must equal info.version in contract/openapi.yaml (tested)
 UNIT_LABEL = "hotspots, Aqua MODIS units"
 EVIDENCE = ("tuned", "tested_unseen", "reported_only", "not_evaluated")
 

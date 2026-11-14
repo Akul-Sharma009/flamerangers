@@ -107,6 +107,8 @@ def _open_store(root):
 
 def _hotspot_cells(rows):
     """CSV cells of the hotspot rows: ISO UTC time with Z, empty type for NRT, unrounded weight."""
+    if rows.empty:  # no record file in the range: header and column line, no rows (not a 500)
+        return []
     t = rows["acq_datetime_utc"].dt.strftime("%Y-%m-%dT%H:%M:%SZ").to_numpy()
     typ = rows["type"].astype("Int64")
     cols = {c: rows[c].to_numpy() for c in HOTSPOT_COLUMNS}

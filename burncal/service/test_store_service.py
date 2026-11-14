@@ -320,6 +320,22 @@ def test_2_7_ac1_rows_inside_the_area_and_exact_dates_with_every_column(client, 
     assert all(x["acq_datetime_utc"].endswith("Z") and "T" in x["acq_datetime_utc"] for x in rows)
 
 
+@pytest.mark.parametrize("start,end,year", [("1999-01-01", "2000-12-31", None), ("2027-01-01", "2027-03-31", None),
+                                            ("2015-01-01", "2015-12-31", 2019)])
+def test_2_7_a_search_with_no_record_file_gives_a_header_and_no_rows(client, versions, start, end, year):
+    kw = {"year": year} if year else {}
+    r = _hot(client, versions[0], SUMATRA, start, end, **kw)
+    assert r.status_code == 200 and r.headers["content-type"].startswith("text/csv")
+    _, cols, rows = _rows(r.text)
+    assert cols == HOTSPOT_COLUMNS and rows == []
+
+
+def test_2_6_store_meta_states_the_contract_version(client):
+    import yaml
+    want = yaml.safe_load((ROOT / "contract" / "openapi.yaml").read_text())["info"]["version"]
+    assert client.get("/meta").json()["contract_version"] == want
+
+
 def test_2_7_ac2_feeding_kept_rows_of_a_complete_month_equal_its_count(client, versions):
     cal = {m["month"]: m for m in client.post("/calendar", json=_body(versions[0], PUNJAB, name=None)).json()["months"]}
     for month, end in (("2009-06", "2009-06-30"), ("2018-02", "2018-02-28"), ("2021-12", "2021-12-31")):
