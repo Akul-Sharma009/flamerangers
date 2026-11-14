@@ -80,3 +80,13 @@ def test_3_2_ac3_same_days_comparison():
     assert got == {"same_days_median": 20.0, "ratio": 1.5, "difference": 10.0, "no_typical_activity": False}
     zero = stats.same_days(5.0, [0.0, 0.0, 3.0])
     assert zero == {"same_days_median": 0.0, "ratio": None, "difference": 5.0, "no_typical_activity": True}
+
+
+def test_review_share_of_max_uses_complete_years_only():
+    months = [(y, m) for y in (2003, 2004) for m in range(1, 13)] + [(2005, 1)]
+    s = {t: 10.0 for t in months}
+    s[(2005, 1)] = 500.0  # a part-year with one huge month must not become the 100% bar
+    out = stats.summarize(s, set(months), months + [(2005, m) for m in range(2, 13)],
+                          in_range=set(months), reference_years=(2003, 2004))
+    shares = {y["year"]: y["share_of_max"] for y in out["year_totals"]}
+    assert shares[2003] == 1.0 and shares[2004] == 1.0 and shares[2005] == 500.0 / 120.0

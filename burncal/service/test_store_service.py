@@ -503,3 +503,27 @@ def test_2_6_store_synced_from_a_url_answers_the_same(store_root, versions, tmp_
     assert list((vdir / "records").glob("*/[A-Z]*_2015.parquet"))  # fetched on first use
     # a second sync downloads nothing new
     assert remote.sync(store_root.as_uri(), tmp_path / "tmpstore") == local
+
+
+# --- the lead's low review items (15 Nov) --------------------------------------------
+def test_review_months_outside_the_record_are_not_validated_and_never_minus_zero(client, versions):
+    c = client.post("/calendar", json=_body(versions[0], PUNJAB, name=None)).json()
+    out = [m for m in c["months"] if m["count"] is None]
+    assert out and all(m["validated_satellite"] is False for m in out)
+    for m in c["months"]:
+        for f in ("anomaly_count", "anomaly_pct", "ratio_to_median"):
+            assert m[f] is None or str(m[f]) != "-0.0", (m["month"], f)
+
+
+def test_review_cells_after_data_through_have_no_threshold(client, versions):
+    c = client.post("/cells", json={"record_version": versions[0], "aoi": {"name": None, "geometry": PUNJAB},
+                                     "month": "2026-12"}).json()
+    assert all(x["threshold"] is None and x["count"] is None for x in c["cells"])
+
+
+def test_review_hotspot_csv_streams_a_large_year(client, versions, monkeypatch):
+    from burncal.service import store as store_mod
+    monkeypatch.setattr(store_mod, "MAX_SYNC_ROWS", 10)
+    r = client.post("/hotspots.csv", json={**_body(versions[0], SUMATRA, "2002-07-01", "2026-11-13", name=None),
+                                            "all_satellites": True, "year": 2015})
+    assert r.status_code == 200 and r.text.count("\n2015-") == 0 and "2015-" in r.text

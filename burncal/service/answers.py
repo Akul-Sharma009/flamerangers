@@ -19,7 +19,7 @@ EVIDENCE = ("tuned", "tested_unseen", "reported_only", "not_evaluated")
 
 
 def r1(x):
-    return None if x is None else round(float(x), 1)
+    return None if x is None else round(float(x), 1) + 0.0  # + 0.0 turns -0.0 into 0.0
 
 
 def meta(v: Version, regions: dict) -> dict:
@@ -52,7 +52,7 @@ def _aoi(v: Version, geom, name, regions) -> tuple[dict, object]:
 
 
 def r2(x):
-    return None if x is None else round(float(x), 2)
+    return None if x is None else round(float(x), 2) + 0.0
 
 
 def _ym(t):
@@ -100,7 +100,7 @@ def calendar(v: Version, geom, name, start: date, end: date, regions: dict) -> d
                     for j, s in enumerate(SATELLITES)},
             "complete": t in complete,
             "partial_reasons": reasons,
-            "validated_satellite": all(i["satellite"] in ("SNPP", "AQUA") for i in ins if i["feeds_record"]),
+            "validated_satellite": in_record and all(i["satellite"] in ("SNPP", "AQUA") for i in ins if i["feeds_record"]),
             "reference_year": bool(grids.reference_year(year)),
             "provisional": in_record and t not in complete,
             "median": r1(med), "reference_mean": r1(mean), "no_typical_activity": cmp["no_typical_activity"],
@@ -178,7 +178,7 @@ def cells(v: Version, geom, year: int, month: int) -> dict:
         out.append({"sw_lon": int(r.sw_lon), "sw_lat": int(r.sw_lat), "size_deg": 1,
                     "flag_state": r.flag_state if isinstance(r.flag_state, str) else "outside_record",
                     "count": None if np.isnan(r.count) else r1(r.count),
-                    "threshold": None if np.isnan(r.threshold) else r1(r.threshold),
+                    "threshold": None if np.isnan(r.threshold) or np.isnan(r.count) else r1(r.threshold),
                     "partly_inside": bool(part), "evidence_class": r.evidence_class,
                     "provisional": bool(r.provisional) if isinstance(r.provisional, (bool, np.bool_)) else False,
                     "reference_year": bool(grids.reference_year(year))})

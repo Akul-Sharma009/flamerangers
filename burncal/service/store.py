@@ -110,7 +110,7 @@ class Version:
         if self._fetch is None:
             return [p for p in sorted(d.glob("[A-Z]*_[0-9]*.parquet"))
                     if p.stem.rsplit("_", 1)[0] in sats and y0 <= int(p.stem.rsplit("_", 1)[1]) <= y1]
-        want = [d / f"{s}_{y}.parquet" for s in sats for y in range(y0, y1 + 1)]
+        want = sorted(d / f"{s}_{y}.parquet" for s in sats for y in range(y0, y1 + 1))
         return [p for p in want if p.exists() or self._fetch(p)]
 
     VALUE_COLUMNS = ["cnt"] + [f"r_{s.lower()}" for s in SATELLITES]
@@ -196,7 +196,7 @@ class Version:
         sats = SATELLITES if all_satellites else FEEDING_SATELLITES
         files = self._record_files(self.extent_of(geom) or "", sats, start.year, end.year)
         if not files or start > end:
-            return pd.DataFrame(columns=HOTSPOT_COLUMNS), None
+            return iter(()), None
         x0, y0, x1, y1 = geom.bounds
         f = ((pads.field("utc_date") >= start) & (pads.field("utc_date") <= end)
              & (pads.field("longitude") >= x0) & (pads.field("longitude") <= x1)
@@ -210,8 +210,17 @@ class Version:
         if n > MAX_SYNC_ROWS and year is None:
             years = sorted({d.year for d in pos["utc_date"][inside]})
             return None, {"estimated_rows": n, "estimated_megabytes": round(n * CSV_BYTES_PER_ROW / 1e6, 1), "years": years}
-        rows = ds.to_table(columns=HOTSPOT_COLUMNS, filter=f).to_pandas()[inside]
-        return rows.sort_values("acq_datetime_utc", kind="stable").reset_index(drop=True), None
+        return self._hotspot_batches(ds, f, geom), None
+
+    @staticmethod
+    def _hotspot_batches(ds, f, geom, batch_rows=100_000):
+        """The rows inside the area, a batch at a time, so no request holds a whole year in memory.
+        Rows come file by file (satellite, then year), in each file's own order (by time)."""
+        for batch in ds.to_batches(columns=HOTSPOT_COLUMNS, filter=f, batch_size=batch_rows):
+            if batch.num_rows == 0:
+                continue
+            rows = batch.to_pandas()
+            yield rows[shapely.intersects_xy(geom, rows["longitude"].to_numpy(), rows["latitude"].to_numpy())]
 
     def cells_1deg_of(self, geom) -> pd.DataFrame:
         """The 1-degree cells of the extent that the area overlaps with positive area."""

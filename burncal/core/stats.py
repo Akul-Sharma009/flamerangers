@@ -76,7 +76,9 @@ def summarize(series: dict, complete, shown, *, in_range, reference_years) -> di
         totals[y] = (sum(vals) if vals else None, all((y, m) in complete and (y, m) in series for m in range(1, 13)))
     rank_years = [y for y in years if totals[y][1] and (y, 1) in in_range and (y, 12) in in_range]
     year_rank = dict(zip(rank_years, competition_ranks([totals[y][0] for y in rank_years])))
-    biggest = max((tot for tot, _ in totals.values() if tot is not None), default=None)
+    # the 100% bar is the largest complete year, so a part-year never sets it (lead's review, 15 Nov)
+    biggest = max((tot for tot, ok in totals.values() if tot is not None and ok), default=None) or \
+        max((tot for tot, _ in totals.values() if tot is not None), default=None)
     by_cal = {m: [series[t] for t in rankable if t[1] == m] for m in range(1, 13)}
     cal_means = [(m, statistics.fmean(v)) for m, v in by_cal.items() if v]
     cal_ranks = competition_ranks([v for _, v in cal_means])

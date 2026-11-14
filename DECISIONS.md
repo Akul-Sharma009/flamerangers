@@ -496,3 +496,18 @@ Each entry has: a status (**ASSUMED** or **TESTED**), its evidence, and a "revis
 - **Decision:** The service no longer loads a version's points into memory. `publish` writes `points.parquet` sorted by 0.25° cell key, with the key, month index and day stored (DuckDB, sorting out of core). The service keeps only small tables in memory (flags, evidence, coverage, the list of fine cells) and reads the fine grid and the points with DuckDB per request: whole cells from the grid, cut cells and the current-month card from the points of those cells only. Versions published before this compute the key in the query, which is slower but correct. DuckDB is limited to 512 MB and 2 threads.
 - **Evidence:** All tests pass, including fast path against brute force on three areas and the same-days check. Real Sumatra: fast path equals the point sum (largest difference 9.5e-10). Two Sumatra versions loaded: 217 MB steady, 273 MB peak after requests (was 1,025 and 1,172 MB). 20 local Sumatra calendars: p95 0.10 s (was 0.04 s).
 - **Revisit if:** a continental area is slower than the 10 s target; then add a per-area cache or a coarser pre-summed grid.
+
+## The lead's low review items (15 Nov)
+
+- **Status:** TESTED (seven items); one needs a contract change
+- **Decision:**
+  - `share_of_max` divides by the largest complete year, so a part-year is never the 100% bar (it can exceed 1 only when a part-year is larger than every complete year).
+  - Months outside the record (count null) have `validated_satellite` false.
+  - Counts and ratios are never served as `-0.0`.
+  - `/cells` gives a null threshold where the cell-month has no count (outside the record or not loaded).
+  - A missing FRP is an empty CSV cell, never `nan`.
+  - `/hotspots.csv` streams its rows batch by batch, so a year asked for with `year` (no row limit, as the contract requires) never has to fit in memory. Rows come file by file (satellite, then year), each file in time order, no longer sorted across satellites.
+  - `compare_tuning` says "hotspot days".
+  - **Not done, needs a contract change (lead):** the current-month card has no field to say that days 1 to *d* of the current month have missing input days. Its reference years are already only complete months. A `cautions` list on `CurrentMonth`, or a `missing_days` boolean, in contract 0.4.0 would carry it.
+- **Evidence:** `test_review_*` in `burncal/core/test_stats.py` and `burncal/service/test_store_service.py`; a year of Sumatra hotspots for all satellites (24.5 MB) downloaded from the live service in 10.4 s.
+- **Revisit if:** the web needs hotspot rows sorted by time across satellites.
