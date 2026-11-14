@@ -20,6 +20,7 @@ Updated: Sat 14 Nov 2026, late evening SGT (PRs 3 to 11 merged; the lead's revie
 | 5.2 Evidence build and checks | Done | Merged to `master`. See below. |
 | 5.3 The outcome in plain words | Done | Merged to `master`. See below. |
 | 5.4 Head-to-head table | Done | Reviewed by the lead and merged to master. See below. |
+| 5.5 Aqua only and the incumbent | Review | On `claude/5-5-aqua-incumbent-10b884`, not committed. Claim approved and added; the copy needs the lead's OK. See below. |
 | 3.3 Select an area | Done | Reviewed by the lead and merged to master. See below. |
 | 3.5 The burning activity calendar | Done | Merged 14 Nov. See below. |
 | 3.4 Select a date range | Done | Merged 14 Nov. Sentences for refused ranges and the reference-period note wait for contract 0.4.0 (see below). |
@@ -359,6 +360,27 @@ One year (2024) of FIRMS standard data, MODIS_SP (Aqua and Terra rows) and VIIRS
 | AC2 per region, at 0.25°, 1° and whole region, and for 2014–2017 and 2018–2021 separately | "AC2: per region, at 0.25°, 1° and whole region, for each set", "AC2: an unknown region or scale falls back…", "AC2: years are shown under the file's early and late periods, without totals" (partly met; lead's choice); browser check of the controls |
 | AC3 each difference with its 95% interval and a beyond-noise mark, blocks stated, the close-call note | "AC3: every difference has its interval and a beyond-noise mark", "AC3: the number of blocks is stated…" |
 | AC4 final set: "used once", best-of-three, "comparator, never picked", the rule the final pick used | "AC4: final-set results carry…", "AC4: those final-set notes are not shown on the selection set…" |
+
+## Story 5.5: Aqua only and the incumbent (branch `claude/5-5-aqua-incumbent-10b884`)
+
+- The evidence view has a new full-width section under the head-to-head table (`web/src/components/AquaOnly.tsx`, `AquaOnly.css`; view model in `web/src/evidence/aquaOnly.ts`). It shows:
+  - (c) as today's practice (INPE Queimadas's rule) and the fixed claim `aqua-through-2021`, with why the record does not use Aqua only after the switch;
+  - why (c) is tested for non-inferiority (Aqua would be the answer key; Terra, the referee, shares Aqua's instrument, so the test asks "no worse", not "beat");
+  - the test against (c): every approach's overall result and its four checks (flag precision, month-rank correlation, peak month, season length) as yes/no, each with its paired difference against (c), interval and beyond-noise mark. On the final set every method reads "no" on precision and "yes" on the rest;
+  - (c) in full: the Terra-referee scores for (c) and every approach, with the same set, region and scale choice as the head-to-head table;
+  - the other incumbents: GWIS "can't be scored (check D5)" with the reason (its files hold burned area and fire events, not hotspot counts), and NASA FIRMS (inputs, not a series).
+- No change to `evidence/build.py`, `claims.yaml`, the schema or the scoring files: `evidence.json` already held everything. `headToHead.ts` gained an optional table family (`approaches` or `terra`) for the set, region and scale options, and exports `scoresOf`; `HeadToHead.tsx` exports its figure, mark, choice and score-table parts. Story 5.4's markup is unchanged (its tests pass as before).
+- On the selection set every approach except (a) passed the test against (c). The section shows that as it is and says the final pick used the final set.
+- Checks: `uv run python evidence/build.py --check` passed; `uv run pytest evidence` 117 passed (8 of them Story 5.5, in `evidence/test_aqua_only.py`); `uv run pytest` 310 passed, 10 skipped (parity case not set in the worktree); `npm run test` 146 passed (9 of them Story 5.5); `npm run build`; wording check on the fresh build; import check. Looked at in the built-in browser at 1280 × 800 and 375 × 812: no horizontal page scroll (tables scroll inside their box), the set, region and scale choice works and is separate from the head-to-head one, no console errors.
+- Claims: the lead approved three on 15 Nov, added to the end of `claims.yaml` (now sixteen): `aqua-only-every-method-failed-precision`, printed at the top of the "test against (c)" block; and `caveat-untuned-region` and `caveat-southern-africa`, for Story 3.6, which reads them by id (not shown in 5.5). After adding them: evidence check passed, `uv run pytest evidence` 148 passed, `uv run pytest` 341 passed and 10 skipped, `npm run test` 146 passed, `npm run build`, wording check passed.
+- For the lead: the section's copy is ASSUMED and needs your OK (see `DECISIONS.md`).
+
+| Criterion | Test or evidence |
+| --- | --- |
+| AC1 (c) against the Terra referee in full | `aquaOnly.test.tsx`: "AC1: (c) leads a full table against the Terra referee, for every set, scale and region", "AC1: an unknown region or scale falls back…", "AD-8: every number shown is a figure from evidence.json…"; `test_5_5_ac1_c_is_reported_in_full_at_every_scale_and_region`; browser check |
+| AC1 including that every method failed on precision | "AC1: on the final set it shows that every method failed on precision…", "AC1: each set's test is shown check by check…", "AC1: on the final set the candidates' results are the pick rule's…"; `test_5_5_ac1_every_non_inferiority_check_is_in_evidence_json_as_its_file_holds_it`, `..._on_the_final_set_every_method_failed_on_precision_alone`, `..._each_check_has_its_difference_against_c_with_interval`. Shown as data, with the claims `aqua-through-2021` and `aqua-only-every-method-failed-precision` |
+| AC1 explains why (c) is tested for non-inferiority | "AC1: it explains why (c) is tested for non-inferiority" |
+| AC2 GWIS reads "can't be scored" with the reason | "AC2: GWIS reads "can't be scored" with the reason"; `test_5_5_ac2_gwis_is_recorded_as_cant_be_scored` |
 
 ## Story 3.3: select an area
 
