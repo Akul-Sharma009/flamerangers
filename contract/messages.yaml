@@ -6,7 +6,7 @@
 # Results and figures (for example how the conversion did in a region) are NOT
 # here. They come from evidence/claims.yaml and evidence.json, so that no result
 # is typed twice. Hotspots are never called "fires".
-version: 0.2.0
+version: 0.3.0
 
 problems:
   invalid_aoi: "This area can't be used. Check that the coordinates are in range, in order and form a closed shape."
@@ -74,6 +74,7 @@ notes:
   satellite_switch: "From 3 November 2026 the record is fed by NOAA-20, because Suomi NPP stopped on 2 November 2026."
   validated_satellite_false: "The satellite feeding this month was not part of the validation."
   after_pick_years: "This month is outside the years used to choose the conversion method."
+  year_incomplete: "Incomplete year: the total covers only the months the record holds so far."
   monthly_validation_only: "The conversion was validated on whole months only, not on part of a month."
   no_typical_activity: "No typical activity in this month."
   strong_tier: "The strong tier is a display tier. It was checked on selection years only and is not part of the scored flag rule."
@@ -82,3 +83,12 @@ notes:
   provisional: "Provisional: this month is not complete, so its flags may change."
   noaa20_check: "Reported only. This compares converted NOAA-20 counts with converted Suomi NPP counts and is not a validation against Aqua."
   noaa20_check_not_run: "The NOAA-20 comparison has not been run yet."
+
+# States the web finds itself, before or instead of a service answer. The
+# service never sends these; they are here so the web types no words (0.3.0).
+client:
+  coordinates_out_of_range: "A longitude must be between -180 and 180, and a latitude between -90 and 90."
+  latitude_out_of_order: "The south edge must be less than the north edge."
+  polygon_not_closed: "The last vertex must repeat the first, so the shape is closed."
+  service_unreachable: "The service could not be reached. Please try again in a moment."
+  evidence_unavailable: "The evidence could not be loaded. Please reload the page."

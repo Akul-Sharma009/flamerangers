@@ -9,8 +9,7 @@ import { formatYearMonth } from "../format";
 import { CalendarGrid } from "../grid/CalendarGrid";
 import { GridLegend } from "../grid/GridLegend";
 
-// TODO(label): messages.yaml has no sentence for "service unreachable"; raised with the lead.
-const UNREACHABLE = "The calendar could not be loaded.";
+const UNREACHABLE = messages.client.service_unreachable;
 
 interface View {
   selected: AoiInput;

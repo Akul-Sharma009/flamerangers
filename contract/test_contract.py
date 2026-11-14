@@ -267,7 +267,7 @@ def test_messages_cover_every_code_and_label():
     assert set(MESSAGES["labels"]) == {snake(n) for n in labelled}
     for name, body in labelled.items():
         assert set(MESSAGES["labels"][snake(name)]) == set(body["enum"]), name
-    for section in ("problems", "cautions", "notes"):
+    for section in ("problems", "cautions", "notes", "client"):
         assert all(isinstance(v, str) and v.strip() for v in MESSAGES[section].values()), section
     text = (HERE / "messages.yaml").read_text(encoding="utf-8").lower()
     body = "\n".join(line for line in text.splitlines() if not line.lstrip().startswith("#"))

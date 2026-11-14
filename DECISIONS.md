@@ -357,3 +357,10 @@ Each entry has: a status (**ASSUMED** or **TESTED**), its evidence, and a "revis
 - **Decision:** Vitest covers the logic (parsing, the request sent, problem and caution handling) and static renders of the locator, picker and page states, with no DOM library added. Clicking, drawing on the map and typing into the form were checked by a headless Chrome script (Playwright, from the existing dev dependency) at 1366 px and 375 px against both `vite` and the production build. The script is not committed.
 - **Evidence:** `area.test.tsx` (32 tests); the browser run: rectangle and polygon drawn, typed refusals shown, picking Punjab, no horizontal scroll at 375 px.
 - **Revisit if:** Story 3.10 adds Playwright end-to-end tests; the script's steps are written up in `docs/handoff.md` to port.
+
+## Contract 0.3.0: six sentences the web needed (14 Nov 2026)
+
+- **Status:** TESTED (agreed by both owners, 14 Nov; checks below).
+- **Decision:** `messages.yaml` gains `notes.year_incomplete` and a new `client` section for states the web finds itself, which the service never sends: `coordinates_out_of_range`, `latitude_out_of_order`, `polygon_not_closed`, `service_unreachable` and `evidence_unavailable`. The version moves to 0.3.0 in `messages.yaml`, `openapi.yaml`, the README and the generated fixtures. No endpoint, field or number changes. The web now uses these sentences in place of the four `TODO(label)` stand-ins, and the legend shows the hollow year-total bar. Typed cases without their own sentence (unreadable, no width, too few vertices) still show `invalid_aoi`. All six go in one bump, not one bump per gap.
+- **Evidence:** `uv run pytest` (the contract test now also checks the `client` section), and `npm test`, `npm run build` and the wording check all pass.
+- **Revisit if:** the data owner objects to a `client` section in a contract file, or a sentence for a box with no width is wanted.

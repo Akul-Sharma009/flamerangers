@@ -53,8 +53,12 @@ export function GridLegend({ calendar }: { calendar: Calendar }) {
         </svg>
         Year total rank
       </span>
-      {/* TODO(label): the hollow bar marks an incomplete year; it gets a legend entry once
-          messages.yaml has a label for it (raised with the lead). */}
+      <span className="item">
+        <svg width="22" height="12" aria-hidden="true">
+          <rect x="0.6" y="2" width="20" height="8" fill="none" stroke="var(--muted)" strokeWidth="1.2" />
+        </svg>
+        {messages.notes.year_incomplete}
+      </span>
     </div>
   );
 }

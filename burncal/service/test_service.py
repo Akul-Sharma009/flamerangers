@@ -1,4 +1,4 @@
-"""Story 1.3 service stub tests, contract 0.2.0.
+"""Story 1.3 service stub tests, contract 0.3.0.
 
 AC1: with no store, every contract endpoint answers from the fixture, and the
      answers validate against the contract (JSON, problem+json and the CSV spec).

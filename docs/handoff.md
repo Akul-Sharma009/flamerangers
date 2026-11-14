@@ -2,7 +2,7 @@
 
 Short running status for the next session. Facts only; decisions and their status are in `DECISIONS.md`, story status in `sprint-status.yaml`.
 
-Updated: Sat 14 Nov 2026, evening SGT (Stories 5.4 and 3.3).
+Updated: Sat 14 Nov 2026, evening SGT (Stories 5.4 and 3.3; contract 0.3.0).
 
 ## Where things stand
 
@@ -212,6 +212,11 @@ Not in the repo: the Vercel trial used a two-line `index.py` entrypoint and a `r
 | AC2 out of range, out of order, not closed give a clear message | `area.test.tsx` AC2 block (parsers, corner marking, vertex lines); headless check of both forms |
 | AC3 no land / outside coverage show their sentence, never a calendar of zeros | `area.test.tsx` AC3 block (both codes, no grid, no size; version retry) |
 | AC4 cautions below 1° and 0.25° | `area.test.tsx` AC4 block (both, one, none served) |
+
+## Contract 0.3.0
+
+- Merged to master: six new sentences in `contract/messages.yaml` (`notes.year_incomplete` and a `client` section), the version moved to 0.3.0, the fixtures regenerated, and the web's four `TODO(label)` stand-ins replaced. No endpoint, field or number changes.
+- Agreed by both owners (14 Nov). Branches made before it take master's `contract/` files when they rebase. See `DECISIONS.md`, "Contract 0.3.0".
 
 ## Contract 0.2.0: what changed from the first draft
 

@@ -5,15 +5,22 @@ import { messages } from "../api/messages";
 import type { TypedProblem } from "./typed";
 
 /**
- * The sentence for refused typed coordinates.
- *
- * TODO(label): messages.yaml 0.2.0 has one invalid_aoi sentence and no separate
- * sentence for out of range, out of order and not closed; raised with the lead.
- * Until they exist, every case shows invalid_aoi (which names all three checks)
- * and the form marks the exact fields or lines at fault.
+ * The sentence for refused typed coordinates. Out of range, out of order (latitude)
+ * and not closed have their own sentences (contract 0.3.0); the other cases
+ * (unreadable, no width, too few vertices) show invalid_aoi, and the form marks
+ * the exact fields or lines at fault in every case.
  */
-export function typedProblemText(_problem: TypedProblem): string {
-  return messages.problems.invalid_aoi;
+export function typedProblemText(problem: TypedProblem): string {
+  switch (problem) {
+    case "out_of_range":
+      return messages.client.coordinates_out_of_range;
+    case "out_of_order":
+      return messages.client.latitude_out_of_order;
+    case "not_closed":
+      return messages.client.polygon_not_closed;
+    default:
+      return messages.problems.invalid_aoi;
+  }
 }
 
 /** The sentence for a problem the service returned for the area. */

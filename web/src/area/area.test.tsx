@@ -17,6 +17,7 @@ import { unwrapRing } from "./basemap";
 import { defaultArea, featuredAreas, type AoiInput } from "./featured";
 import { loadArea, type AreaResult } from "./load";
 import { parseCorners, parseVertices } from "./typed";
+import { typedProblemText } from "./words";
 
 const meta = metaFixture as unknown as Meta;
 const sumatra = calendarFixture as unknown as Calendar;
@@ -235,7 +236,7 @@ describe("Story 3.3 AC2: typed coordinates that are out of range, out of order o
     );
     expect(html).toContain('role="alert"');
     expect(html).toContain('data-problem="out_of_order"');
-    expect(text(html)).toContain(messages.problems.invalid_aoi);
+    expect(text(html)).toContain(messages.client.latitude_out_of_order);
     const input = (name: string) => html.match(new RegExp(`<input[^>]*name="${name}"[^>]*>`))![0];
     expect(input("south")).toContain('aria-invalid="true"');
     expect(input("north")).toContain('aria-invalid="true"');
@@ -255,7 +256,7 @@ describe("Story 3.3 AC2: typed coordinates that are out of range, out of order o
       />,
     );
     expect(html).toContain('data-problem="not_closed"');
-    expect(text(html)).toContain(messages.problems.invalid_aoi);
+    expect(text(html)).toContain(messages.client.polygon_not_closed);
     expect(text(html)).toContain("Lines 1, 3");
   });
 });
@@ -345,5 +346,16 @@ describe("Story 3.3: house rules", () => {
     const src = readFileSync(new URL("./AreaLocator.tsx", import.meta.url), "utf8");
     expect(src.match(/km²/g)).toHaveLength(1);
     expect(src).toMatch(/formatCount\(calendar\.aoi\.area_km2\)\} km²/);
+  });
+});
+
+describe("Story 3.3 typed refusals use the 0.3.0 sentences", () => {
+  it("picks the specific sentence by case and invalid_aoi for the rest", () => {
+    expect(typedProblemText("out_of_range")).toBe(messages.client.coordinates_out_of_range);
+    expect(typedProblemText("out_of_order")).toBe(messages.client.latitude_out_of_order);
+    expect(typedProblemText("not_closed")).toBe(messages.client.polygon_not_closed);
+    for (const p of ["unreadable", "no_width", "too_few"] as const) {
+      expect(typedProblemText(p)).toBe(messages.problems.invalid_aoi);
+    }
   });
 });

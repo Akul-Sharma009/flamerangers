@@ -379,7 +379,7 @@ def main():
                ("siberia", "Siberian boreal forest", "not_loaded", "tested_unseen"),
                ("punjab", "Punjab cropland", "not_loaded", "reported_only")]
     meta = {
-        "contract_version": "0.2.0", "record_version": RECORD_VERSION, "data_through": DATA_THROUGH,
+        "contract_version": "0.3.0", "record_version": RECORD_VERSION, "data_through": DATA_THROUGH,
         "placeholder": True, "unit_label": UNIT, "record_start": "2002-07",
         "record_switch": {"aqua_through": "2021-12", "viirs_from": "2022-01"},
         "satellite_switch": {"snpp_through": "2026-11-02", "noaa20_from": "2026-11-03"},

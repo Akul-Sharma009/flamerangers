@@ -1,7 +1,7 @@
 openapi: 3.1.0
 info:
   title: "Harmonized burning activity calendar: data service"
-  version: 0.2.0
+  version: 0.3.0
   description: >
     Read-only API over one published store version. Every number is computed in
     burncal/core or the service and rounded once there (counts to 1 decimal,

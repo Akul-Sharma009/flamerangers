@@ -1,4 +1,4 @@
-"""Story 1.3 service stub: answers every contract endpoint (0.2.0) from the fixture."""
+"""Story 1.3 service stub: answers every contract endpoint (0.3.0) from the fixture."""
 import csv
 import io
 import json

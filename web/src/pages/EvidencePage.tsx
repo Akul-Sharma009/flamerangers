@@ -28,8 +28,7 @@ export function EvidencePage() {
     return <main className="page"><p className="loading">Loading…</p></main>;
   }
   if (state.kind === "problem") {
-    // TODO(label): messages.yaml has no sentence for "evidence could not be loaded"; same gap as the calendar's "service unreachable".
-    return <main className="page"><p className="problem" role="alert">The evidence could not be loaded. Reload the page to try again.</p></main>;
+    return <main className="page"><p className="problem" role="alert">{messages.client.evidence_unavailable}</p></main>;
   }
   return <EvidenceOutcome view={state.view} repoUrl={REPO_URL}><HeadToHead evidence={state.evidence} /></EvidenceOutcome>;
 }

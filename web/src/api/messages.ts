@@ -31,6 +31,7 @@ export interface Messages {
     | "satellite_switch"
     | "validated_satellite_false"
     | "after_pick_years"
+    | "year_incomplete"
     | "monthly_validation_only"
     | "no_typical_activity"
     | "strong_tier"
@@ -39,6 +40,13 @@ export interface Messages {
     | "provisional"
     | "noaa20_check"
     | "noaa20_check_not_run"
+  >;
+  client: Table<
+    | "coordinates_out_of_range"
+    | "latitude_out_of_order"
+    | "polygon_not_closed"
+    | "service_unreachable"
+    | "evidence_unavailable"
   >;
 }
 

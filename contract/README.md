@@ -1,12 +1,12 @@
 # Contract
 
-The only interface between the data side and the web. Version 0.2.0, **frozen on 14 Nov 2026**. A change needs both owners and a version bump.
+The only interface between the data side and the web. Version 0.3.0, **frozen on 14 Nov 2026** (0.3.0 added sentences to `messages.yaml` only). A change needs both owners and a version bump.
 
 | File | What it is |
 | --- | --- |
 | `openapi.yaml` | Every endpoint, request and response |
 | `fixture/` | Placeholder answers that validate against the contract |
-| `messages.yaml` | The sentence for every problem code, caution, label and standing note |
+| `messages.yaml` | The sentence for every problem code, caution, label and standing note, and for the states the web finds itself (`client`) |
 | `regions.geojson` | The six evaluated regions, which are also the featured areas |
 | `CSV_SPEC.md` | Columns and header block of the two CSV downloads |
 | `evidence.schema.json` | Shape of `evidence.json`, which the evidence build writes |
