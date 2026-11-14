@@ -33,6 +33,20 @@ SCHEMA_VERSION = "1"
 # claims.yaml names.
 FINAL = "final_20261113T172020Z.json"
 
+# Story 2.10's NOAA-20 against Suomi NPP comparison, once its result file is copied into
+# scoring/ and listed in the manifest (Story 5.6). Until then the evidence view says
+# "not yet run". Its label must say what it is.
+NOAA20_PREFIX = "noaa20_check_"
+NOAA20_LABEL_WORDS = ("reported only", "not a validation against aqua")
+
+# What each run says about itself (Story 5.6 shows the reported-only run's).
+ABOUT_FIELDS = [
+    ("run_id", "run"),
+    ("final_run_id", "after final run"),
+    ("last_standard_date", "standard data through"),
+    ("note", "note"),
+]
+
 # What the evidence view shows (Story 5.4): the three candidates, baselines (a) and (b),
 # and the comparator. (c) appears only against the Terra referee (Story 5.5).
 APPROACHES = ["a", "b", "cmp", "4A", "1A", "C1"]
@@ -65,6 +79,7 @@ FORMATS = {
     "fix3_signed": lambda v: f"{v:+.3f}",
     "fix2": lambda v: f"{v:.2f}",
     "int": lambda v: f"{v:,}",
+    "year": lambda v: str(v),
     "yesno": lambda v: "yes" if v else "no",
     "bool": lambda v: str(v).lower(),
     "string": lambda v: v,
@@ -183,7 +198,7 @@ def check_type(value, fmt, where):
         ok = isinstance(value, bool)
     elif fmt == "string":
         ok = isinstance(value, str)
-    elif fmt == "int":
+    elif fmt in ("int", "year"):
         ok = isinstance(value, int) and not isinstance(value, bool)
     else:
         ok = is_number(value)
@@ -402,10 +417,83 @@ def by_year_table(docs, file, set_key):
     }
 
 
+def years_table(docs, file, set_key):
+    """The years a set scored, one row per region (or one row when the file gives a
+    single list for every region), one cell per year in the file's order (Story 5.6)."""
+    years = docs[file]["years"]
+    groups = [("/years", "every region", years)] if isinstance(years, list) else [
+        (pointer("years", r), REGION_LABELS[r], ys) for r, ys in years.items()
+    ]
+    width = max(len(ys) for _, _, ys in groups)
+    rows = [
+        {"key": key, "label": label,
+         "cells": {str(i): figure(docs, file, f"{key}/{i}", "year") if i < len(ys) else None for i in range(width)}}
+        for key, label, ys in groups
+    ]
+    return {
+        "id": f"{set_key}.years",
+        "title": "Years scored",
+        "set": set_key,
+        "note": None,
+        "columns": [{"key": str(i), "label": "year", "unit": None} for i in range(width)],
+        "rows": rows,
+    }
+
+
+def about_table(docs, file, set_key):
+    """What the run says about itself in `meta`: its id, the final run it followed, the
+    last standard date and its note, where the file gives them (Story 5.6)."""
+    meta = docs[file].get("meta", {})
+    rows = [
+        {"key": pointer("meta", field), "label": label, "cells": {"value": figure(docs, file, pointer("meta", field), "string")}}
+        for field, label in ABOUT_FIELDS if isinstance(meta.get(field), str)
+    ]
+    return {
+        "id": f"{set_key}.about",
+        "title": "The run",
+        "set": set_key,
+        "note": None,
+        "columns": [{"key": "value", "label": "value", "unit": None}],
+        "rows": rows,
+    }
+
+
+def noaa20_table(docs, file):
+    """Every value in the NOAA-20 result file, one row per field (Story 5.6). Its shape is
+    Story 2.10's, so nothing is assumed about it beyond what the walk finds."""
+    rows = []
+
+    def walk(node, path):
+        if isinstance(node, dict):
+            for k, v in node.items():
+                walk(v, path + [k])
+        elif isinstance(node, list):
+            for i, v in enumerate(node):
+                walk(v, path + [i])
+        elif node is not None and path != ["label"]:
+            ptr = pointer(*path)
+            fig = figure(docs, file, ptr, leaf_format(node))
+            if fig is not None:
+                rows.append({"key": ptr, "label": " / ".join(map(str, path)), "cells": {"value": fig}})
+
+    walk(docs[file], [])
+    return {
+        "id": "noaa20_check.figures",
+        "title": "NOAA-20 against Suomi NPP",
+        "set": "noaa20_check",
+        "note": None,
+        "columns": [{"key": "value", "label": "value", "unit": None}],
+        "rows": rows,
+    }
+
+
 def set_tables(docs, file, set_key):
+    if set_key == "noaa20_check":
+        return [noaa20_table(docs, file)]
     doc = docs[file]
     regions = ["pooled"] + [r for r in doc["blocks"] if r != "total"]
-    tables = [run_table(docs, file, set_key), decision_table(docs, file, set_key)]
+    tables = [run_table(docs, file, set_key), decision_table(docs, file, set_key),
+              years_table(docs, file, set_key), about_table(docs, file, set_key)]
     for family in ("approaches", "terra"):
         for scale in SCALE_LABELS:
             for region in regions:
@@ -424,20 +512,30 @@ def manifest_hashes():
     return {name: entry["sha256"] for name, entry in manifest["files"].items()}
 
 
-def input_files(claims):
+def noaa20_file(hashes):
+    """The latest NOAA-20 result file the manifest lists, or None before Story 2.10 runs."""
+    names = sorted(n for n in hashes if n.startswith(NOAA20_PREFIX) and n.endswith(".json"))
+    return names[-1] if names else None
+
+
+def input_files(claims, hashes):
     final = load_scoring(FINAL)
     selection = Path(final["meta"]["selection_result"]).name
     reported_only = claims["files"]["reported_only"]
     if claims["files"]["final"] != FINAL:
         raise EvidenceError("claims.yaml and the build name different final files")
-    return {"selection": selection, "final": FINAL, "reported_only": reported_only}
+    sets = {"selection": selection, "final": FINAL, "reported_only": reported_only}
+    noaa20 = noaa20_file(hashes)
+    if noaa20:
+        sets["noaa20_check"] = noaa20
+    return sets
 
 
 def build():
     """The evidence document, built from the scoring files and claims.yaml."""
     claims = yaml.safe_load(CLAIMS_FILE.read_text(encoding="utf-8"))
-    sets = input_files(claims)
     hashes = manifest_hashes()
+    sets = input_files(claims, hashes)
     docs, sources = {}, []
     for set_key, file in sets.items():
         if file not in hashes:
@@ -446,6 +544,10 @@ def build():
         if digest != hashes[file]:
             raise EvidenceError(f"{file} does not match its manifest hash")
         docs[file] = load_scoring(file)
+        if set_key == "noaa20_check":
+            label = str(docs[file].get("label", "")).lower()
+            if not all(w in label for w in NOAA20_LABEL_WORDS):
+                raise EvidenceError(f"{file}: its label must say it is reported only and not a validation against Aqua")
         meta = docs[file].get("meta", {})
         sources.append({"file": file, "sha256": digest, "set": set_key, "label": docs[file]["label"], "run_id": meta.get("run_id")})
     tables = []
