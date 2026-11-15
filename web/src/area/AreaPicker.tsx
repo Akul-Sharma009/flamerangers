@@ -4,6 +4,7 @@ import { useState, type FormEvent } from "react";
 import type { DateRange } from "../api/client";
 import { DatesPanel, type DatesSetting } from "./DatesPanel";
 import { featuredAreas, type AoiInput, type FeaturedArea } from "./featured";
+import { FeaturedGallery } from "./FeaturedGallery";
 import { MapView, type DrawMode } from "./MapView";
 import {
   parseCorners, parseVertices, type CornerField, type Corners, type MultiPolygon, type Polygon, type TypedResult,
@@ -119,19 +120,7 @@ export function AreaPicker({
 
       {tab === "featured" ? (
         <div role="tabpanel" id="picker-panel-featured" aria-labelledby="picker-tab-featured">
-          <ul className="featured">
-            {list.map((a) => (
-              <li key={a.id}>
-                <button
-                  type="button"
-                  aria-current={a.name === currentName ? "true" : undefined}
-                  onClick={() => onSelect(a.aoi)}
-                >
-                  {a.name}
-                </button>
-              </li>
-            ))}
-          </ul>
+          <FeaturedGallery areas={list} currentName={currentName} onSelect={onSelect} />
         </div>
       ) : null}
 
