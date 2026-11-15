@@ -31,6 +31,7 @@ All hotspots are read through FIRMS (https://www.earthdata.nasa.gov/data/tools/f
 - Natural Earth, 1:10m Admin 0 – Countries and Admin 1 – States, Provinces, version 5.1.2 (public domain; "Made with Natural Earth."), simplified for the country and province picker: https://github.com/nvkelso/natural-earth-vector/tree/v5.1.2/geojson
 
 **Papers**
+- Koplitz, S. N., Mickley, L. J., Marlier, M. E., Buonocore, J. J., Kim, P. S., Liu, T., Sulprizio, M. P., DeFries, R. S., Jacob, D. J., Schwartz, J., Pongsiri, M., Myers, S. S. (2016). Public health impacts of the severe haze in Equatorial Asia in September–October 2015: demonstration of a new framework for informing fire management strategies to reduce downwind smoke exposure. Environmental Research Letters 11(9), 094023. https://doi.org/10.1088/1748-9326/11/9/094023 (cited for the haze sentence: its abstract names fires in Sumatra and Kalimantan and models the smoke reaching Indonesia, Malaysia and Singapore)
 - Giglio, L., Schroeder, W., Justice, C. O. (2016). The collection 6 MODIS active fire detection algorithm and fire products. Remote Sensing of Environment 178, 31–41. https://doi.org/10.1016/j.rse.2016.02.054
 - Schroeder, W., Oliva, P., Giglio, L., Csiszar, I. A. (2014). The New VIIRS 375 m active fire detection data product: Algorithm description and initial assessment. Remote Sensing of Environment 143, 85–96. https://doi.org/10.1016/j.rse.2013.12.008
 - Mann, H. B. (1945). Nonparametric tests against trend. Econometrica 13(3), 245–259. https://doi.org/10.2307/1907187
@@ -42,7 +43,7 @@ All hotspots are read through FIRMS (https://www.earthdata.nasa.gov/data/tools/f
 - NASA Worldview: https://worldview.earthdata.nasa.gov/
 - GWIS, Global Wildfire Information System (GEO and Copernicus): https://gwis.jrc.ec.europa.eu/
 - INPE Programa Queimadas: https://terrabrasilis.dpi.inpe.br/queimadas/portal/ `[unverified: the page that states the single reference satellite, Aqua, was not found]`
-- Singapore's transboundary haze: National Environment Agency, https://www.haze.gov.sg/ `[unverified: no checked page names Sumatra as a source]`
+- Singapore's transboundary haze: National Environment Agency, https://www.haze.gov.sg/ and its FAQ, https://www.nea.gov.sg/our-services/pollution-control/air-pollution/faqs ("Transboundary haze affecting Singapore mainly arises from forest and peat fires in the region."). Neither page names Sumatra; Koplitz et al. (2016) above does.
 
 **Open-source software** (version as pinned, licence)
 - Python 3.14 and uv
@@ -79,5 +80,5 @@ Text to replace each `[pending: Story 6.1]` mark (`COPY.margin.sources`):
 ## For the lead
 
 - **NOAA-21 is listed on the about page but is not in the record.** The current download plan takes MODIS, Suomi NPP and NOAA-20 only, so no NOAA-21 hotspot is in any published version. Drop `NOAA21` from the `viirs` source's satellites, or say it is not used.
-- **The `[unverified]` marks above stay** until someone finds the source: a DOI for the standard VIIRS archive, INPE's reference-satellite page, and a page naming Sumatra as a source of Singapore's haze. The submission's haze sentence (field "summary") cites that last source.
+- **The `[unverified]` marks above stay** until someone finds the source: a DOI for the standard VIIRS archive and INPE's reference-satellite page. The submission's haze sentence (field "summary") cites Koplitz et al. (2016), checked on 15 Nov at Crossref and on the publisher's page.
 - **Suomi NPP stopped on 2 November 2026** (FIRMS download page and the VNP14IMG catalogue page). The record already switches to NOAA-20 from 3 November.

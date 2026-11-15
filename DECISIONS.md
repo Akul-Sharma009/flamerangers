@@ -1107,3 +1107,10 @@ Each entry has: a status (**ASSUMED** or **TESTED**), its evidence, and a "revis
 - **Open:** 8.9 measured a worldwide month at about 4.08 MB of JSON, close to Vercel's 4.5 MB response limit; fine for six regions, a problem for a world store. 8.10's globe opens on the current month on a real store; the fixture has only September 2015.
 - **Revisit if:** any answer differs from the fixtures on the real store, or the data owner disagrees with a 0.5.0 field.
 
+
+## Story 6.1: the summary's two source marks filled (15 Nov 2026)
+
+- **Status:** TESTED (sources checked against Crossref and the publisher's page; text checks pass).
+- **Decision:** The haze sentence cites Koplitz et al. (2016), Environmental Research Letters 11(9) 094023: its abstract names fires in Sumatra and Kalimantan and models the smoke reaching Indonesia, Malaysia and Singapore. Singapore's own pages (haze.gov.sg, the NEA FAQ) say the haze comes from regional forest and peat fires but name no island, so they are listed as context, not as the source. The instrument sentence cites the product papers already in the references (Giglio et al. 2016 for MODIS, Schroeder et al. 2014 for VIIRS). The summary's stated word count is now 325.
+- **Evidence:** `docs/submission/test_text.py` (5 passed), `evidence/wording.py` and `evidence/build.py --check` passed.
+- **Revisit if:** the lead prefers a Singapore government source; then one that names Sumatra is still needed.
