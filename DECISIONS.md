@@ -740,3 +740,34 @@ Each entry has: a status (**ASSUMED** or **TESTED**), its evidence, and a "revis
 - **Decision:** The build reads the latest file named `noaa20_check_*.json` that `evidence/scoring/MANIFEST.json` lists, as the set `noaa20_check` (already in the schema), and fails unless its `label` says "reported only" and "not a validation against Aqua". Since its shape is Story 2.10's, the build makes no assumption about it: the table `noaa20_check.figures` holds every value in the file, one row per field, each a figure with its pointer. The page then prints the contract's `notes.noaa20_check` ("Reported only. … not a validation against Aqua."), the file's label and those figures. Until then it prints `notes.noaa20_check_not_run`, once, in the NOAA-20 block only. Also added: a `year` display format (no thousands comma), and per-set tables `{set}.years` and `{set}.about`. No schema change.
 - **Evidence:** `evidence/test_limits.py` `test_5_6_noaa20_*` (no file now; a listed file is read; a file without the label fails the build); `limits.test.tsx` "AC4" (both states).
 - **Revisit if:** Story 2.10 names its file differently or gives its figures a shape worth a proper table (then replace the field-by-field list).
+
+## Story 3.9: the rankings' sentences wait for the contract (15 Nov 2026)
+
+- **Status:** TESTED. The lead approved the four sentences as worded on 15 Nov ("Approve all", relayed by the lead's session); they are added to the contract 0.4.0 draft (`lead/contract-0.4.0`, not yet merged).
+- **Decision:** The rankings type no sentence. `web/src/ranks/words.ts` reads five optional keys; each switches on when a contract bump adds it, with no web change (`TODO(label)` until then). Suggested wording:
+  - `sentences.rankings_range`: "Only complete months and years from {range_start} to {range_end} are ranked." ({range_start} and {range_end} are the served `range` days, formatted, e.g. "1 July 2002".)
+  - `notes.rank_tie`: "An equals sign after a rank means the rank is shared: those values are equal." (shown only when a list has a tie)
+  - `notes.no_complete_month`: "No complete month falls in these dates, so none is ranked."
+  - `notes.no_complete_year`: "No complete year falls in these dates, so none is ranked."
+  - `notes.range_and_reference` is already in the 0.4.0 draft ("Rankings cover the dates you chose. Medians and anomalies always use the reference period.") and shows under the lists once 0.4.0 merges.
+  Until then the panel shows the served range as a label ("1 July 2002 to 13 November 2026"), a list with nothing served shows "–" (never a 0), and a tie shows its "=" mark with no key sentence.
+- **Evidence:** `ranks.test.tsx` "types no sentence of its own" and "uses the contract's sentences once they exist" (the suggested templates filled from served values).
+- **Revisit if:** the lead rewords any of them, or prefers them in one sentence.
+- **Update, 15 Nov:** approved by the lead as worded. The four keys are in the 0.4.0 draft's `contract/messages.yaml` under the same names and sections the web reads (`sentences.rankings_range`; `notes.rank_tie`, `notes.no_complete_month`, `notes.no_complete_year`), checked against the draft's text; merging 0.4.0 switches them on with no web change.
+
+## Story 3.9: ties are read off the served ranks and marked "=" (15 Nov 2026)
+
+- **Status:** TESTED. Approved by the lead on 15 Nov ("Approve all", relayed by the lead's session).
+- **Decision:** A tie is two entries of one served list with the same served `rank`; the web never compares values (AD-8). The rank shows as "7=" (the printed-table convention), and screen readers hear "7, tied" (one typed word, a label, not a sentence). Lists show every served entry, so a tie at the cut shows more than five, as the contract allows.
+- **Evidence:** `ranks.test.tsx` AC1 "shows ties as ties" (savanna example: six calendar months at rank 7), "more than five entries", "never re-ranks" (equal values with different served ranks are not a tie).
+- **Revisit if:** the lead prefers "T7", "joint 7th" or a contract word for "tied".
+- **Update, 15 Nov:** approved by the lead: the "=" mark stays, with "tied" as a short screen-reader label for now. In a later contract version, "tied" is to be replaced by a contract word.
+
+## Story 3.9: where the rankings sit and how a selection is marked (15 Nov 2026)
+
+- **Status:** TESTED. Approved by the lead on 15 Nov ("Approve all", relayed by the lead's session). Checked in the built-in browser at 1280 and 375 px.
+- **Decision:** At laptop width the rankings sit in the left column under the footnotes, beside the grid (UI-CONCEPT.md puts them "below the hero"; this keeps a selected item and its mark in view together). Under 800 px they follow the grid. Each entry is a toggle button: selecting it frames the item on the grid (one month's cell, a year's whole row with its total, or a calendar month's column down through its median) with a 2.5 px ink frame on a paper halo, outside the cells, so it differs from the 2 px hover ring and the dashed month to date and reads on every class; the table view marks the same cells. Selecting it again or pressing Escape clears it; a new area or range clears it. The frame is scrolled into view (nearest edge) when the selection changes; on a phone this moves the page up from the rankings to the grid. Busiest calendar months shows all twelve served entries, not five (the criterion asks for "the busiest calendar months on average"; the service serves twelve).
+- **Grid change:** `web/src/grid/` gained `highlight.ts` and a `highlight` prop on `CalendarGrid` and `CalendarTable` (drawing only; the grid model is unchanged).
+- **Evidence:** `ranks.test.tsx` AC2 block; browser check (see `docs/handoff.md`, Story 3.9).
+- **Revisit if:** the scroll on a phone feels like a jump (option: no scroll, or a "shown on the calendar" link), or the lead wants the top months to open the cell's card as well.
+- **Update, 15 Nov:** approved by the lead. **Recorded change from UI-CONCEPT.md:** the concept puts the rankings "below the hero"; at laptop width they sit in the left column instead, kept deliberately so that the selected entry and its frame on the grid are on screen together. Under 800 px they still follow the grid. Scrolling the frame into view on phones is approved as built.

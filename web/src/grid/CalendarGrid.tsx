@@ -1,6 +1,7 @@
 import { useEffect, useMemo, useRef, useState, type KeyboardEvent } from "react";
 import { MONTH_INITIALS } from "../format";
 import { CalendarTable } from "./CalendarTable";
+import { highlightBox, type Highlight } from "./highlight";
 import { GAP, layoutGrid, move, type Layout } from "./layout";
 import { asSentence, buildGridModel, detailAt, type Calendar, type CellModel, type GridModel, type GridSentences, type Measure, type Meta, type Pos } from "./model";
 import "./grid.css";
@@ -16,11 +17,12 @@ const same = (a: Pos | null, b: Pos) => a !== null && a.r === b.r && a.c === b.c
  * `width`, `initialView`, `initialMeasure` and `initialActive` let tests render
  * a fixed state. `measure` with `onMeasureChange` lets the page hold the
  * measure, so the legend and the cells panel follow it; `onPick` reports the
- * month the user focused or tapped.
+ * month the user focused or tapped. `highlight` (Story 3.9) frames a ranked
+ * month, year or calendar month in both views.
  */
 export function CalendarGrid({
   calendar, meta, width: fixedWidth, initialView = "grid", initialMeasure = "count", initialActive = null,
-  measure: heldMeasure, onMeasureChange, onPick, sentences,
+  measure: heldMeasure, onMeasureChange, onPick, sentences, highlight = null,
 }: {
   calendar: Calendar;
   meta: Meta;
@@ -33,6 +35,8 @@ export function CalendarGrid({
   onPick?: (month: string) => void;
   /** The contract's sentences; tests pass their own. Default: messages.yaml. */
   sentences?: GridSentences;
+  /** Story 3.9: the ranked item selected in the rankings, or null. */
+  highlight?: Highlight | null;
 }) {
   const wrapRef = useRef<HTMLDivElement>(null);
   const [measured, setMeasured] = useState(0);
@@ -71,24 +75,25 @@ export function CalendarGrid({
       {view === "grid" ? (
         <div className="calgrid" ref={wrapRef} data-measure={measure}>
           {width > 0 ? (
-            <GridSvg model={model} layout={layoutGrid(model, width)} measure={measure} initialActive={initialActive} onPick={onPick} />
+            <GridSvg model={model} layout={layoutGrid(model, width)} measure={measure} initialActive={initialActive} onPick={onPick} highlight={highlight} />
           ) : null}
         </div>
       ) : (
-        <CalendarTable model={model} measure={measure} />
+        <CalendarTable model={model} measure={measure} highlight={highlight} />
       )}
     </div>
   );
 }
 
 function GridSvg({
-  model, layout: L, measure, initialActive, onPick,
+  model, layout: L, measure, initialActive, onPick, highlight,
 }: {
   model: GridModel;
   layout: Layout;
   measure: Measure;
   initialActive: Pos | null;
   onPick?: (month: string) => void;
+  highlight: Highlight | null;
 }) {
   // pinned: set by focus or tap; hover: the pointer, shown over pinned while it lasts.
   const [pinned, setPinnedState] = useState<Pos | null>(initialActive);
@@ -140,6 +145,14 @@ function GridSvg({
 
   const cellX = (c: number) => L.yearW + c * L.cellW;
   const w = Math.max(1, L.cellW - GAP);
+  // Story 3.9: the selected ranked item's frame, brought into view when it changes.
+  const hl = highlight ? highlightBox(model, L, highlight, GAP) : null;
+  const hlRef = useRef<SVGRectElement>(null);
+  // Keyed on the item, not the box, so a resize does not scroll the page.
+  const hlKey = highlight ? JSON.stringify(highlight) : "";
+  useEffect(() => {
+    hlRef.current?.scrollIntoView?.({ block: "nearest", inline: "nearest" });
+  }, [hlKey]);
   const h = L.rowH;
 
   return (
@@ -263,6 +276,13 @@ function GridSvg({
             );
           })}
         </g>
+
+        {hl && highlight ? (
+          <g className="highlight" aria-hidden="true" data-highlight={highlight.kind}>
+            <rect className="hl-halo" x={hl.x} y={hl.y} width={hl.width} height={hl.height} />
+            <rect className="hl" ref={hlRef} x={hl.x} y={hl.y} width={hl.width} height={hl.height} />
+          </g>
+        ) : null}
       </svg>
       {shown ? <DetailCard model={model} layout={L} pos={shown} measure={measure} /> : null}
     </div>
