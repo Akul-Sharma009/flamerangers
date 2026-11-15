@@ -236,7 +236,13 @@ describe("Story 3.4: refused ranges", () => {
     expect(input(html, "end")).toContain('aria-invalid="true"');
     expect(input(html, "start")).toContain('max="2010-03-15"');
     expect(input(html, "end")).toContain('min="2012-06-10"');
+    // 0.4.0: the refusal is stated in the contract's sentence; the range note is always shown.
+    expect(html).toContain(messages.client.dates_out_of_order);
+    const early = datesTab({ initialRangeRefusal: { start: "2002-06-30", end: "2012-06-10" } });
+    expect(early).toContain(messages.client.date_before_record);
+    expect(html).toContain(messages.notes.range_and_reference);
     const fine = datesTab();
+    expect(fine).not.toContain('role="alert"');
     expect(fine).not.toContain("aria-invalid");
     expect(input(fine, "start")).toContain("required");
   });

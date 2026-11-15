@@ -2,11 +2,9 @@
 //
 // Every sentence the card writes is a template from contract/messages.yaml,
 // filled with served values that are formatted, never computed (AD-8). The
-// card's sentences are not in contract 0.3.0; they are read from an optional
-// `sentences:` section so that a contract bump that adds them switches the
-// card from labelled figures to sentences with no web change. The suggested
-// wording is in DECISIONS.md, "Story 3.7: the card's sentences wait for
-// contract 0.4.0".
+// card's sentences arrived in contract 0.4.0's `sentences:` section. They are
+// still read as optional, so a template the contract drops falls back to
+// labelled figures rather than words the web types.
 import { messages } from "../api/messages";
 
 export const SENTENCE_KEYS = [
@@ -21,7 +19,7 @@ export const SENTENCE_KEYS = [
 export type SentenceKey = (typeof SENTENCE_KEYS)[number];
 export type Sentences = Partial<Record<SentenceKey, string>>;
 
-/** The card's templates as the contract serves them today (none in 0.3.0). */
+/** The card's templates as the contract serves them today (all seven from 0.4.0). */
 export function contractSentences(): Sentences {
   const section = (messages as unknown as { sentences?: unknown }).sentences;
   if (!section || typeof section !== "object") return {};

@@ -173,12 +173,11 @@ describe("AC1: top 5 months and top 5 years with values and ranks, ties as ties,
     expect(panel(savanna)).toContain(`${formatDay(savanna.range.start)} to ${formatDay(savanna.range.end)}`);
   });
 
-  it("types no sentence of its own: contract 0.3.0 has none of the rankings' sentences, so none shows", () => {
-    expect(contractRankWords()).toEqual({});
-    const t = text(panel(fixture, null, contractRankWords()));
+  it("contract 0.4.0 serves the rankings' sentences; with none passed, the web types none", () => {
+    expect(Object.keys(contractRankWords()).length).toBeGreaterThan(0);
+    const t = text(panel(fixture, null, {}));
     expect(t).not.toContain("complete months and years");
-    expect(panel(fixture)).not.toContain("ranknotes");
-    expect(panel(fixture)).not.toContain("rangenote");
+    expect(panel(fixture, null, {})).not.toContain("rangenote");
   });
 
   it("uses the contract's sentences once they exist, filled from the served range", () => {

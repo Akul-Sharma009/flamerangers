@@ -12,7 +12,7 @@ import { CalendarView } from "../pages/CalendarPage";
 import { CurrentMonthCard } from "./CurrentMonthCard";
 import { buildCard, type Calendar, type Meta } from "./model";
 import { layoutRuler } from "./ruler";
-import { contractSentences, fill, type Sentences } from "./words";
+import { SENTENCE_KEYS, contractSentences, fill, type Sentences } from "./words";
 
 const meta = metaJson as unknown as Meta;
 const metaAfterCheck = metaAfterCheckJson as unknown as Meta;
@@ -170,11 +170,20 @@ describe("AC3: the sentence is a contract template filled with served values", (
     expect(html).toContain("<h1 class=\"sentence\">So far this month: 412 hotspots, 2.3× the 2003–2025 median for the same days of November.</h1>");
   });
 
-  it("contract 0.3.0 has no card sentence, so the web types none: the headline is the served count", () => {
-    expect(contractSentences()).toEqual({});
-    const html = render(fixture);
+  it("contract 0.4.0 serves all seven card sentences, so the headline is the contract's sentence", () => {
+    expect(Object.keys(contractSentences()).sort()).toEqual([...SENTENCE_KEYS].sort());
+    expect(text(render(fixture))).toMatch(/So far this month: 261.3 hotspots/);
+  });
+
+  it("with no sentence served, the web types none: the headline is the served count", () => {
+    const html = render(fixture, meta, {});
     expect(html).toMatch(/<h1 class="sentence figurehead"><span class="n">261.3<\/span> hotspots<\/h1>/);
     expect(text(html)).not.toMatch(/So far this month/);
+  });
+
+  it("states missing days to date only when served", () => {
+    expect(text(render(fixture))).not.toContain(messages.notes.missing_days_to_date);
+    expect(text(render(withCurrent({ missing_days_to_date: true })))).toContain(messages.notes.missing_days_to_date);
   });
 
   it("a template whose value is missing or null is not filled", () => {

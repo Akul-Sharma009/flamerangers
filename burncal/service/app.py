@@ -1,4 +1,4 @@
-"""The service (contract 0.3.0).
+"""The service (contract 0.4.0).
 
 With a published store (BURNCAL_STORE_ROOT, default store/published, holding CURRENT.json), /meta,
 /calendar, /cells and both CSVs answer from the record (Stories 2.6, 2.7, 4.1). Without one, every endpoint answers from the
@@ -18,6 +18,7 @@ from fastapi.exceptions import RequestValidationError
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import JSONResponse, Response
 import pandas as pd
+import yaml
 import shapely
 from shapely.geometry import shape
 from pydantic import BaseModel, ConfigDict, Field, StrictBool, StrictInt, field_validator
@@ -127,7 +128,7 @@ def create_app(store_root=None) -> FastAPI:
     superseded, invalid = load("problems/version_superseded.json"), load("problems/invalid_aoi.json")
     text = (CONTRACT / "messages.yaml").read_text(encoding="utf-8")
     notes = dict(re.findall(r'^  (\w+): "(.*)"$', text, re.M))
-    limits = [("counting_limits", notes[k]) for k in ("hotspot_definition", "monthly_validation_only", "flag_scale")]
+    limits = [("counting_limits", line) for line in yaml.safe_load(text)["counting_limits"]]  # the six, in order (0.4.0)
 
     outside, too_large = load("problems/outside_coverage.json"), load("problems/too_large_for_sync.json")
     app = FastAPI(title="burncal service")

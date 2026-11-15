@@ -138,9 +138,11 @@ describe("AC1: the anomaly view recolours cells on a diverging ramp centred on t
   it("gives every counted month's detail the anomaly as a count and a percentage, from served fields", () => {
     for (const m of fixture.months.filter((x) => x.count !== null)) {
       const lines = linesFor(fixture, m.month);
-      expect(lines[1]).toBe(`Anomaly: ${formatSigned(m.anomaly_count!)} ${unit}, ${formatSignedPct(m.anomaly_pct!)}%`);
+      // Contract 0.4.0's sentences.anomaly and sentences.reference_mean, filled with served values.
+      expect(lines[1].startsWith(`Difference from the ${REF} mean for `)).toBe(true);
+      expect(lines[1]).toContain(`${formatSigned(m.anomaly_count!)} hotspots (${formatSignedPct(m.anomaly_pct!)}%).`);
       expect(lines).toContain(`${formatCount(m.count!)} ${unit}`);
-      expect(lines).toContain(`Reference mean ${REF}: ${formatCount(m.reference_mean!)} ${unit}`);
+      expect(lines.some((l) => l.startsWith(`The ${REF} mean for `) && l.includes(`${formatCount(m.reference_mean!)} hotspots`))).toBe(true);
     }
   });
 
@@ -151,7 +153,7 @@ describe("AC1: the anomaly view recolours cells on a diverging ramp centred on t
     const lines = linesFor(fixture, "2015-09");
     const card = text(html.slice(html.indexOf('class="cellcard"')));
     for (const l of lines) expect(card).toContain(l);
-    expect(label(html, "2015-09")).toContain(`Anomaly: ${formatSigned(19674.4)} ${unit}, +277.55%.`);
+    expect(label(html, "2015-09")).toContain(`${formatSigned(19674.4)} hotspots (+277.55%).`);
   });
 
   it("foots each column with the served reference mean, the centre of the ramp", () => {
@@ -170,7 +172,7 @@ describe("AC1: the anomaly view recolours cells on a diverging ramp centred on t
       expect(legend).toContain(`data-tone="${c.tone}"`);
       expect(legend).toContain(`<span>${c.label}</span>`);
     }
-    expect(text(legend)).toContain(`% of the ${REF} mean`);
+    expect(text(legend)).toContain(`Anomaly as a percentage of the ${REF} mean for the calendar month.`);
     expect(classes.map((c) => c.label)).toEqual(["−100", "−50", "−20", "+20", "+50", "+100"]);
     // The count view's legend keeps the count classes.
     expect(renderToStaticMarkup(<GridLegend calendar={fixture} />)).not.toContain("data-tone");
@@ -199,8 +201,10 @@ describe("AC1: the anomaly view recolours cells on a diverging ramp centred on t
 });
 
 describe("AC2: a month with flagged cells carries a symbol; strong and marginal differ without colour; the detail says how many of the area's 1° cells are flagged", () => {
+  // Restore the contract's own sentences (0.4.0 has them) rather than deleting them.
+  const contractSentences = (messages as unknown as { sentences?: unknown }).sentences;
   afterEach(() => {
-    delete (messages as unknown as { sentences?: unknown }).sentences;
+    (messages as unknown as { sentences?: unknown }).sentences = contractSentences;
   });
 
   it("marks strong months with a filled triangle and marginal-only months with a ring, in both views", () => {
@@ -217,7 +221,7 @@ describe("AC2: a month with flagged cells carries a symbol; strong and marginal 
     const m = month("2015-09");
     for (const view of ["count", "anomaly"] as const) {
       const lines = linesFor(fixture, "2015-09", view);
-      expect(lines).toContain(`Flagged 1° cells: ${m.cells_flagged_strong} strong, ${m.cells_flagged_marginal} marginal, of ${m.cells_total}`);
+      expect(lines).toContain(`${m.cells_flagged_strong} of ${m.cells_total} one-degree cells are flagged strong and ${m.cells_flagged_marginal} marginal, a caution and not an alarm.`); // 0.4.0 sentences.cells_flagged
       expect(lines).toContain(messages.notes.flag_scale);
       expect(lines).toContain(messages.labels.flag_state.strong);
     }
@@ -331,16 +335,16 @@ describe("AC4: a large anomaly with no flag, or a flag with a small anomaly, sho
   for (const ym of ["2012-09", "2012-10"]) {
     it(`states both periods and the month's flag counts for ${ym}`, () => {
       const lines = linesFor(c, ym);
-      expect(lines).toContain(`Reference mean ${REF}: ${formatCount(month(ym).reference_mean!)} ${unit}`);
-      expect(lines).toContain(`Flag reference years ${FLAG_REF}`);
+      expect(lines.some((l) => l.startsWith(`The ${REF} mean for `) && l.includes(`${formatCount(month(ym).reference_mean!)} hotspots`))).toBe(true);
+      expect(lines.some((l) => l.startsWith(`Flag thresholds come from ${FLAG_REF}, a different period from the mean`))).toBe(true);
       const m = c.months.find((x) => x.month === ym)!;
-      expect(lines).toContain(`Flagged 1° cells: ${m.cells_flagged_strong} strong, ${m.cells_flagged_marginal} marginal, of ${m.cells_total}`);
+      expect(lines).toContain(`${m.cells_flagged_strong} of ${m.cells_total} one-degree cells are flagged strong and ${m.cells_flagged_marginal} marginal, a caution and not an alarm.`); // 0.4.0 sentences.cells_flagged
       expect(lines).toContain(messages.notes.flag_scale);
     });
   }
 
   it("states the flag reference years in the cell panel too", () => {
-    expect(text(renderToStaticMarkup(<FlagCellsView cells={sumatraCells} unit={unit} />))).toContain(`Flag reference years ${FLAG_REF}`);
+    expect(text(renderToStaticMarkup(<FlagCellsView cells={sumatraCells} unit={unit} />))).toContain(`Flag thresholds come from ${FLAG_REF}`);
   });
 });
 
@@ -355,7 +359,7 @@ describe("Every number in the anomaly view is served (AD-8)", () => {
       if (m.anomaly_pct !== null) add(formatSignedPct(m.anomaly_pct));
       if (m.anomaly_count !== null) add(formatSigned(m.anomaly_count));
       if (m.reference_mean !== null) add(formatCount(m.reference_mean));
-      for (const k of [m.cells_flagged_strong, m.cells_flagged_marginal, m.cells_total]) add(formatCount(k));
+      for (const k of [m.cells_flagged_strong, m.cells_flagged_marginal, m.cells_total]) if (k !== null) add(formatCount(k));
       add(m.month.slice(0, 4));
     }
     for (const t of fixture.year_totals) { if (t.total !== null) add(formatCount(t.total)); add(String(t.year)); }
@@ -410,19 +414,14 @@ describe("Approved contract sentences: used once the contract has them, labels u
     return detailAt(model, { r, c: Number(ym.slice(5)) - 1 }, "anomaly")!;
   };
 
-  it("master's contract has none of the six keys, so the labels show", () => {
+  it("contract 0.4.0 serves all six keys", () => {
     const own = gridSentences();
     for (const k of ["anomaly", "reference_mean", "flag_reference", "anomaly_scale", "cells_heading", "partly_inside"] as const) {
-      expect(own[k], k).toBeUndefined();
+      expect(own[k], k).toBeTruthy();
     }
-    const lines = linesFor(fixture, "2015-09");
-    expect(lines[1]).toBe(`Anomaly: ${formatSigned(19674.4)} ${unit}, +277.55%`);
-    expect(lines).toContain(`Reference mean ${REF}: ${formatCount(7088.6)} ${unit}`);
-    expect(lines).toContain(`Flag reference years ${FLAG_REF}`);
-    expect(text(renderToStaticMarkup(<GridLegend calendar={fixture} measure="anomaly" />))).toContain(`Anomaly, % of the ${REF} mean`);
     const panel = text(renderToStaticMarkup(<FlagCellsView cells={everyState} unit={unit} />));
-    expect(panel).toContain("Flag state of each 1° cell, November 2026");
-    expect(panel).toContain("Partly inside the area.");
+    expect(panel).toContain("Flag state of each one-degree cell in November 2026.");
+    expect(panel).toContain(messages.notes.partly_inside);
   });
 
   it("fills the anomaly sentence from served values, keeping each served sign", () => {

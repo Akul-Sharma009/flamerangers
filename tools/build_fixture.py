@@ -178,7 +178,7 @@ def build_calendar(name, ring, start, end, profile, year_factor, scale, *, cauti
                            "median": None, "reference_mean": None, "no_typical_activity": False,
                            "ratio_to_median": None, "anomaly_count": None, "anomaly_pct": None,
                            "colour_class": None, "anomaly_class": None,
-                           "cells_flagged_strong": 0, "cells_flagged_marginal": 0, "cells_total": cells_total, "rank": None})
+                           "cells_flagged_strong": None, "cells_flagged_marginal": None, "cells_total": cells_total, "rank": None})
             continue
         v = series[t]
         reasons = []
@@ -248,7 +248,8 @@ def build_calendar(name, ring, start, end, profile, year_factor, scale, *, cauti
         to_date = series[CURRENT]
         now = months[-2] if months[-1]["month"] != ym(*CURRENT) else months[-1]
         current = {
-            "month": ym(*CURRENT), "day": DAY, "count_to_date": r1(to_date), "same_days_median": r1(same_med),
+            "month": ym(*CURRENT), "day": DAY, "count_to_date": r1(to_date), "missing_days_to_date": CURRENT in missing,
+            "same_days_median": r1(same_med),
             "no_typical_activity": same_med == 0, "ratio": None if same_med == 0 else r2(to_date / same_med),
             "difference": r1(to_date - same_med), "reference_period": REFERENCE, "same_days_by_year": same,
             "cells_flagged_strong": now["cells_flagged_strong"], "cells_flagged_marginal": now["cells_flagged_marginal"],
@@ -379,7 +380,7 @@ def main():
                ("siberia", "Siberian boreal forest", "not_loaded", "tested_unseen"),
                ("punjab", "Punjab cropland", "not_loaded", "reported_only")]
     meta = {
-        "contract_version": "0.3.0", "record_version": RECORD_VERSION, "data_through": DATA_THROUGH,
+        "contract_version": "0.4.0", "record_version": RECORD_VERSION, "data_through": DATA_THROUGH,
         "placeholder": True, "unit_label": UNIT, "record_start": "2002-07",
         "record_switch": {"aqua_through": "2021-12", "viirs_from": "2022-01"},
         "satellite_switch": {"snpp_through": "2026-11-02", "noaa20_from": "2026-11-03"},
