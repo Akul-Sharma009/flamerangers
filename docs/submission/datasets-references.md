@@ -28,10 +28,14 @@ All hotspots are read through FIRMS (https://www.earthdata.nasa.gov/data/tools/f
 - NASA LP DAAC, VIIRS/NPP Active Fires 6-Min L2 Swath 375 m V002 (VNP14IMG): https://doi.org/10.5067/VIIRS/VNP14IMG.002
 - Natural Earth, 1:10m land, version 5.1.1 (public domain; "Made with Natural Earth."): https://www.naturalearthdata.com/ (file used: https://github.com/nvkelso/natural-earth-vector, tag v5.1.1, `geojson/ne_10m_land.geojson`)
 - world-atlas 2.0.2 (Natural Earth land outlines as TopoJSON, for the web map): https://github.com/topojson/world-atlas
+- Natural Earth, 1:10m Admin 0 – Countries and Admin 1 – States, Provinces, version 5.1.2 (public domain; "Made with Natural Earth."), simplified for the country and province picker: https://github.com/nvkelso/natural-earth-vector/tree/v5.1.2/geojson
 
 **Papers**
 - Giglio, L., Schroeder, W., Justice, C. O. (2016). The collection 6 MODIS active fire detection algorithm and fire products. Remote Sensing of Environment 178, 31–41. https://doi.org/10.1016/j.rse.2016.02.054
 - Schroeder, W., Oliva, P., Giglio, L., Csiszar, I. A. (2014). The New VIIRS 375 m active fire detection data product: Algorithm description and initial assessment. Remote Sensing of Environment 143, 85–96. https://doi.org/10.1016/j.rse.2013.12.008
+- Mann, H. B. (1945). Nonparametric tests against trend. Econometrica 13(3), 245–259. https://doi.org/10.2307/1907187
+- Kendall, M. G. (1938). A new measure of rank correlation. Biometrika 30(1/2), 81–93. https://doi.org/10.2307/2332226
+- Sen, P. K. (1968). Estimates of the regression coefficient based on Kendall's tau. Journal of the American Statistical Association 63(324), 1379–1389. https://doi.org/10.1080/01621459.1968.10480934
 
 **Services and pages named in the text**
 - NASA FIRMS: https://www.earthdata.nasa.gov/data/tools/firms

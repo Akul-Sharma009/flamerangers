@@ -752,6 +752,13 @@ The points where the plan left room are listed in `DECISIONS.md` ("Contract 0.2.
 - Checked on fixtures only. Before going live: the data owner agrees 0.5.0, redeploys the service, then the web (service first). Then check each new panel on the live site.
 - Details, choices and open items: `DECISIONS.md` ("Epics 7 and 8 built in parallel").
 
+## Story 6.3: security and readiness (15 Nov, done)
+
+- `/security-review` on the changes since `596416b`: no High or Medium finding. `/codex:review --base 596416b`: no actionable bugs.
+- gitleaks: 101 commits on every branch and the working files, no leaks. pip-audit (uv export) and `npm audit --omit=dev`: no known vulnerabilities. `.env` git-ignored, `.env.example` present, no notebooks, gitleaks pre-commit hook in place.
+- Not covered: the Vercel deploy folder (outside the repo). Definition-of-done items owned elsewhere: the fresh-clone run (6.2) and the link through judging (6.4).
+- References field: Natural Earth admin 5.1.2 and the trend test's papers (Mann 1945, Kendall 1938, Sen 1968) added.
+
 ## Next
 
 From the lead's review of PRs 3 to 11 and the Codex adversarial review of the prototype (both 14 Nov; Codex: needs attention, three high findings, all folded into item 1). Merged with two fixes: `/meta` from a store now says contract 0.3.0 (a test ties it to `openapi.yaml`), and a hotspot search with no record file in its range gives the header and no rows instead of a 500.
