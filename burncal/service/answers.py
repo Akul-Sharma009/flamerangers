@@ -39,8 +39,19 @@ def meta(v: Version, regions: dict) -> dict:
             {"region_id": rid, "name": name, "evidence_class": ev,
              "status": "loaded" if v.covers(geom) else "not_loaded"}
             for rid, (name, ev, geom) in regions.items()]},
-        "noaa20_check": None,
+        "noaa20_check": _noaa20(v.noaa20_check),
     }
+
+
+def _noaa20(h: dict | None) -> dict | None:
+    """Story 2.10's headline figures, rounded once here: 1 decimal, as the contract states for bias_pct."""
+    if h is None:
+        return None
+    fig = lambda f: {"mean_abs_difference": r1(f["mean_abs_difference"]), "bias_pct": r1(f["bias_pct"]),  # noqa: E731
+                     "cell_months": int(f["cell_months"])}
+    return {"reported_only": True, "validated_against_aqua": False,
+            "period_start": h["period_start"], "period_end": h["period_end"], "pooled": fig(h["pooled"]),
+            "regions": [{"region_id": r["region_id"], "name": r["name"], "figures": fig(r["figures"])} for r in h["regions"]]}
 
 
 def _aoi(v: Version, geom, name, regions) -> tuple[dict, object]:

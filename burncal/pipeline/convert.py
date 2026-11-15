@@ -68,11 +68,8 @@ def _season(df, params, region_id, rules, totals) -> np.ndarray:
     return out
 
 
-def convert(df: pd.DataFrame, params: dict, geoms: dict, history: pd.DataFrame | None = None) -> pd.DataFrame:
-    """Add the record columns. Rows keep their order; nothing is dropped.
-
-    history: season_history() of the whole extent; taken from df itself when not given.
-    """
+def annotate(df: pd.DataFrame, params: dict, geoms: dict, history: pd.DataFrame | None = None) -> pd.DataFrame:
+    """A copy with region_id, rules_region and in_season (the inputs C1 needs per row)."""
     out = df.copy()
     lon, lat = out["longitude"].to_numpy(float), out["latitude"].to_numpy(float)
     region_id = regions.region_of(lon, lat, geoms)
@@ -80,12 +77,17 @@ def convert(df: pd.DataFrame, params: dict, geoms: dict, history: pd.DataFrame |
     out["region_id"], out["rules_region"] = region_id, rules
     totals = season_history(out, geoms) if history is None else history
     out["in_season"] = _season(out, params, region_id, rules, totals)
-    out["feeds_record"] = record.feeds_record(out["satellite"], out["utc_date"])
-    out["validated_satellite"] = record.validated_satellite(out["satellite"], out["utc_date"])
+    return out
+
+
+def c1_weights(out: pd.DataFrame, params: dict, mask) -> np.ndarray:
+    """C1 row weights for the VIIRS rows in mask (NaN elsewhere), each satellite's rows on their own,
+    in ROW_ORDER. out: annotate()'s columns plus the FIRMS fields."""
     c1w = np.full(len(out), np.nan)
-    viirs = out["feeds_record"].to_numpy() & out["satellite"].isin(record.VIIRS_FEEDING).to_numpy()
+    mask = np.asarray(mask, bool) & out["satellite"].isin(record.VIIRS_FEEDING).to_numpy()
+    rules = out["rules_region"].to_numpy()
     for sat in record.VIIRS_FEEDING:
-        idx = np.flatnonzero(viirs & (out["satellite"] == sat).to_numpy())
+        idx = np.flatnonzero(mask & (out["satellite"] == sat).to_numpy())
         if len(idx) == 0:
             continue
         idx = idx[np.lexsort([out[c].to_numpy()[idx] for c in reversed(ROW_ORDER)])]
@@ -97,6 +99,18 @@ def convert(df: pd.DataFrame, params: dict, geoms: dict, history: pd.DataFrame |
             frp_mw=s["frp"].to_numpy(float), scan_km=s["scan"].to_numpy(float),
             track_km=s["track"].to_numpy(float), night=(s["daynight"] == "N").to_numpy(),
             include=(s["excluded_reason"] == "none").to_numpy())
+    return c1w
+
+
+def convert(df: pd.DataFrame, params: dict, geoms: dict, history: pd.DataFrame | None = None) -> pd.DataFrame:
+    """Add the record columns. Rows keep their order; nothing is dropped.
+
+    history: season_history() of the whole extent; taken from df itself when not given.
+    """
+    out = annotate(df, params, geoms, history)
+    out["feeds_record"] = record.feeds_record(out["satellite"], out["utc_date"])
+    out["validated_satellite"] = record.validated_satellite(out["satellite"], out["utc_date"])
+    c1w = c1_weights(out, params, out["feeds_record"].to_numpy())
     out["weight"] = record.weights(out["satellite"], out["utc_date"], out["excluded_reason"], c1w)
     return out
 

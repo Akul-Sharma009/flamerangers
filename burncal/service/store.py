@@ -37,7 +37,8 @@ def _cell_ix(x):
 # Everything a calendar needs from a version; hotspot record files are read on use.
 SERVING = ["manifest.json", "coverage_days.parquet", "missing_days.parquet", "points.parquet",
            "grids/cells_1deg.parquet", "grids/cells_025deg.parquet", "grids/thresholds_1deg.parquet",
-           "grids/flags_1deg.parquet", "records/evidence_1deg.parquet"]
+           "grids/flags_1deg.parquet", "records/evidence_1deg.parquet",
+           "noaa20_check.json"]  # optional (Story 2.10); a version without it serves null
 
 
 HTTPFS = Path(__file__).resolve().parents[2] / "duckdb_ext" / "httpfs.duckdb_extension"  # shipped with the host bundle
@@ -60,6 +61,8 @@ class Version:
         self._fetch = fetch  # downloads a record file on first use when the store was synced from a URL
         self.manifest = json.loads((self.path / "manifest.json").read_text(encoding="utf-8"))
         self.record_version = self.manifest["record_version"]
+        n20 = self.path / "noaa20_check.json"
+        self.noaa20_check = json.loads(n20.read_text(encoding="utf-8")) if n20.exists() else None
         self.data_through = date.fromisoformat(self.manifest["data_through"])
         ext = self.manifest.get("extents") or [{"name": "", "bbox": self.manifest["extent"]}]
         self.extents = {e["name"]: shapely.box(*e["bbox"]) for e in ext}

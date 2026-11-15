@@ -198,3 +198,17 @@ def test_2_6_ad11_publish_loads_the_new_version_before_switching_the_pointer(tmp
         publish.publish(rec, grids, raw, root, data_through=date(2026, 11, 13), code_revision="b", parity_check=PARITY_OK)
     assert json.loads((root / "CURRENT.json").read_text())["record_version"] == v1
     assert sorted(d.name for d in (root / "versions").iterdir() if not d.name.startswith(".")) == [v1]
+
+
+def test_2_10_ac2_publish_puts_the_noaa20_headline_in_the_version(tmp_path):
+    rec, grids, raw = _inputs(tmp_path)
+    head = {"reported_only": True, "validated_against_aqua": False, "period_start": "2022-01", "period_end": "2026-10",
+            "pooled": {"mean_abs_difference": 1.0, "bias_pct": 2.0, "cell_months": 3}, "regions": []}
+    src = tmp_path / "noaa20_headline.json"
+    src.write_text(json.dumps(head))
+    root = tmp_path / "store"
+    v = publish.publish_many([(rec, grids, raw)], root, data_through=date(2026, 11, 13), code_revision="a",
+                             parity_check=PARITY_OK, noaa20_check=src)
+    assert json.loads((root / "versions" / v / "noaa20_check.json").read_text()) == head
+    man = json.loads((root / "versions" / v / "manifest.json").read_text())
+    assert man["noaa20_check_sha256"]
