@@ -42,10 +42,10 @@ C1 was chosen by a rule fixed before scoring and tested on held-back years again
 
 > **[flag-precision-vs-b]** C1 failed the flag-precision test against (b): 0.704 against 0.736. Under the rule fixed beforehand the outcome was "nothing beat one global factor", and the project lead kept C1 as a recorded deviation after seeing the scores.
 
-The impact is one public link, with no login, where haze and air-quality desks, scientists who study burning and land managers can read two decades of hotspots on one scale: https://burncal-web-eight.vercel.app. Today the published record covers the six evaluated regions and is refreshed every day from near-real-time data; the rest of the world is still to come.
+The impact is one public link, with no login, where haze and air-quality desks, scientists who study burning and land managers can read two decades of hotspots on one scale: https://burncal-web-eight.vercel.app. Today the published record covers the six evaluated regions and Kalimantan, and is refreshed every day from near-real-time data; the rest of the world is still to come.
 <!-- /field:summary -->
 
-Words: 324.
+Words: 326.
 
 ## 4. Project Demo
 
@@ -106,14 +106,14 @@ Each month also names every satellite that fed it, with its quality and days, an
 
 The record holds satellite hotspot counts over land. It holds no smoke, haze, air quality or burned area, and cloud, thick smoke and smouldering peat can hide burning from the satellites.
 
-**What exists today.** NASA FIRMS serves MODIS and VIIRS hotspots, each sensor as it is, and offers no harmonization or climatology tool; FIRMS and Worldview map hotspot dots for a date; GWIS distributes burned area, not hotspot counts; INPE's operational rule keeps to one reference satellite, Aqua (links in field 8; INPE's rule is still `[unverified]`). This project joins MODIS and VIIRS into one monthly record in Aqua units, chosen by a rule fixed before scoring, and states its own failures beside the numbers.
+**What exists today.** NASA FIRMS serves MODIS and VIIRS hotspots, each sensor as it is, and offers no harmonization or climatology tool; FIRMS and Worldview map hotspot dots for a date; GWIS distributes burned area, not hotspot counts (links in field 8). This project joins MODIS and VIIRS into one monthly record in Aqua units, chosen by a rule fixed before scoring, and states its own failures beside the numbers.
 
 **Tools and technologies.** Python 3.14 with uv, FastAPI, Uvicorn, DuckDB, PyArrow, Shapely, NumPy and pandas for the pipeline and the service; React, TypeScript, Vite, D3, MapLibre GL, Terra Draw, topojson-client and world-atlas (Natural Earth land outlines) for the web app; pytest, Vitest and Playwright for tests; gitleaks for secret scanning; Vercel hosts the service. The code is open in the public repository, https://github.com/Akul-Sharma009/flamerangers.
 
 **NASA datasets.** MODIS and VIIRS hotspots from NASA FIRMS, and the VIIRS swath product from NASA LP DAAC. Named in field 7.
 <!-- /field:details -->
 
-Words: 1286. Long; if the form has a limit, cut the paragraph after "What it does", "What exists today" and the `comparator-vs-b` claim first.
+Words: 1272. Long; if the form has a limit, cut the paragraph after "What it does", "What exists today" and the `comparator-vs-b` claim first.
 
 ## 7. NASA data
 
