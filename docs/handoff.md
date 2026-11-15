@@ -22,6 +22,7 @@ Updated: Sat 14 Nov 2026, late evening SGT (PRs 3 to 11 merged; the lead's revie
 | 5.4 Head-to-head table | Done | Reviewed by the lead and merged to master. See below. |
 | 5.5 Aqua only and the incumbent | Done | Merged 15 Nov. The claim `aqua-only-every-method-failed-precision` was approved and added; the section's copy was approved with it. See below. |
 | 5.6 What the scores can't show | Done | Merged 15 Nov. The lead approved the copy and the tiers claim `tiers-not-checked-everywhere`. NOAA-20 says "not yet run" until Story 2.10 writes its file. See below. |
+| 5.7 About-the-data page | Review | Built on `claude/5-7-about-the-data-b91a8f`, not committed. The lead approved the copy on 15 Nov. The counting limits switch to the contract's list when 0.4.0 merges. Datasets and citations wait for Story 6.1; the `[pending: Story 6.1]` marks must be replaced before submission. See below. |
 | 3.3 Select an area | Done | Reviewed by the lead and merged to master. See below. |
 | 3.5 The burning activity calendar | Done | Merged 14 Nov. See below. |
 | 3.4 Select a date range | Done | Merged 14 Nov. Sentences for refused ranges and the reference-period note wait for contract 0.4.0 (see below). |
@@ -406,6 +407,33 @@ One year (2024) of FIRMS standard data, MODIS_SP (Aqua and Terra rows) and VIIRS
 | AC2 tiers: checked on selection years only, not in southern Africa or Siberia | "AC2: the anomaly tiers were checked on selection years only and not in southern Africa or Siberia" |
 | AC3 reported-only run labelled "not used for the pick"; 4A alone passed (b), C1 did not; southern Africa and Punjab | "AC3: the reported-only run is labelled not used for the pick…", "AC3: 4A alone passed the (b) test…", "AC3: the southern Africa and Punjab results are shown…", "AC3: an unknown region or scale falls back…"; `test_5_6_reported_only_*`; browser check |
 | AC4 NOAA-20: labelled once its file exists; "not yet run" until then, for that comparison only | "AC4: until Story 2.10's file exists…", "AC4: once the file exists…" (made-up file); `test_5_6_noaa20_*`. **Real figures wait for Story 2.10.** |
+
+## Story 5.7: about the data (branch `claude/5-7-about-the-data-b91a8f`)
+
+- `#/about` is built (`web/src/pages/AboutPage.tsx` loads `/meta` and the evidence chunk; `web/src/about/` holds the view, its copy, its view model, its CSS and its tests). It has the evidence view's page form: a reading column and a margin.
+- **Reading column:** the contract's hotspot sentence as the lead; what a hotspot is (and is not), the count unit from `/meta`; where the data come from, with each satellite's part by served dates; the sensor change (`notes.record_switch`, the claim `aqua-through-2021`, orbit drift, `notes.satellite_switch`); cleaning rules and where they differ from the validation's; standard against NRT (the contract's quality sentences); what the validation does not cover (the claim `noaa20-untested`, NOAA-21, `notes.validated_satellite_false`, `notes.monthly_validation_only`); what a satellite can't see (cloud, smoke, small burns); the six counting limits, numbered.
+- **Margin:** the record's facts from `/meta` (record version, record start, switch dates, satellite switch dates, data through, unit); four data sources with `[pending: Story 6.1]` where each citation goes; a link to the evidence view.
+- No change to the contract, `evidence/`, other pages or shared CSS. The page's CSS is its own file.
+- **Approved by the lead on 15 Nov:** all of the copy in `web/src/about/copy.ts` and the `counting_limits` plan (`DECISIONS.md`, "Story 5.7"). The page reads the contract's `counting_limits` list when present and shows `copy.ts`'s six otherwise; master's contract has none, so the fallback shows until contract 0.4.0 merges. The draft's list was checked against the page: same six, same words.
+- **Waiting:** Story 6.1 for dataset names, links and citations. **The `[pending: Story 6.1]` marks must be replaced before submission.**
+- Checks (after the counting-limits change): `npm run test` 241 passed (21 of them Story 5.7); `npm run build`; wording check on the fresh build; import check. Nothing in `evidence/` changed, so its checks were not rerun. Looked at in the built-in browser at 1280 × 900 and 375 × 812 (fixture mode): no horizontal page scroll, no console errors. One fix from that look: the "Not counted" labels got a lead-in line.
+
+| Criterion | Test or evidence |
+| --- | --- |
+| AC1 linked from every view | `about.test.tsx` "every view's masthead links to the page" |
+| AC1 sources | "explains the sources: FIRMS, MODIS and VIIRS, and each satellite's part by the served dates" |
+| AC1 record switch and why at end of 2021 | "explains the record switch and why it sits at the end of 2021, quoting the fixed claim" |
+| AC1 count unit; a hotspot is not a fire | "explains the count unit and that a hotspot is not a fire" |
+| AC1 cleaning rules and differences from the validation's | "states the cleaning rules and where they differ from the validation's" |
+| AC1 standard against NRT | "explains standard against near-real-time data…" |
+| AC1 NOAA-20 and NOAA-21 not covered | "says NOAA-20 and NOAA-21 are not covered by the validation" |
+| AC1 cloud and smoke | "explains detection limits under cloud and smoke" |
+| AC2 all six counting limits | "lists all six counting limits from the PRD, numbered" |
+| AC2 record version | "states the record version served by /meta" |
+| AC2 every data source and its citation | "lists every data source, each with a visible citation mark…". **Citations wait for Story 6.1.** |
+| AC2 link to the evidence view | "links to the evidence view" |
+| Counting limits from the contract's list when present, the page's six otherwise | "with a list in the contract, the page shows exactly those items, in order", "without one, the page shows its own six, filled from /meta", "by default the page reads the contract it was built with" |
+| Numbers from `/meta`, no other digits typed; "hotspots" not "fires"; only fixed claims | "every date, version and unit on the page comes from /meta", "the copy types no digit beyond the fixed rules it names", "says "hotspots", never "fires"", "quotes only the two fixed claims about results, word for word" |
 
 ## Story 3.3: select an area
 
