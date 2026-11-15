@@ -159,14 +159,15 @@ def _parity_gate(data_through: date, parity_check, code_revision: str) -> dict:
     run on the params file this version is published with and recorded with the code revision."""
     if data_through < record.VIIRS_FIRST:
         return {"required": False}
-    result = (parity_check or parity.check_case)()
+    result = (parity_check or parity.check)()
     if not result.get("passed"):
         raise RuntimeError(f"AD-2: parity check did not pass, so converted counts are not published: "
                            f"{result.get('reason') or result.get('misses')}")
     if result.get("params_sha256") != params_sha256():
         raise RuntimeError("AD-2: the parity pass was not run on this version's C1 params file")
+    recorded = {"recorded_pass_core_sha256": result["recorded_pass"]} if "recorded_pass" in result else {}
     return {"required": True, "passed": True, "misses": result["misses"],
-            "params_sha256": result["params_sha256"], "code_revision": code_revision}
+            "params_sha256": result["params_sha256"], "code_revision": code_revision, **recorded}
 
 
 def _load_check(vdir: Path) -> None:

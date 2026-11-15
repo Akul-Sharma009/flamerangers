@@ -51,8 +51,8 @@ development_status:
   2-5-grids-thresholds-and-flags-t: done  # closed by the lead 15 Nov; AC2 and static-input check recorded in DECISIONS.md
   2-6-publish-a-version-and-serve-real-counts-t: done  # closed by the lead 15 Nov; AD-2 gate and AC6 hosted p95 done
   2-7-hotspots-for-any-search-t: done
-  2-8-coverage-for-the-evaluated-regions-then-the-world-t: in-progress  # merged to master (PR 12); six regions published and on the store, production serves all six from the bundle (Story 6.4); world waits for the lead
-  2-9-the-current-month-refreshed-daily-t: backlog
+  2-8-coverage-for-the-evaluated-regions-then-the-world-t: in-progress  # merged to master (PR 12); six regions published and on the store, production serves all six from the bundle (Story 6.4); one global year measured (docs/results/world_2025_measurement.md), world history waits for the lead
+  2-9-the-current-month-refreshed-daily-t: in-progress  # refresh command done; 20261114-5a585fe8 in production; hosted workflow written and its state on the dataset; first GitHub run after merge
   2-10-noaa-20-against-suomi-npp-reported-only-t: done  # closed by the lead 15 Nov; merged (PR 15), headline served by /meta; Siberia +17.3% reported
   epic-2-retrospective: optional
 

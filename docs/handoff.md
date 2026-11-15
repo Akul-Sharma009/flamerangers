@@ -759,7 +759,45 @@ The points where the plan left room are listed in `DECISIONS.md` ("Contract 0.2.
 - Not covered: the Vercel deploy folder (outside the repo). Definition-of-done items owned elsewhere: the fresh-clone run (6.2) and the link through judging (6.4).
 - References field: Natural Earth admin 5.1.2 and the trend test's papers (Mann 1945, Kendall 1938, Sen 1968) added.
 
+## Story 2.9: the current month, refreshed daily (branch `teammate/2.9-daily-refresh`, 15 Nov)
+
+- `burncal.pipeline.refresh` brings every region up to the day before FIRMS's last NRT day. It asks FIRMS which days each source has, re-downloads only the source-year files whose span changed (daily: MODIS NRT and NOAA-20 NRT for 2026), links every other file, and rebuilds only the years that changed. Then it publishes all six regions as one new version. Everything new goes under one new folder (`store/refresh/<date>/`); nothing is overwritten.
+- When FIRMS adds standard days, the standard file and the NRT file both change, so that year is rebuilt with standard rows (standard beats NRT per satellite-day, AD-6) and the version changes.
+- A 2026-only rebuild from the same raw files equals the full build in all six regions: every clean, record and grid file identical (Southern Africa 87 s, the rest 6–17 s).
+- Real run to 14 Nov (15 Nov, 6 min 12 s for six regions): FIRMS NRT ran to 15 Nov, so `data_through` is 14 Nov. Re-downloaded only MODIS NRT and NOAA-20 NRT 2026 per region; rebuilt 2026 only. Published `20261114-5a585fe8`, **in production since 15 Nov 16:13 SGT**: parity PASS (worst 2.9e-10), `check_numbers` 0 failures in all six regions, every region calendar 200 with nulls only Jan–Jun 2002 and Dec 2026, Sumatra November 231.4 → 232.5. Local: 20 Sumatra calendars p95 0.17 s, largest whole extent 0.85 s. Production (from Singapore): 20 Sumatra calendars p50 0.98 s, p95 1.16 s; whole extents 0.87–3.88 s; one year of `/hotspots.csv` 1.11 s; cold start 6.2 s, RSS 284 MB.
+- **Deploy change:** the bundle now carries only the current version. Two six-region versions came to 5.1 GB, over the 5 GB large-function limit; a request naming the previous version gets `410 version_superseded` (tested). Points ship in 16 parts under 100 MB; 12 areas and one CSV year answer identically to the single file. Production and previews run in **iad1**, not sin1.
+- Hugging Face: `store/versions/20261114-5a585fe8` uploaded (394 files, as local), then `store/CURRENT.json` points at it (previous `20261113-19dfbcc8`).
+- **Hosted daily job (AC2):** `.github/workflows/daily-refresh.yml`, daily at 09:30 SGT and by hand. It publishes on the recorded parity pass (`burncal/pipeline/parity_pass.json`, keyed on the C1 params and `burncal/core` code; rerun `uv run python -m burncal.pipeline.parity --record` with the case whenever either changes), builds the deploy folder with `tools/build_deploy.py`, deploys, and switches `CURRENT.json` last. The secrets are in; the lead still needs to add the repository variable `HF_DATASET`. The build state (raw, clean, record, land file) is in the dataset's `state/` folder. Not yet run on GitHub: a workflow runs by hand only once it is on master.
+
+| Criterion | Test or evidence |
+| --- | --- |
+| AC1 current month in the record, `data_through` at most 2 days old | `test_2_9_ac1_refresh_fetches_only_the_files_whose_span_changed`, `test_2_9_ac1_availability_gives_standard_ends_and_last_full_nrt_day`; real run above |
+| AC1 a year rebuilt alone equals the full build | `test_2_9_ac1_clean_one_year_equals_that_year_of_the_whole_build`, `test_2_9_ac1_convert_one_year_equals_that_year_of_the_whole_build`; six-region proof above |
+| AC1 a partial download is never published | `test_2_9_ac1_an_incomplete_fetch_stops_the_refresh` |
+| AC2 daily job reads the key from CI secrets, never logs it | `daily-refresh.yml` reads `FIRMS_MAP_KEY` from secrets into the environment only for the refresh step; `firms.py` never prints URLs. `test_2_9_ac2_*` (recorded pass); simulated run. First GitHub run after merge |
+| AC2 publishes a new version without the private case | `test_2_9_ac2_*`; simulated run published on the recorded pass |
+| AC3 standard days replace NRT days, version changes | `test_2_9_ac3_standard_days_replace_nrt_days_as_they_arrive`; the version hash covers the raw files |
+
+## 15 Nov evening: 0.5.0 live, world year measured, state on the dataset (data owner)
+
+- **Live:** service `burncal-stub.vercel.app` on contract 0.5.0 with `20261114-5a585fe8` (data through 14 Nov); web `burncal-web-eight.vercel.app` rebuilt from master. All four new endpoints answer in every region; 548 tests pass on the real store. Details and timings in `DECISIONS.md` ("Contract 0.5.0").
+- **`/world_cells`:** 0.29 MB for six regions; a world store would be about 3.7 MB, near the 4.5 MB limit. Add `GZipMiddleware` before any world store (about 10 KB gzipped).
+- **World 2025 (2.8 AC3):** measured, `docs/results/world_2025_measurement.md`. One global year builds in about 3 min; a world history needs about 65 GB at once, so not on this machine tonight. The Suomi NPP 2025 zip needs downloading again.
+- **Daily workflow state:** the store dataset's `state/` folder holds the build state the workflow reads (1,033 files, checked against the local copy). The workflow runs once PR 17 is on master and `HF_DATASET` is set.
+- **Local cleanup:** old versions deleted locally (all on the dataset). Rollback is by promoting a previous Vercel deployment; see `DECISIONS.md`.
+- **Vercel and GitHub:** not linked, by decision. A web change on master shows only after a manual build and deploy.
+
 ## Next
+
+**As of 15 Nov 19:20 SGT (build stops 21:00):**
+
+1. Lead: set the repository variable `HF_DATASET`, merge PR 17 (Story 2.9) and PR 18 (Story 6.1), then run Actions → daily-refresh once. Data owner checks the run, then replaces `[pending: Story 2.9]` in `docs/submission/text.md`.
+2. Lead, 20:15: world or six regions (data owner recommends six regions; see the 2.8 AC3 entry in `DECISIONS.md`).
+3. Data owner, about 20:30: 6.2 fresh-clone run on final master.
+4. Before judging: watch Active CPU on the Vercel usage page (Hobby: 4 h a month); keep-warm runs every 5 minutes.
+5. Open, not before the build stop: `GZipMiddleware` for `/world_cells` (lead's code); the 400 answers' placeholder `record_version`; re-record the parity pass after any `burncal/core` change.
+
+Earlier list (14–15 Nov), kept for the record:
 
 From the lead's review of PRs 3 to 11 and the Codex adversarial review of the prototype (both 14 Nov; Codex: needs attention, three high findings, all folded into item 1). Merged with two fixes: `/meta` from a store now says contract 0.3.0 (a test ties it to `openapi.yaml`), and a hotspot search with no record file in its range gives the header and no rows instead of a 500.
 

@@ -1107,3 +1107,47 @@ Each entry has: a status (**ASSUMED** or **TESTED**), its evidence, and a "revis
 - **Open:** 8.9 measured a worldwide month at about 4.08 MB of JSON, close to Vercel's 4.5 MB response limit; fine for six regions, a problem for a world store. 8.10's globe opens on the current month on a real store; the fixture has only September 2015.
 - **Revisit if:** any answer differs from the fixtures on the real store, or the data owner disagrees with a 0.5.0 field.
 
+## Story 2.9: the daily refresh rebuilds only what changed (15 Nov 2026)
+
+- **Status:** TESTED (command and local run); hosted job ASSUMED, not built.
+- **Decision:** The refresh re-downloads a source-year file only when the span the plan wants differs from the span the last `coverage.json` says it holds, and rebuilds only those years; every other raw, clean and record file is linked from the last build. The plan's standard-processing ends come from FIRMS's `data_availability` (VIIRS: the earlier of Suomi NPP and NOAA-20), and `data_through` is the day before the last NRT day both MODIS and NOAA-20 have, because FIRMS's last day is still filling. Whole current-year files are re-fetched, not just the new days, so FIRMS's revisions to NRT rows are picked up. Scoped with the user (15 Nov): the command first, run locally; the hosted job after.
+- **Evidence:** `test_2_9_*` in `burncal/pipeline/test_refresh.py`, `test_build_extent.py`, `test_convert.py`; a 2026-only rebuild equals the full build in all six regions (every clean, record and grid file identical); real run to 14 Nov published `20261114-5a585fe8` in 6 min 12 s (parity PASS, worst 2.9e-10; `check_numbers` 0 failures in six regions; nulls only Jan–Jun 2002 and Dec 2026).
+- **Deploy (15 Nov):** only the current version is bundled; the previous one answers `410 version_superseded`, since two six-region versions (5.1 GB) exceed Vercel's 5 GB large-function limit. The web always reads the current version from `/meta`.
+- **Revisit if:** FIRMS revises standard rows of a year whose span did not change (the refresh would not see it), or a daily refresh over 2,000 requests nears the 5,000-per-10-minutes quota (then fetch only the new windows).
+
+## Story 2.9 AC2: the hosted refresh publishes on a recorded parity pass (15 Nov 2026)
+
+- **Status:** TESTED locally (tests and a simulated run); the workflow itself is ASSUMED until its first run on GitHub.
+- **Decision:** The parity case is private, so it never reaches GitHub. Where the case is, `python -m burncal.pipeline.parity --record` runs it and, only if it passes, writes `burncal/pipeline/parity_pass.json` with the misses, the C1 params hash and a hash of the code the check runs (every non-test file of `burncal/core`, including its `params/` folder). Publish uses the case when `BURNCAL_PARITY_CASE_DIR` is set and the recorded pass otherwise; the recorded pass counts only if both hashes match the code and params being published, so any change to C1's code or numbers voids it until the case is run again. The manifest records which pass was used. The pass is keyed on the code's content, not the git revision, because every merge changes the revision while the checked code stays the same.
+- **Workflow** (`.github/workflows/daily-refresh.yml`, daily 09:30 SGT and by hand): fetches the last build's raw, clean and record files from the store dataset's `state/` folder, refreshes, checks the numbers, uploads the version and the new state, builds the deploy folder (`tools/build_deploy.py`), deploys to Vercel production, waits until production serves the new version, and only then uploads `CURRENT.json`. A day with nothing new publishes nothing. Secrets `FIRMS_MAP_KEY`, `HF_TOKEN`, `VERCEL_TOKEN`; repository variable `HF_DATASET`.
+- **Evidence:** `test_2_9_ac2_*` in `burncal/pipeline/test_parity_pass.py`; `test_6_4_ac*` in `tools/test_build_deploy.py`; the recorded pass was written from the real case (worst miss 2.9e-10); a simulated run from the uploaded state with no case set published on the recorded pass in 114 s, and its grids, coverage tables, row count and input hashes equal the live version's.
+- **Revisit if:** the first GitHub run fails (disk, time or download limits), or `burncal/core` changes (then rerun `--record` where the case is, and commit the new pass).
+
+## Contract 0.5.0: the data owner agrees; service and web redeployed (15 Nov 2026)
+
+- **Status:** TESTED.
+- **Decision:** The data owner agrees to the lead's 0.5.0 draft (`/raw_splice`, `/season`, `/season_to_date`, `/world_cells`, `Calendar.trend`, the `/calendar` options `reference_period` and `shared_scale_with`). It needs no new store data. The service was redeployed first (17:39 SGT), then the web (17:41), as the lead asked, and the web once more from master later that evening (no code change; the same bundle).
+- **Evidence:** the full suite on the real six-region store: 548 passed, 0 skipped. Hosted preview, every region: all four new endpoints 200, `trend` present, `reference_period` 2012–2021 accepted, `shared_scale_with` 200; `/raw_splice` and `/calendar` 0.8–3.4 s, `/season` and `/season_to_date` 0.4–0.9 s; 20 Sumatra calendars p95 1.11 s. The live web shows data through 14 Nov and its new panels and globe load with no "unreachable" message.
+- **`/world_cells`:** 0.29 MB and 0.5 s hosted for the 1,550 loaded cells (about 187 bytes a cell). A world store (about 20,000 land cells) would answer about 3.7 MB, near Vercel's 4.5 MB response limit. The same answer gzips to about 10 KB, and the service sends no compression today: adding `GZipMiddleware` removes the risk (lead's code, not changed here).
+- **Found in passing:** a 400 answer carries the fixture's placeholder `record_version` and `data_through` (the handler copies the fixture problem). Not new in 0.5.0.
+- **Revisit if:** a world store is published (then gzip first), or the web needs another endpoint.
+
+## Story 2.8 AC3: one global year measured; world history does not fit this machine (15 Nov 2026)
+
+- **Status:** TESTED for the year; the history figures are estimates.
+- **Decision:** No world run before the build stop. One global year (2025, FIRMS all-countries files, MODIS and NOAA-20, 22.1M rows) went through clean, convert and aggregate in about 3 min (91 s, 91 s, 13 s) at 7.4 GB peak memory; a proxy run with C1 weights on 18.4M rows took 192 s to convert. A world history is about 420–490M rows and about 65 GB of raw, clean and record files at once, against 12–17 GB free, so it needs a year-by-year build that deletes as it goes, or a bigger machine; about 1 h 45 min of compute plus the download. The lead decides at 20:15.
+- **Evidence:** `docs/results/world_2025_measurement.md`. The Suomi NPP 2025 zip arrived cut short (16 of 327 MB) and needs downloading again; it was left out.
+- **Revisit if:** the lead wants a world store after the build stop; NOAA-20 2022–2025 and Suomi NPP 2012–2021 do not feed the record and could be skipped to cut rows (check the 1° thresholds first).
+
+## Local storage freed, and what rollback relies on now (15 Nov 2026)
+
+- **Status:** TESTED.
+- **Decision:** At the user's request the data owner's machine dropped 10 GB: the published versions `3d2a8f8c`, `9cedd502`, `d6f8b9e6` and `19dfbcc8` (all four are on the store dataset with the same files), the builds made before whole-tile extents, and scratch deploy folders. Kept: the raw downloads, the last build, the refresh outputs and the live version `20261114-5a585fe8`. Rollback no longer needs local files: promote the previous Vercel deployment (each keeps its own copy) and upload a `CURRENT.json` naming its version. The production deployment before 0.5.0 is the one to promote if 0.5.0 has to be undone.
+- **Evidence:** the local store loads the live version after the cleanup; the dataset's file lists match.
+- **Revisit if:** a version has to be rebuilt locally; download it from the dataset.
+
+## Vercel builds from the CLI, not from GitHub (15 Nov 2026)
+
+- **Status:** ASSUMED.
+- **Decision:** Neither Vercel project is linked to the GitHub repo; the team decided against it. The service must not be linked in any case: the repo has no store data, so a Git build would serve nothing. The service is deployed from `tools/build_deploy.py`'s folder (by hand, or by the daily workflow); the web is built with `VITE_SERVICE_BASE_URL=https://burncal-stub.vercel.app` and deployed by hand after each web change on master. The hosted functions run in iad1, not sin1. The build state the workflow reads (1,033 files: raw, clean, record, land outline) is in the store dataset's `state/` folder, checked file by file against the local copy.
+- **Revisit if:** the web should deploy itself on every merge (then the repo owner installs the Vercel GitHub app and the web project is linked with root `web`).
