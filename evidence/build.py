@@ -33,6 +33,18 @@ SCHEMA_VERSION = "1"
 # claims.yaml names.
 FINAL = "final_20261113T172020Z.json"
 
+# Story 7.8: the selection set was scored twice. The final run names the second file (the
+# combinations); the first holds the 13 single approaches. The all-candidates table reads
+# both, so both are listed as sources (the first just before the second).
+SELECTION_SINGLES = "selection_20261113T145716Z.json"
+CANDIDATES_SINGLES = ["1A", "1B", "2A", "2B", "3A", "3B", "4A", "4B", "M1", "M2", "M3", "M4", "M5"]
+CANDIDATES_COMBINED = ["C1", "C2", "C3"]
+CANDIDATE_COLUMNS = [
+    ("error_vs_b", "Count error against (b)", "pct1_signed"),
+    ("precision", "Flag precision", "fix3"),
+    ("recall", "Flag recall", "fix3"),
+]
+
 # Story 2.10's NOAA-20 against Suomi NPP comparison, once its result file is copied into
 # scoring/ and listed in the manifest (Story 5.6). Until then the evidence view says
 # "not yet run". Its label must say what it is.
@@ -487,6 +499,31 @@ def noaa20_table(docs, file):
     }
 
 
+def candidates_table(docs, combined_file):
+    """Story 7.8: every candidate scored on the selection set, one row each, with its
+    count error against (b) and its pooled 1° flag scores. The 13 single approaches are
+    read from the first selection file, the three combinations from the second. The
+    reasons for losing are words, not figures, and live in the web copy."""
+    rows = []
+    for names, f in ((CANDIDATES_SINGLES, SELECTION_SINGLES), (CANDIDATES_COMBINED, combined_file)):
+        for name in names:
+            base = pointer("approaches", name, "1", "pooled")
+            cells = {
+                "error_vs_b": figure(docs, f, pointer("comparisons", f"{name} vs b", "error", "diff"), "pct1_signed", interval=True),
+                "precision": figure(docs, f, base + "/flags/precision", "fix3"),
+                "recall": figure(docs, f, base + "/flags/recall", "fix3"),
+            }
+            rows.append({"key": name, "label": name, "cells": cells})
+    return {
+        "id": "selection.candidates",
+        "title": "All candidates, selection set",
+        "set": "selection",
+        "note": "Pooled over the three selection regions at 1°. Count error is the paired difference against (b), as in the comparison tables.",
+        "columns": [{"key": k, "label": label, "unit": None} for k, label, _ in CANDIDATE_COLUMNS],
+        "rows": rows,
+    }
+
+
 def set_tables(docs, file, set_key):
     if set_key == "noaa20_check":
         return [noaa20_table(docs, file)]
@@ -502,6 +539,8 @@ def set_tables(docs, file, set_key):
     tables.append(comparison_table(docs, file, set_key, terra=True))
     if "by_year_1deg" in doc["approaches"][APPROACHES[0]]:
         tables.append(by_year_table(docs, file, set_key))
+    if set_key == "selection":
+        tables.append(candidates_table(docs, file))
     return tables
 
 
@@ -531,6 +570,17 @@ def input_files(claims, hashes):
     return sets
 
 
+def read_source(docs, hashes, set_key, file):
+    """Load a scoring file after checking its manifest hash; the entry for `sources`."""
+    if file not in hashes:
+        raise EvidenceError(f"{file} is not in the manifest")
+    digest = hashlib.sha256((SCORING / file).read_bytes()).hexdigest()
+    if digest != hashes[file]:
+        raise EvidenceError(f"{file} does not match its manifest hash")
+    docs[file] = load_scoring(file)
+    return {"file": file, "sha256": digest, "set": set_key, "label": docs[file]["label"], "run_id": docs[file].get("meta", {}).get("run_id")}
+
+
 def build():
     """The evidence document, built from the scoring files and claims.yaml."""
     claims = yaml.safe_load(CLAIMS_FILE.read_text(encoding="utf-8"))
@@ -538,6 +588,8 @@ def build():
     sets = input_files(claims, hashes)
     docs, sources = {}, []
     for set_key, file in sets.items():
+        if set_key == "selection":
+            sources.append(read_source(docs, hashes, "selection", SELECTION_SINGLES))
         if file not in hashes:
             raise EvidenceError(f"{file} is not in the manifest")
         digest = hashlib.sha256((SCORING / file).read_bytes()).hexdigest()

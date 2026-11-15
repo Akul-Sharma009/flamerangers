@@ -1,0 +1,7 @@
+/* Story 7.8: the all-candidates table. Reuses the head-to-head ledger styles. */
+.candidates-toggle { font: inherit; font-size: 14px; min-height: 32px; padding: 4px 12px; background: var(--paper); color: var(--ink); border: 1px solid var(--ink); cursor: pointer; }
+.candidates-toggle:hover { background: var(--faint); }
+.candidates-toggle:focus-visible { outline: 2px solid var(--ink); outline-offset: 2px; }
+#candidates-body { margin-top: 12px; }
+.h2h-table.candidates-table td.reason, .h2h-table.candidates-table th.reason { text-align: left; white-space: normal; min-width: 22em; font-family: var(--sans); font-size: 12.5px; }
+.h2h-table.candidates-table tr.pick > * { font-weight: 600; }
