@@ -1,0 +1,111 @@
+# Story 2.9: refresh the record every day and put it live.
+# Fetches the last build's state from the Hugging Face store dataset, re-downloads only the FIRMS files whose span
+# changed, rebuilds only those years, publishes a new version on the recorded parity pass (AD-2), deploys it to
+# Vercel, and only then points the dataset's CURRENT.json at it. Secrets: FIRMS_MAP_KEY, HF_TOKEN, VERCEL_TOKEN.
+# Repository variable: HF_DATASET.
+# The FIRMS key is read by burncal/pipeline/firms.py from the environment and never printed.
+name: daily-refresh
+on:
+  schedule:
+    - cron: "30 1 * * *"  # 09:30 SGT; FIRMS has the previous UTC day by then
+  workflow_dispatch:
+permissions:
+  contents: read
+concurrency:
+  group: daily-refresh
+  cancel-in-progress: false
+env:
+  HF_DATASET: ${{ vars.HF_DATASET }}  # repository variable: the store dataset, owner/name
+  SERVICE_URL: https://burncal-stub.vercel.app
+  VERCEL_ORG_ID: team_vdfCrIWzSVt3crNDH3Ck4nkF
+  VERCEL_PROJECT_ID: prj_EAsS0mqG6fgFNhU2LcukSJRZZPtC
+  HF_HUB_DISABLE_PROGRESS_BARS: "1"
+jobs:
+  refresh:
+    runs-on: ubuntu-latest
+    timeout-minutes: 120
+    steps:
+      - uses: actions/checkout@v4
+      - name: Free disk space (the state, a version and the deploy folder need about 20 GB)
+        run: |
+          sudo rm -rf /usr/share/dotnet /usr/local/lib/android /opt/ghc /opt/hostedtoolcache/CodeQL
+          df -h /
+      - uses: astral-sh/setup-uv@v6
+        with:
+          version: "0.9.x"
+      - name: Install
+        run: |
+          uv python install 3.14
+          uv sync --frozen --no-dev
+          uv tool install "huggingface_hub[cli]==1.6.0"
+      - name: Fetch the last build's state and the current pointer
+        env:
+          HF_TOKEN: ${{ secrets.HF_TOKEN }}
+        run: |
+          hf download "$HF_DATASET" --repo-type dataset --include "state/*" "store/CURRENT.json" --local-dir hf
+          mkdir -p store/published store/static
+          cp hf/store/CURRENT.json store/published/CURRENT.json
+          cp hf/state/static/ne_10m_land_v5.1.1.geojson store/static/
+          CUR=$(python3 -c "import json;print(json.load(open('store/published/CURRENT.json'))['record_version'])")
+          echo "PREVIOUS=$CUR" >> "$GITHUB_ENV"
+          hf download "$HF_DATASET" --repo-type dataset --include "store/versions/$CUR/noaa20_check.json" --local-dir hf
+          du -sh hf/state; df -h /
+      - name: Refresh and publish (recorded parity pass, no private case)
+        env:
+          FIRMS_MAP_KEY: ${{ secrets.FIRMS_MAP_KEY }}
+        run: |
+          uv run python -m burncal.pipeline.parity
+          V=$(uv run python -m burncal.pipeline.refresh store/published hf/state/raw hf/state work/refresh \
+                --noaa20-check="hf/store/versions/$PREVIOUS/noaa20_check.json" | tail -n 1)
+          echo "VERSION=$V" >> "$GITHUB_ENV"
+          echo "published $V (previous $PREVIOUS)"
+      - name: Check the numbers agree
+        if: env.VERSION != env.PREVIOUS
+        run: uv run python tools/check_numbers.py store/published
+      - name: Upload the version and the new state
+        if: env.VERSION != env.PREVIOUS
+        env:
+          HF_TOKEN: ${{ secrets.HF_TOKEN }}
+        run: |
+          hf upload "$HF_DATASET" "store/published/versions/$VERSION" "store/versions/$VERSION" --repo-type dataset \
+            --commit-message "Version $VERSION (daily refresh)"
+          python3 - <<'EOF'
+          import os, shutil
+          from pathlib import Path
+          src, dst = Path("work/refresh"), Path("state_new")
+          for k in ("raw", "clean", "record"):
+              for p in sorted((src / k).rglob("*")):
+                  if p.is_file() and not any(part.startswith(".") for part in p.relative_to(src).parts):
+                      q = dst / k / p.relative_to(src / k)
+                      q.parent.mkdir(parents=True, exist_ok=True)
+                      os.link(p.resolve(), q)
+          (dst / "static").mkdir()
+          shutil.copy2("store/static/ne_10m_land_v5.1.1.geojson", dst / "static")
+          EOF
+          hf upload "$HF_DATASET" state_new state --repo-type dataset --delete "*" \
+            --commit-message "Refresh state for $VERSION"
+      - name: Deploy to Vercel production
+        if: env.VERSION != env.PREVIOUS
+        env:
+          VERCEL_TOKEN: ${{ secrets.VERCEL_TOKEN }}
+        run: |
+          uv run python tools/build_deploy.py store/published deploy_out
+          cd deploy_out
+          npx --yes vercel@65.16.0 deploy --prod --yes --token "$VERCEL_TOKEN"
+      - name: Wait until production serves the new version
+        if: env.VERSION != env.PREVIOUS
+        run: |
+          for i in $(seq 1 30); do
+            v=$(curl -fsS --max-time 60 "$SERVICE_URL/meta" | python3 -c "import json,sys;print(json.load(sys.stdin)['record_version'])" || true)
+            echo "$(date -u +%T) $v"
+            [ "$v" = "$VERSION" ] && exit 0
+            sleep 30
+          done
+          echo "production does not serve $VERSION; CURRENT.json is not switched" && exit 1
+      - name: Point the dataset at the new version (last)
+        if: env.VERSION != env.PREVIOUS
+        env:
+          HF_TOKEN: ${{ secrets.HF_TOKEN }}
+        run: |
+          hf upload "$HF_DATASET" store/published/CURRENT.json store/CURRENT.json --repo-type dataset \
+            --commit-message "CURRENT.json -> $VERSION"
