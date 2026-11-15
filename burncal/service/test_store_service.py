@@ -664,3 +664,49 @@ def test_2_10_ac2_meta_serves_the_noaa20_headline_rounded_once(store_root, versi
 
 def test_2_10_ac2_meta_noaa20_check_is_null_until_the_run_exists(client):
     assert client.get("/meta").json()["noaa20_check"] is None
+
+
+def test_7_3_season_from_the_store_agrees_with_the_calendar(client, versions):
+    """Same medians as /calendar (one implementation), and each year's counts are /calendar's counts."""
+    body = {"record_version": versions[0], "aoi": {"name": "Sumatra", "geometry": SUMATRA}}
+    r = client.post("/season", json=body)
+    assert r.status_code == 200, r.text
+    s = r.json()
+    valid(s, "Season")
+    cal = client.post("/calendar", json=_body(versions[0])).json()
+    assert [m["median"] for m in s["typical"]["months"]] == [c["median"] for c in cal["calendar_month_medians"]]
+    counts = {m["month"]: m["count"] for m in cal["months"]}
+    for y in s["years"]:
+        for i, c in enumerate(y["counts"]):
+            assert c == counts.get(f"{y['year']:04d}-{i + 1:02d}")
+    assert all(m["low"] <= m["median"] <= m["high"] for m in s["typical"]["months"] if m["median"] is not None)
+    assert client.post("/season", json={**body, "record_version": versions[2]}).status_code in (200, 410)
+
+
+def test_7_5_season_to_date_from_the_store_equals_the_calendar_and_marks_the_current_month(client, versions):
+    cal = client.post("/calendar", json=_body(versions[0])).json()
+    r = client.post("/season_to_date", json={"record_version": versions[0], "aoi": {"name": "Sumatra", "geometry": SUMATRA}, "year": 2026})
+    assert r.status_code == 200, r.text
+    s = r.json()
+    valid(s, "SeasonToDate")
+    counts = {m["month"]: m["count"] for m in cal["months"]}
+    assert s["past_years"][0] == 2003 and 2002 not in s["past_years"] and 2026 not in s["past_years"]
+    run = 0.0
+    for p in s["months"][:11]:                       # January to November 2026: running total of the calendar's months
+        run += counts[p["month"]]
+        assert p["cumulative"] == pytest.approx(run, abs=0.6)  # the calendar rounds each month
+    assert [p["to_date"] for p in s["months"]] == [False] * 10 + [True, False]
+    assert s["months"][11]["cumulative"] is None and s["months"][11]["median"] is not None
+    assert all(p["band_low"] <= p["median"] <= p["band_high"] for p in s["months"])
+    # A year that starts in July has no curve; the median and band do not depend on the year asked for
+    s02 = client.post("/season_to_date", json={"record_version": versions[0], "aoi": {"geometry": SUMATRA}, "year": 2002}).json()
+    assert all(p["cumulative"] is None for p in s02["months"])
+    assert [p["median"] for p in s02["months"]] == [p["median"] for p in s["months"]]
+
+
+def test_7_5_season_to_date_refuses_what_calendar_refuses(client, versions):
+    far = {"type": "Polygon", "coordinates": [[[150, -40], [151, -40], [151, -39], [150, -39], [150, -40]]]}
+    r = client.post("/season_to_date", json={"record_version": versions[0], "aoi": {"geometry": far}, "year": 2020})
+    assert r.status_code == 404
+    r = client.post("/season_to_date", json={"record_version": versions[2], "aoi": {"geometry": SUMATRA}, "year": 2020})
+    assert r.status_code == 410

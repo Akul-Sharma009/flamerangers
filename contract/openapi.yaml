@@ -1,7 +1,7 @@
 openapi: 3.1.0
 info:
   title: "Harmonized burning activity calendar: data service"
-  version: 0.4.0
+  version: 0.5.0
   description: >
     Read-only API over one published store version. Every number is computed in
     burncal/core or the service and rounded once there (counts to 1 decimal,
@@ -42,6 +42,46 @@ paths:
         "410": {$ref: "#/components/responses/Problem"}
         "422": {$ref: "#/components/responses/Problem"}
         "429": {$ref: "#/components/responses/Problem"}
+  /raw_splice:
+    post:
+      summary: The raw splice for an area and date range (Aqua MODIS raw counts through December 2011, raw Suomi NPP counts from January 2012; nothing converted)
+      operationId: postRawSplice
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema: {$ref: "#/components/schemas/CalendarRequest"}
+      responses:
+        "200":
+          description: Raw splice
+          content:
+            application/json:
+              schema: {$ref: "#/components/schemas/RawSplice"}
+        "400": {$ref: "#/components/responses/Problem"}
+        "404": {$ref: "#/components/responses/Problem"}
+        "410": {$ref: "#/components/responses/Problem"}
+        "422": {$ref: "#/components/responses/Problem"}
+        "429": {$ref: "#/components/responses/Problem"}
+  /season:
+    post:
+      summary: The seasonal profile of an area (Story 7.3). Median and range per calendar month over the reference period, the peak month and the season length, and each year's twelve counts for the overlay
+      operationId: postSeason
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema: {$ref: "#/components/schemas/SeasonRequest"}
+      responses:
+        "200":
+          description: Season
+          content:
+            application/json:
+              schema: {$ref: "#/components/schemas/Season"}
+        "400": {$ref: "#/components/responses/Problem"}
+        "404": {$ref: "#/components/responses/Problem"}
+        "410": {$ref: "#/components/responses/Problem"}
+        "422": {$ref: "#/components/responses/Problem"}
+        "429": {$ref: "#/components/responses/Problem"}
   /cells:
     post:
       summary: Flag state of every 1 degree cell the area overlaps, for one month
@@ -57,6 +97,55 @@ paths:
           content:
             application/json:
               schema: {$ref: "#/components/schemas/Cells"}
+        "400": {$ref: "#/components/responses/Problem"}
+        "404": {$ref: "#/components/responses/Problem"}
+        "410": {$ref: "#/components/responses/Problem"}
+        "422": {$ref: "#/components/responses/Problem"}
+        "429": {$ref: "#/components/responses/Problem"}
+  /season_to_date:
+    post:
+      summary: A year's running total of hotspots against the median and band of complete past years
+      description: >
+        Monthly resolution: each entry is the total from 1 January to the end of that month. The year's own
+        curve is null from the first month that is not in the record. The current month is the total to date
+        (to_date true); the median and band are for the whole month. Past years that count are the complete
+        years of the reference period.
+      operationId: postSeasonToDate
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema: {$ref: "#/components/schemas/SeasonToDateRequest"}
+      responses:
+        "200":
+          description: Season to date
+          content:
+            application/json:
+              schema: {$ref: "#/components/schemas/SeasonToDate"}
+        "400": {$ref: "#/components/responses/Problem"}
+        "404": {$ref: "#/components/responses/Problem"}
+        "410": {$ref: "#/components/responses/Problem"}
+        "422": {$ref: "#/components/responses/Problem"}
+        "429": {$ref: "#/components/responses/Problem"}
+  /world_cells:
+    post:
+      summary: Flag state of every loaded 1 degree cell, for one month (Story 8.9)
+      description: >
+        Every 1 degree cell the store holds, for one month. Cells outside the
+        loaded coverage are absent, not zero; `coverage` says what is loaded.
+        Until the world store exists this is the evaluated regions only.
+      operationId: postWorldCells
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema: {$ref: "#/components/schemas/WorldCellsRequest"}
+      responses:
+        "200":
+          description: WorldCells
+          content:
+            application/json:
+              schema: {$ref: "#/components/schemas/WorldCells"}
         "400": {$ref: "#/components/responses/Problem"}
         "404": {$ref: "#/components/responses/Problem"}
         "410": {$ref: "#/components/responses/Problem"}
@@ -111,7 +200,7 @@ paths:
 components:
   responses:
     Problem:
-      description: "An error. The HTTP status for each code: invalid_aoi 400, outside_coverage 404, version_superseded 410, too_large_for_sync 413, no_land 422, rate_limited 429."
+      description: "An error. The HTTP status for each code: invalid_aoi 400, outside_coverage 404, version_superseded 410, too_large_for_sync 413, no_land 422, rate_limited 429, invalid_reference_period 400."
       content:
         application/problem+json:
           schema: {$ref: "#/components/schemas/Problem"}
@@ -133,7 +222,7 @@ components:
     ProblemCode:
       description: Errors, returned as application/problem+json. The sentence shown for each is in messages.yaml.
       type: string
-      enum: [invalid_aoi, no_land, outside_coverage, too_large_for_sync, version_superseded, rate_limited]
+      enum: [invalid_aoi, no_land, outside_coverage, too_large_for_sync, version_superseded, rate_limited, invalid_reference_period]
     CautionCode:
       description: Notices carried inside a successful answer. The sentence shown for each is in messages.yaml.
       type: string
@@ -217,6 +306,24 @@ components:
         aoi: {$ref: "#/components/schemas/AoiInput"}
         start: {type: string, format: date, description: "First day of the range (UTC). A range that cuts a month only labels it."}
         end: {type: string, format: date, description: "Last day of the range (UTC), included."}
+        shared_scale_with:
+          description: "Story 8.7, optional. A second area. When present, statistics.colour_breaks (and each month's colour_class) come from the months of both areas pooled, so the same count has the same class in both calendars. Ask for each area with the other named here. Absent: the breaks are this area's own."
+          allOf: [{$ref: "#/components/schemas/AoiInput"}]
+        reference_period:
+          description: >
+            Story 8.3. The years the medians, means and anomalies (and the current-month card's usual)
+            are taken over. Whole calendar years, both included, inside /meta's reference_period, at
+            least 5 years long; otherwise the answer is 400 invalid_reference_period. Absent is
+            /meta's reference_period, and the answer is then exactly as without this option. The
+            flags keep flag_reference_years, and the rankings follow the range, whatever is sent.
+          $ref: "#/components/schemas/YearRange"
+      additionalProperties: false
+    SeasonRequest:
+      type: object
+      required: [record_version, aoi]
+      properties:
+        record_version: {$ref: "#/components/schemas/RecordVersion"}
+        aoi: {$ref: "#/components/schemas/AoiInput"}
       additionalProperties: false
     CellsRequest:
       type: object
@@ -224,6 +331,21 @@ components:
       properties:
         record_version: {$ref: "#/components/schemas/RecordVersion"}
         aoi: {$ref: "#/components/schemas/AoiInput"}
+        month: {$ref: "#/components/schemas/YearMonth"}
+      additionalProperties: false
+    SeasonToDateRequest:
+      type: object
+      required: [record_version, aoi, year]
+      properties:
+        record_version: {$ref: "#/components/schemas/RecordVersion"}
+        aoi: {$ref: "#/components/schemas/AoiInput"}
+        year: {type: integer, minimum: 2002, maximum: 2100}
+      additionalProperties: false
+    WorldCellsRequest:
+      type: object
+      required: [record_version, month]
+      properties:
+        record_version: {$ref: "#/components/schemas/RecordVersion"}
         month: {$ref: "#/components/schemas/YearMonth"}
       additionalProperties: false
     HotspotsCsvRequest:
@@ -304,32 +426,37 @@ components:
         reference_period:
           description: The complete calendar years from 2003 that end before the current month. Medians, means and anomalies use it.
           $ref: "#/components/schemas/YearRange"
+        reference_period_min_years:
+          description: Story 8.3. The fewest years a requested reference_period may span. A median of at least this many years, so no single year sets it.
+          type: integer
+          minimum: 1
         flag_reference_years:
           description: The years whose Aqua counts set each cell's flag threshold (AD-9).
           $ref: "#/components/schemas/YearRange"
-        coverage:
-          description: What the store holds (AD-12). A query outside it gets outside_coverage.
-          type: object
-          required: [global, regions]
-          properties:
-            global: {type: boolean, description: "true when every land area is loaded."}
-            regions:
-              type: array
-              items:
-                type: object
-                required: [region_id, name, status, evidence_class]
-                properties:
-                  region_id: {type: string, description: "Matches a feature in regions.geojson."}
-                  name: {type: string}
-                  status: {$ref: "#/components/schemas/CoverageStatus"}
-                  evidence_class: {$ref: "#/components/schemas/EvidenceClass"}
-                additionalProperties: false
-          additionalProperties: false
+        coverage: {$ref: "#/components/schemas/Coverage"}
         noaa20_check:
           description: Headline figures of the NOAA-20 against Suomi NPP comparison (Story 2.10). null until that run exists.
           oneOf:
             - {type: "null"}
             - {$ref: "#/components/schemas/Noaa20Check"}
+      additionalProperties: false
+    Coverage:
+      description: What the store holds (AD-12). A query outside it gets outside_coverage.
+      type: object
+      required: [global, regions]
+      properties:
+        global: {type: boolean, description: "true when every land area is loaded."}
+        regions:
+          type: array
+          items:
+            type: object
+            required: [region_id, name, status, evidence_class]
+            properties:
+              region_id: {type: string, description: "Matches a feature in regions.geojson."}
+              name: {type: string}
+              status: {$ref: "#/components/schemas/CoverageStatus"}
+              evidence_class: {$ref: "#/components/schemas/EvidenceClass"}
+            additionalProperties: false
       additionalProperties: false
     Noaa20Check:
       description: Converted NOAA-20 counts against converted Suomi NPP counts. Reported only; not a validation against Aqua.
@@ -361,10 +488,73 @@ components:
         bias_pct: {type: number}
         cell_months: {type: integer, minimum: 0}
       additionalProperties: false
+    # ---- /season (Story 7.3) ----
+    Season:
+      type: object
+      required: [record_version, data_through, cautions, unit_label, aoi, reference_period, season_share, typical, years]
+      properties:
+        record_version: {$ref: "#/components/schemas/RecordVersion"}
+        data_through: {type: string, format: date}
+        cautions:
+          type: array
+          items: {$ref: "#/components/schemas/Caution"}
+        unit_label: {type: string}
+        aoi: {$ref: "#/components/schemas/Aoi"}
+        reference_period: {$ref: "#/components/schemas/YearRange"}
+        season_share:
+          description: A season month holds at least this share of the annual count (0.1, the test plan's criterion 3).
+          type: number
+        typical:
+          description: The typical year. The peak month and season length are criterion 3 applied to the twelve medians, the annual count being their sum. Ties for the peak go to the earlier month.
+          type: object
+          required: [months, peak_month, season_length, season_months]
+          properties:
+            months:
+              type: array
+              minItems: 12
+              maxItems: 12
+              items:
+                type: object
+                required: [calendar_month, median, low, high, years_counted]
+                properties:
+                  calendar_month: {type: integer, minimum: 1, maximum: 12}
+                  median: {description: "Median of this calendar month over the reference period (as in /calendar).", $ref: "#/components/schemas/Count"}
+                  low: {description: "Lowest complete month of the reference period.", $ref: "#/components/schemas/Count"}
+                  high: {description: "Highest complete month of the reference period.", $ref: "#/components/schemas/Count"}
+                  years_counted: {type: integer, minimum: 0}
+                additionalProperties: false
+            peak_month: {type: ["integer", "null"], minimum: 1, maximum: 12, description: "null when there is no median or all are 0."}
+            season_length: {type: ["integer", "null"], minimum: 0, maximum: 12}
+            season_months:
+              type: array
+              items: {type: integer, minimum: 1, maximum: 12}
+          additionalProperties: false
+        years:
+          description: Each calendar year of the record up to the current one, in order, for the overlay.
+          type: array
+          items:
+            type: object
+            required: [year, counts, complete, peak_month, season_length, season_months]
+            properties:
+              year: {type: integer}
+              counts:
+                description: January to December. null for a month outside the record or outside coverage.
+                type: array
+                minItems: 12
+                maxItems: 12
+                items: {$ref: "#/components/schemas/Count"}
+              complete: {type: boolean, description: "true when all twelve months are complete."}
+              peak_month: {type: ["integer", "null"], minimum: 1, maximum: 12, description: "Criterion 3 on this year. null unless all twelve months are in the record."}
+              season_length: {type: ["integer", "null"], minimum: 0, maximum: 12}
+              season_months:
+                type: array
+                items: {type: integer, minimum: 1, maximum: 12}
+            additionalProperties: false
+      additionalProperties: false
     # ---- /calendar ----
     Calendar:
       type: object
-      required: [record_version, data_through, cautions, unit_label, aoi, range, reference_period, flag_reference_years, months, year_totals, calendar_month_medians, statistics, current_month]
+      required: [record_version, data_through, cautions, unit_label, aoi, range, reference_period, flag_reference_years, months, year_totals, calendar_month_medians, statistics, current_month, trend]
       properties:
         record_version: {$ref: "#/components/schemas/RecordVersion"}
         data_through: {type: string, format: date}
@@ -381,8 +571,12 @@ components:
             start: {type: string, format: date}
             end: {type: string, format: date}
           additionalProperties: false
-        reference_period: {$ref: "#/components/schemas/YearRange"}
-        flag_reference_years: {$ref: "#/components/schemas/YearRange"}
+        reference_period:
+          description: The years the medians, means, anomalies and the card used. The request's reference_period when one was sent, else /meta's.
+          $ref: "#/components/schemas/YearRange"
+        flag_reference_years:
+          description: The years the flags use (AD-9). Never changed by a requested reference_period.
+          $ref: "#/components/schemas/YearRange"
         months:
           description: Every month of every calendar year the range touches, in order, so the grid's rows are whole years.
           type: array
@@ -411,6 +605,49 @@ components:
           oneOf:
             - {type: "null"}
             - {$ref: "#/components/schemas/CurrentMonth"}
+        trend: {$ref: "#/components/schemas/Trend"}
+      additionalProperties: false
+    Trend:
+      description: |
+        Story 8.5. The Mann-Kendall test (Mann 1945; Kendall 1938) of a monotonic trend on the annual totals of the
+        complete years inside the range, with the Sen slope (Sen 1968) as the size. 2002 (the record starts in July)
+        and any year that is not complete, the current part-year included, are left out and listed in left_out.
+        With fewer than min_years complete years the test is refused: status too_few_years and every figure null.
+        The normal approximation is used, with the tie and continuity corrections. The words are in messages.yaml.
+      type: object
+      required: [status, test, min_years, alpha, years, left_out, record_switch_inside, s, z, p_value, tau, sen_slope_per_year, direction]
+      properties:
+        status: {type: string, enum: [ok, too_few_years]}
+        test: {type: string, enum: [mann_kendall]}
+        min_years: {type: integer, minimum: 1}
+        alpha: {type: number, description: "The level below which a direction is named."}
+        years:
+          description: "The complete years the test used: first, last and how many. null when none."
+          oneOf:
+            - {type: "null"}
+            - type: object
+              required: [start, end, count]
+              properties:
+                start: {type: integer}
+                end: {type: integer}
+                count: {type: integer, minimum: 1}
+              additionalProperties: false
+        left_out:
+          type: array
+          items:
+            type: object
+            required: [year, reason]
+            properties:
+              year: {type: integer}
+              reason: {type: string, enum: [record_start, incomplete]}
+            additionalProperties: false
+        record_switch_inside: {type: boolean, description: "true when the years used run from 2021 or earlier to 2022 or later, so the record switch lies inside the series."}
+        s: {type: ["integer", "null"], description: "The Mann-Kendall statistic: pairs rising minus pairs falling."}
+        z: {type: ["number", "null"], description: "Rounded to 2 decimals."}
+        p_value: {type: ["number", "null"], minimum: 0, maximum: 1, description: "Two-sided, rounded to 4 decimals."}
+        tau: {type: ["number", "null"], description: "Kendall's tau-b, rounded to 2 decimals."}
+        sen_slope_per_year: {type: ["number", "null"], description: "Median pairwise slope, hotspots (Aqua MODIS units) per year, rounded to 1 decimal."}
+        direction: {type: ["string", "null"], description: "One of increasing, decreasing, none: increasing or decreasing when p is below alpha, else none. null when the test was refused."}
       additionalProperties: false
     Aoi:
       type: object
@@ -492,6 +729,55 @@ components:
         cells_flagged_marginal: {type: ["integer", "null"], minimum: 0, description: "null when count is null. 0 means no cell is flagged marginal."}
         cells_total: {type: integer, minimum: 0, description: "Every 1 degree cell the area overlaps."}
         rank: {type: ["integer", "null"], minimum: 1, description: "Rank among complete months inside the range, 1 = highest. Ties share a rank. null when not ranked."}
+      additionalProperties: false
+    RawSplice:
+      description: >
+          The naive splice for the same area and months as /calendar. Counts are raw row counts after the record's own
+          cleaning, nothing converted. colour_class indexes colour_breaks, which are the record's, so the colour scale is the
+          same for the splice and the record.
+      type: object
+      required: [record_version, data_through, cautions, unit_label, aoi, range, splice_from, early_bad_scan_through, colour_breaks, months]
+      properties:
+        record_version: {$ref: "#/components/schemas/RecordVersion"}
+        data_through: {type: string, format: date}
+        cautions:
+          type: array
+          items: {$ref: "#/components/schemas/Caution"}
+        unit_label: {type: string}
+        aoi: {$ref: "#/components/schemas/Aoi"}
+        range:
+          type: object
+          required: [start, end]
+          properties:
+            start: {type: string, format: date}
+            end: {type: string, format: date}
+          additionalProperties: false
+        splice_from: {description: "First month that uses raw Suomi NPP counts.", $ref: "#/components/schemas/YearMonth"}
+        early_bad_scan_through: {description: "Last month that carries the early bad-scan caution.", $ref: "#/components/schemas/YearMonth"}
+        colour_breaks: {type: array, items: {type: number}, description: "The record's colour breaks (Calendar statistics.colour_breaks), unchanged."}
+        months:
+          description: The same months as the calendar's, in order.
+          type: array
+          items: {$ref: "#/components/schemas/RawSpliceMonth"}
+      additionalProperties: false
+    RawSpliceMonth:
+      type: object
+      required: [month, count, null_reason, source, early_bad_scan, colour_class]
+      properties:
+        month: {$ref: "#/components/schemas/YearMonth"}
+        count: {$ref: "#/components/schemas/Count"}
+        null_reason:
+          description: Set exactly when count is null.
+          oneOf:
+            - {type: "null"}
+            - {$ref: "#/components/schemas/NullReason"}
+        source:
+          description: null when count is null.
+          oneOf:
+            - {type: "null"}
+            - {type: string, enum: [aqua_raw, snpp_raw]}
+        early_bad_scan: {type: boolean, description: "true for raw Suomi NPP months in 2012 and 2013, which carry the early bad-scan caution."}
+        colour_class: {type: ["integer", "null"], minimum: 0, description: "Index of the count's class in colour_breaks. null when count is null."}
       additionalProperties: false
     YearTotal:
       type: object
@@ -609,6 +895,57 @@ components:
           type: array
           items: {$ref: "#/components/schemas/Cell"}
       additionalProperties: false
+    SeasonToDate:
+      type: object
+      required: [record_version, data_through, cautions, unit_label, aoi, year, start, resolution, band, reference_period, past_years, months]
+      properties:
+        record_version: {$ref: "#/components/schemas/RecordVersion"}
+        data_through: {type: string, format: date}
+        cautions:
+          type: array
+          items: {$ref: "#/components/schemas/Caution"}
+        unit_label: {type: string}
+        aoi: {$ref: "#/components/schemas/Aoi"}
+        year: {type: integer}
+        start:
+          description: The running total on 1 January, before the first month. Always 0.
+          type: number
+          const: 0
+        resolution: {type: string, const: month}
+        band:
+          description: The band is drawn between these percentiles of the past years' running totals at each month.
+          type: object
+          required: [lower_percentile, upper_percentile]
+          properties:
+            lower_percentile: {type: integer}
+            upper_percentile: {type: integer}
+          additionalProperties: false
+        reference_period: {$ref: "#/components/schemas/YearRange"}
+        past_years:
+          description: The complete years the median and band are made from.
+          type: array
+          items: {type: integer}
+        months:
+          type: array
+          minItems: 12
+          maxItems: 12
+          items: {$ref: "#/components/schemas/SeasonToDateMonth"}
+      additionalProperties: false
+    SeasonToDateMonth:
+      type: object
+      required: [month, cumulative, to_date, median, band_low, band_high]
+      properties:
+        month: {$ref: "#/components/schemas/YearMonth"}
+        cumulative:
+          description: The year's running total at the end of this month (to date for the current month). null = not in the record, or an earlier month is not.
+          $ref: "#/components/schemas/Count"
+        to_date:
+          description: true for the current, part-complete month.
+          type: boolean
+        median: {$ref: "#/components/schemas/Count"}
+        band_low: {$ref: "#/components/schemas/Count"}
+        band_high: {$ref: "#/components/schemas/Count"}
+      additionalProperties: false
     Cell:
       description: A whole 1 degree cell, named by its south-west corner. Its count and flag are for the whole cell, not the part inside the area.
       type: object
@@ -624,6 +961,46 @@ components:
         evidence_class: {$ref: "#/components/schemas/EvidenceClass"}
         provisional: {type: boolean}
         reference_year: {type: boolean}
+      additionalProperties: false
+    # ---- /world_cells (Story 8.9) ----
+    WorldCells:
+      type: object
+      required: [record_version, data_through, month, source, size_deg, flag_reference_years, coverage, cells]
+      properties:
+        record_version: {$ref: "#/components/schemas/RecordVersion"}
+        data_through: {type: string, format: date}
+        month: {$ref: "#/components/schemas/YearMonth"}
+        source:
+          description: Where the month's counts come from. null outside the record.
+          oneOf:
+            - {type: "null"}
+            - {$ref: "#/components/schemas/Source"}
+        size_deg: {type: number, const: 1}
+        flag_reference_years: {$ref: "#/components/schemas/YearRange"}
+        coverage: {$ref: "#/components/schemas/Coverage"}
+        cells:
+          description: Every loaded cell. A cell outside coverage is absent, never a zero.
+          type: array
+          items: {$ref: "#/components/schemas/WorldCell"}
+      additionalProperties: false
+    WorldCell:
+      description: A whole 1 degree cell, named by its south-west corner, with the same flag, count and threshold as /cells gives it.
+      type: object
+      required: [sw_lon, sw_lat, flag_state, count, threshold, evidence_class, provisional, reference_year, source]
+      properties:
+        sw_lon: {type: integer, minimum: -180, maximum: 179}
+        sw_lat: {type: integer, minimum: -90, maximum: 89}
+        flag_state: {$ref: "#/components/schemas/FlagState"}
+        count: {$ref: "#/components/schemas/Count"}
+        threshold: {type: ["number", "null"], minimum: 0, description: "The cell's flag threshold for this calendar month, 1 decimal."}
+        evidence_class: {$ref: "#/components/schemas/EvidenceClass"}
+        provisional: {type: boolean}
+        reference_year: {type: boolean}
+        source:
+          description: Where the month's counts come from. null outside the record.
+          oneOf:
+            - {type: "null"}
+            - {$ref: "#/components/schemas/Source"}
       additionalProperties: false
     # ---- hotspot rows (the columns of /hotspots.csv; see CSV_SPEC.md) ----
     HotspotRow:

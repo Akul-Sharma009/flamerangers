@@ -38,6 +38,40 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/raw_splice": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** The raw splice for an area and date range (Aqua MODIS raw counts through December 2011, raw Suomi NPP counts from January 2012; nothing converted) */
+        post: operations["postRawSplice"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/season": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** The seasonal profile of an area (Story 7.3). Median and range per calendar month over the reference period, the peak month and the season length, and each year's twelve counts for the overlay */
+        post: operations["postSeason"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/cells": {
         parameters: {
             query?: never;
@@ -49,6 +83,46 @@ export interface paths {
         put?: never;
         /** Flag state of every 1 degree cell the area overlaps, for one month */
         post: operations["postCells"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/season_to_date": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /**
+         * A year's running total of hotspots against the median and band of complete past years
+         * @description Monthly resolution: each entry is the total from 1 January to the end of that month. The year's own curve is null from the first month that is not in the record. The current month is the total to date (to_date true); the median and band are for the whole month. Past years that count are the complete years of the reference period.
+         */
+        post: operations["postSeasonToDate"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/world_cells": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /**
+         * Flag state of every loaded 1 degree cell, for one month (Story 8.9)
+         * @description Every 1 degree cell the store holds, for one month. Cells outside the loaded coverage are absent, not zero; `coverage` says what is loaded. Until the world store exists this is the evaluated regions only.
+         */
+        post: operations["postWorldCells"];
         delete?: never;
         options?: never;
         head?: never;
@@ -109,7 +183,7 @@ export interface components {
          * @description Errors, returned as application/problem+json. The sentence shown for each is in messages.yaml.
          * @enum {string}
          */
-        ProblemCode: "invalid_aoi" | "no_land" | "outside_coverage" | "too_large_for_sync" | "version_superseded" | "rate_limited";
+        ProblemCode: "invalid_aoi" | "no_land" | "outside_coverage" | "too_large_for_sync" | "version_superseded" | "rate_limited" | "invalid_reference_period";
         /**
          * @description Notices carried inside a successful answer. The sentence shown for each is in messages.yaml.
          * @enum {string}
@@ -177,10 +251,27 @@ export interface components {
              * @description Last day of the range (UTC), included.
              */
             end: string;
+            /** @description Story 8.7, optional. A second area. When present, statistics.colour_breaks (and each month's colour_class) come from the months of both areas pooled, so the same count has the same class in both calendars. Ask for each area with the other named here. Absent: the breaks are this area's own. */
+            shared_scale_with?: components["schemas"]["AoiInput"];
+            /** @description Story 8.3. The years the medians, means and anomalies (and the current-month card's usual) are taken over. Whole calendar years, both included, inside /meta's reference_period, at least 5 years long; otherwise the answer is 400 invalid_reference_period. Absent is /meta's reference_period, and the answer is then exactly as without this option. The flags keep flag_reference_years, and the rankings follow the range, whatever is sent. */
+            reference_period?: components["schemas"]["YearRange"];
+        };
+        SeasonRequest: {
+            record_version: components["schemas"]["RecordVersion"];
+            aoi: components["schemas"]["AoiInput"];
         };
         CellsRequest: {
             record_version: components["schemas"]["RecordVersion"];
             aoi: components["schemas"]["AoiInput"];
+            month: components["schemas"]["YearMonth"];
+        };
+        SeasonToDateRequest: {
+            record_version: components["schemas"]["RecordVersion"];
+            aoi: components["schemas"]["AoiInput"];
+            year: number;
+        };
+        WorldCellsRequest: {
+            record_version: components["schemas"]["RecordVersion"];
             month: components["schemas"]["YearMonth"];
         };
         HotspotsCsvRequest: {
@@ -252,22 +343,25 @@ export interface components {
             data_through_day: number;
             /** @description The complete calendar years from 2003 that end before the current month. Medians, means and anomalies use it. */
             reference_period: components["schemas"]["YearRange"];
+            /** @description Story 8.3. The fewest years a requested reference_period may span. A median of at least this many years, so no single year sets it. */
+            reference_period_min_years?: number;
             /** @description The years whose Aqua counts set each cell's flag threshold (AD-9). */
             flag_reference_years: components["schemas"]["YearRange"];
-            /** @description What the store holds (AD-12). A query outside it gets outside_coverage. */
-            coverage: {
-                /** @description true when every land area is loaded. */
-                global: boolean;
-                regions: {
-                    /** @description Matches a feature in regions.geojson. */
-                    region_id: string;
-                    name: string;
-                    status: components["schemas"]["CoverageStatus"];
-                    evidence_class: components["schemas"]["EvidenceClass"];
-                }[];
-            };
+            coverage: components["schemas"]["Coverage"];
             /** @description Headline figures of the NOAA-20 against Suomi NPP comparison (Story 2.10). null until that run exists. */
             noaa20_check: null | components["schemas"]["Noaa20Check"];
+        };
+        /** @description What the store holds (AD-12). A query outside it gets outside_coverage. */
+        Coverage: {
+            /** @description true when every land area is loaded. */
+            global: boolean;
+            regions: {
+                /** @description Matches a feature in regions.geojson. */
+                region_id: string;
+                name: string;
+                status: components["schemas"]["CoverageStatus"];
+                evidence_class: components["schemas"]["EvidenceClass"];
+            }[];
         };
         /** @description Converted NOAA-20 counts against converted Suomi NPP counts. Reported only; not a validation against Aqua. */
         Noaa20Check: {
@@ -290,6 +384,46 @@ export interface components {
             bias_pct: number;
             cell_months: number;
         };
+        Season: {
+            record_version: components["schemas"]["RecordVersion"];
+            /** Format: date */
+            data_through: string;
+            cautions: components["schemas"]["Caution"][];
+            unit_label: string;
+            aoi: components["schemas"]["Aoi"];
+            reference_period: components["schemas"]["YearRange"];
+            /** @description A season month holds at least this share of the annual count (0.1, the test plan's criterion 3). */
+            season_share: number;
+            /** @description The typical year. The peak month and season length are criterion 3 applied to the twelve medians, the annual count being their sum. Ties for the peak go to the earlier month. */
+            typical: {
+                months: {
+                    calendar_month: number;
+                    /** @description Median of this calendar month over the reference period (as in /calendar). */
+                    median: components["schemas"]["Count"];
+                    /** @description Lowest complete month of the reference period. */
+                    low: components["schemas"]["Count"];
+                    /** @description Highest complete month of the reference period. */
+                    high: components["schemas"]["Count"];
+                    years_counted: number;
+                }[];
+                /** @description null when there is no median or all are 0. */
+                peak_month: number | null;
+                season_length: number | null;
+                season_months: number[];
+            };
+            /** @description Each calendar year of the record up to the current one, in order, for the overlay. */
+            years: {
+                year: number;
+                /** @description January to December. null for a month outside the record or outside coverage. */
+                counts: components["schemas"]["Count"][];
+                /** @description true when all twelve months are complete. */
+                complete: boolean;
+                /** @description Criterion 3 on this year. null unless all twelve months are in the record. */
+                peak_month: number | null;
+                season_length: number | null;
+                season_months: number[];
+            }[];
+        };
         Calendar: {
             record_version: components["schemas"]["RecordVersion"];
             /** Format: date */
@@ -304,7 +438,9 @@ export interface components {
                 /** Format: date */
                 end: string;
             };
+            /** @description The years the medians, means, anomalies and the card used. The request's reference_period when one was sent, else /meta's. */
             reference_period: components["schemas"]["YearRange"];
+            /** @description The years the flags use (AD-9). Never changed by a requested reference_period. */
             flag_reference_years: components["schemas"]["YearRange"];
             /** @description Every month of every calendar year the range touches, in order, so the grid's rows are whole years. */
             months: components["schemas"]["Month"][];
@@ -321,6 +457,48 @@ export interface components {
             statistics: components["schemas"]["Statistics"];
             /** @description The current-month card (AD-15). null when the current month is outside the area's coverage. */
             current_month: null | components["schemas"]["CurrentMonth"];
+            trend: components["schemas"]["Trend"];
+        };
+        /**
+         * @description Story 8.5. The Mann-Kendall test (Mann 1945; Kendall 1938) of a monotonic trend on the annual totals of the
+         *     complete years inside the range, with the Sen slope (Sen 1968) as the size. 2002 (the record starts in July)
+         *     and any year that is not complete, the current part-year included, are left out and listed in left_out.
+         *     With fewer than min_years complete years the test is refused: status too_few_years and every figure null.
+         *     The normal approximation is used, with the tie and continuity corrections. The words are in messages.yaml.
+         */
+        Trend: {
+            /** @enum {string} */
+            status: "ok" | "too_few_years";
+            /** @enum {string} */
+            test: "mann_kendall";
+            min_years: number;
+            /** @description The level below which a direction is named. */
+            alpha: number;
+            /** @description The complete years the test used: first, last and how many. null when none. */
+            years: null | {
+                start: number;
+                end: number;
+                count: number;
+            };
+            left_out: {
+                year: number;
+                /** @enum {string} */
+                reason: "record_start" | "incomplete";
+            }[];
+            /** @description true when the years used run from 2021 or earlier to 2022 or later, so the record switch lies inside the series. */
+            record_switch_inside: boolean;
+            /** @description The Mann-Kendall statistic: pairs rising minus pairs falling. */
+            s: number | null;
+            /** @description Rounded to 2 decimals. */
+            z: number | null;
+            /** @description Two-sided, rounded to 4 decimals. */
+            p_value: number | null;
+            /** @description Kendall's tau-b, rounded to 2 decimals. */
+            tau: number | null;
+            /** @description Median pairwise slope, hotspots (Aqua MODIS units) per year, rounded to 1 decimal. */
+            sen_slope_per_year: number | null;
+            /** @description One of increasing, decreasing, none: increasing or decreasing when p is below alpha, else none. null when the test was refused. */
+            direction: string | null;
         };
         Aoi: {
             /** @description Hash of the normalised geometry. */
@@ -397,6 +575,41 @@ export interface components {
             cells_total: number;
             /** @description Rank among complete months inside the range, 1 = highest. Ties share a rank. null when not ranked. */
             rank: number | null;
+        };
+        /** @description The naive splice for the same area and months as /calendar. Counts are raw row counts after the record's own cleaning, nothing converted. colour_class indexes colour_breaks, which are the record's, so the colour scale is the same for the splice and the record. */
+        RawSplice: {
+            record_version: components["schemas"]["RecordVersion"];
+            /** Format: date */
+            data_through: string;
+            cautions: components["schemas"]["Caution"][];
+            unit_label: string;
+            aoi: components["schemas"]["Aoi"];
+            range: {
+                /** Format: date */
+                start: string;
+                /** Format: date */
+                end: string;
+            };
+            /** @description First month that uses raw Suomi NPP counts. */
+            splice_from: components["schemas"]["YearMonth"];
+            /** @description Last month that carries the early bad-scan caution. */
+            early_bad_scan_through: components["schemas"]["YearMonth"];
+            /** @description The record's colour breaks (Calendar statistics.colour_breaks), unchanged. */
+            colour_breaks: number[];
+            /** @description The same months as the calendar's, in order. */
+            months: components["schemas"]["RawSpliceMonth"][];
+        };
+        RawSpliceMonth: {
+            month: components["schemas"]["YearMonth"];
+            count: components["schemas"]["Count"];
+            /** @description Set exactly when count is null. */
+            null_reason: null | components["schemas"]["NullReason"];
+            /** @description null when count is null. */
+            source: null | ("aqua_raw" | "snpp_raw");
+            /** @description true for raw Suomi NPP months in 2012 and 2013, which carry the early bad-scan caution. */
+            early_bad_scan: boolean;
+            /** @description Index of the count's class in colour_breaks. null when count is null. */
+            colour_class: number | null;
         };
         YearTotal: {
             year: number;
@@ -480,6 +693,41 @@ export interface components {
             flag_reference_years: components["schemas"]["YearRange"];
             cells: components["schemas"]["Cell"][];
         };
+        SeasonToDate: {
+            record_version: components["schemas"]["RecordVersion"];
+            /** Format: date */
+            data_through: string;
+            cautions: components["schemas"]["Caution"][];
+            unit_label: string;
+            aoi: components["schemas"]["Aoi"];
+            year: number;
+            /**
+             * @description The running total on 1 January, before the first month. Always 0.
+             * @constant
+             */
+            start: 0;
+            /** @constant */
+            resolution: "month";
+            /** @description The band is drawn between these percentiles of the past years' running totals at each month. */
+            band: {
+                lower_percentile: number;
+                upper_percentile: number;
+            };
+            reference_period: components["schemas"]["YearRange"];
+            /** @description The complete years the median and band are made from. */
+            past_years: number[];
+            months: components["schemas"]["SeasonToDateMonth"][];
+        };
+        SeasonToDateMonth: {
+            month: components["schemas"]["YearMonth"];
+            /** @description The year's running total at the end of this month (to date for the current month). null = not in the record, or an earlier month is not. */
+            cumulative: components["schemas"]["Count"];
+            /** @description true for the current, part-complete month. */
+            to_date: boolean;
+            median: components["schemas"]["Count"];
+            band_low: components["schemas"]["Count"];
+            band_high: components["schemas"]["Count"];
+        };
         /** @description A whole 1 degree cell, named by its south-west corner. Its count and flag are for the whole cell, not the part inside the area. */
         Cell: {
             sw_lon: number;
@@ -494,6 +742,34 @@ export interface components {
             evidence_class: components["schemas"]["EvidenceClass"];
             provisional: boolean;
             reference_year: boolean;
+        };
+        WorldCells: {
+            record_version: components["schemas"]["RecordVersion"];
+            /** Format: date */
+            data_through: string;
+            month: components["schemas"]["YearMonth"];
+            /** @description Where the month's counts come from. null outside the record. */
+            source: null | components["schemas"]["Source"];
+            /** @constant */
+            size_deg: 1;
+            flag_reference_years: components["schemas"]["YearRange"];
+            coverage: components["schemas"]["Coverage"];
+            /** @description Every loaded cell. A cell outside coverage is absent, never a zero. */
+            cells: components["schemas"]["WorldCell"][];
+        };
+        /** @description A whole 1 degree cell, named by its south-west corner, with the same flag, count and threshold as /cells gives it. */
+        WorldCell: {
+            sw_lon: number;
+            sw_lat: number;
+            flag_state: components["schemas"]["FlagState"];
+            count: components["schemas"]["Count"];
+            /** @description The cell's flag threshold for this calendar month, 1 decimal. */
+            threshold: number | null;
+            evidence_class: components["schemas"]["EvidenceClass"];
+            provisional: boolean;
+            reference_year: boolean;
+            /** @description Where the month's counts come from. null outside the record. */
+            source: null | components["schemas"]["Source"];
         };
         HotspotRow: {
             latitude: number;
@@ -523,7 +799,7 @@ export interface components {
         };
     };
     responses: {
-        /** @description An error. The HTTP status for each code: invalid_aoi 400, outside_coverage 404, version_superseded 410, too_large_for_sync 413, no_land 422, rate_limited 429. */
+        /** @description An error. The HTTP status for each code: invalid_aoi 400, outside_coverage 404, version_superseded 410, too_large_for_sync 413, no_land 422, rate_limited 429, invalid_reference_period 400. */
         Problem: {
             headers: {
                 [name: string]: unknown;
@@ -590,6 +866,64 @@ export interface operations {
             429: components["responses"]["Problem"];
         };
     };
+    postRawSplice: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["CalendarRequest"];
+            };
+        };
+        responses: {
+            /** @description Raw splice */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["RawSplice"];
+                };
+            };
+            400: components["responses"]["Problem"];
+            404: components["responses"]["Problem"];
+            410: components["responses"]["Problem"];
+            422: components["responses"]["Problem"];
+            429: components["responses"]["Problem"];
+        };
+    };
+    postSeason: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["SeasonRequest"];
+            };
+        };
+        responses: {
+            /** @description Season */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Season"];
+                };
+            };
+            400: components["responses"]["Problem"];
+            404: components["responses"]["Problem"];
+            410: components["responses"]["Problem"];
+            422: components["responses"]["Problem"];
+            429: components["responses"]["Problem"];
+        };
+    };
     postCells: {
         parameters: {
             query?: never;
@@ -610,6 +944,64 @@ export interface operations {
                 };
                 content: {
                     "application/json": components["schemas"]["Cells"];
+                };
+            };
+            400: components["responses"]["Problem"];
+            404: components["responses"]["Problem"];
+            410: components["responses"]["Problem"];
+            422: components["responses"]["Problem"];
+            429: components["responses"]["Problem"];
+        };
+    };
+    postSeasonToDate: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["SeasonToDateRequest"];
+            };
+        };
+        responses: {
+            /** @description Season to date */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["SeasonToDate"];
+                };
+            };
+            400: components["responses"]["Problem"];
+            404: components["responses"]["Problem"];
+            410: components["responses"]["Problem"];
+            422: components["responses"]["Problem"];
+            429: components["responses"]["Problem"];
+        };
+    };
+    postWorldCells: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["WorldCellsRequest"];
+            };
+        };
+        responses: {
+            /** @description WorldCells */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["WorldCells"];
                 };
             };
             400: components["responses"]["Problem"];

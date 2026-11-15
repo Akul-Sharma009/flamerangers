@@ -1,0 +1,33 @@
+/* Story 8.10: the globe. Flag marks are shapes (dot, ring) and hatching, not colour alone; no red. */
+.globe { max-width: 1080px; margin: 0 auto; padding: 16px 20px 40px; color: var(--ink); }
+.globe h2 { font-family: var(--serif); font-size: 22px; font-weight: 600; margin: 0 0 4px; }
+.globe[aria-busy="true"] .globe-map, .globe[aria-busy="true"] .globe-table { opacity: 0.6; }
+.globe-lead, .globe-words p, .globe-notes p { margin: 0 0 4px; line-height: 1.45; font-size: 13px; }
+.globe-words p:first-child { font-family: var(--serif); font-size: 16px; }
+.globe-note { color: var(--muted); }
+.globe-controls { display: flex; flex-wrap: wrap; gap: 8px; align-items: center; margin: 10px 0; font-size: 13px; }
+.globe-controls button, .globe-download button { font: inherit; font-size: 13px; padding: 3px 10px; border: 1px solid var(--ink); background: var(--paper); color: var(--ink); cursor: pointer; }
+.globe-controls button:disabled, .globe-download button:disabled { opacity: 0.4; cursor: default; }
+.globe-controls input { font: inherit; font-family: var(--num); }
+.globe-controls :focus-visible, .globe-download :focus-visible, .globe-table a:focus-visible { outline: 2px solid var(--ink); outline-offset: 2px; }
+.globe-map { width: 100%; height: min(70vh, 620px); margin: 8px 0; background: var(--faint); border: 1px solid var(--rule); }
+.globe-key { list-style: none; margin: 6px 0; padding: 0; display: flex; flex-wrap: wrap; gap: 4px 16px; font-size: 12px; }
+.globe-key li { display: flex; align-items: center; gap: 6px; }
+.gk rect { fill: var(--paper); stroke: var(--ink); stroke-width: 0.8; }
+.gk-strong rect { fill: var(--c4); }
+.gk-marginal rect { fill: var(--c2); }
+.gk-not_flaggable rect { stroke-dasharray: 1.5 1.5; stroke: var(--muted); }
+.gk-outside_record rect { fill: var(--faint); stroke: var(--rule); }
+.gk-uncovered rect { fill: var(--faint); stroke: var(--rule); }
+.gk-dot { fill: var(--ink); }
+.gk-ring { fill: none; stroke: var(--ink); stroke-width: 1.2; }
+.gk-hatch { stroke: var(--rule); stroke-width: 1; }
+.globe-notes { margin-top: 8px; color: var(--muted); }
+.globe-claims { margin: 6px 0 0; padding-left: 20px; font-size: 12.5px; line-height: 1.45; }
+.globe-download { display: flex; gap: 8px; margin: 12px 0; }
+.globe-table { border-collapse: collapse; width: 100%; font-size: 12px; margin-top: 8px; }
+.globe-table caption { text-align: left; font-family: var(--serif); font-size: 15px; padding-bottom: 4px; }
+.globe-table th, .globe-table td { text-align: left; padding: 3px 8px 3px 0; border-bottom: 1px solid var(--faint); vertical-align: top; }
+.globe-table thead th { color: var(--muted); border-bottom: 1px solid var(--ink); font-weight: 400; }
+.globe-table tbody th { font-weight: 400; font-family: var(--num); white-space: nowrap; }
+.globe-table td.num { font-family: var(--num); font-variant-numeric: tabular-nums; text-align: right; }

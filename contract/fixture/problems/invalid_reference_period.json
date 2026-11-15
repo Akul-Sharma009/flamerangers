@@ -1,0 +1,9 @@
+{
+  "type": "https://burncal.invalid/problems/invalid_reference_period",
+  "title": "The reference period can't be used",
+  "status": 400,
+  "code": "invalid_reference_period",
+  "record_version": "20261114-1a2b3c4d",
+  "data_through": "2026-11-13",
+  "detail": "reference_period: the period must be at least 5 years long"
+}

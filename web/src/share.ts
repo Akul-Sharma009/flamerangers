@@ -9,8 +9,14 @@
 //        polygons joined by "/", rings by "~", vertices by ";", "lon,lat" in each.
 //        Coordinates are written as the app holds them, not rounded: the app rounds
 //        nothing, and a rounded copy would be a different area from the one shared.
+// admin  a country's or first-level unit's code (area/admin/units.ts), instead of its long geometry.
+//        Reading it back loads that unit's outline, so the page resolves it (ParsedLink.admin).
 // from, to  the first and last day, YYYY-MM-DD. Both absent is the whole record.
 // view   "table" (absent is the grid).  measure  "anomaly" (absent is counts).
+// ref    Story 8.4: the comparison years, "2003-2011" (absent is the served default period).
+//
+// compare  Story 8.7, a second area for the side-by-side calendars: a featured area's id, or a shape
+//        written as above (it starts with P or M). Absent is no comparison.
 //
 // Parsing only reads the text back. It computes no number the page shows (AD-8).
 // Which month is highlighted or picked is not in the link (not an AOI, date or view).
@@ -20,9 +26,11 @@ import { messages } from "./api/messages";
 import { checkRange, isDay } from "./area/dates";
 import { REFUSAL } from "./area/DatesPanel";
 import { defaultArea, featuredAreas, type AoiInput, type FeaturedArea } from "./area/featured";
+import { adminCodeOf } from "./area/admin/units";
 import { typedProblemText } from "./area/words";
 import type { Measure } from "./grid/anomaly";
 import type { View } from "./grid/CalendarGrid";
+import { usable, type YearRange } from "./reference/period";
 import { routeFromHash } from "./route";
 
 export interface ShareState {
@@ -31,13 +39,20 @@ export interface ShareState {
   range: DateRange | null;
   grid: View;
   measure: Measure;
+  /** Story 8.7: the second area of a side-by-side comparison; absent or null is none. */
+  compare?: AoiInput | null;
+  /** Story 8.4: the comparison years; null or absent is the served default. */
+  reference?: YearRange | null;
 }
 
 export interface ParsedLink extends ShareState {
+  /** A unit code from `admin=`, to be loaded and used as the area; null when the link has none. */
+  admin: string | null;
   /** The contract sentences for what could not be read; the link fell back to the default for it. */
   notes: string[];
 }
 
+const ADMIN_CODE = /^[A-Z0-9-]{3,16}$/;
 const GEOMETRY = /^[PM][-0-9.,;~/eE+]+$/;
 
 function num(text: string): number | null {
@@ -88,10 +103,16 @@ export function decodeShape(text: string): { ok: true; geometry: AoiInput["geome
 export function encodeShare(s: ShareState, areas: FeaturedArea[] = featuredAreas()): string {
   const q: string[] = [];
   const featured = s.area.name === null ? undefined : areas.find((a) => a.name === s.area.name);
-  q.push(featured ? `area=${featured.id}` : `shape=${encodeShape(s.area.geometry)}`);
+  const admin = featured ? null : adminCodeOf(s.area.geometry);
+  q.push(featured ? `area=${featured.id}` : admin ? `admin=${admin}` : `shape=${encodeShape(s.area.geometry)}`);
+  if (s.compare) {
+    const other = s.compare.name === null ? undefined : areas.find((a) => a.name === s.compare!.name);
+    q.push(`compare=${other ? other.id : encodeShape(s.compare.geometry)}`);
+  }
   if (s.range) q.push(`from=${s.range.start}`, `to=${s.range.end}`);
   if (s.grid === "table") q.push("view=table");
   if (s.measure === "anomaly") q.push("measure=anomaly");
+  if (s.reference) q.push(`ref=${s.reference.start_year}-${s.reference.end_year}`);
   return `#/?${q.join("&")}`;
 }
 
@@ -102,7 +123,7 @@ export function encodeShare(s: ShareState, areas: FeaturedArea[] = featuredAreas
  */
 export function parseShare(query: string, areas: FeaturedArea[] = featuredAreas()): ParsedLink {
   const p = new URLSearchParams(query);
-  const out: ParsedLink = { area: defaultArea(areas).aoi, range: null, grid: "grid", measure: "count", notes: [] };
+  const out: ParsedLink = { area: defaultArea(areas).aoi, range: null, grid: "grid", measure: "count", compare: null, reference: null, notes: [], admin: null };
 
   const id = p.get("area");
   const shape = p.get("shape");
@@ -110,10 +131,23 @@ export function parseShare(query: string, areas: FeaturedArea[] = featuredAreas(
     const found = areas.find((a) => a.id === id);
     if (found) out.area = found.aoi;
     else out.notes.push(messages.problems.invalid_aoi);
+  } else if (p.get("admin") !== null) {
+    const code = p.get("admin")!;
+    if (ADMIN_CODE.test(code)) out.admin = code;
+    else out.notes.push(messages.problems.invalid_aoi);
   } else if (shape !== null) {
     const g = decodeShape(shape);
     if (g.ok) out.area = { name: null, geometry: g.geometry };
     else out.notes.push(g.problem === "range" ? typedProblemText("out_of_range") : messages.problems.invalid_aoi);
+  }
+
+  const other = p.get("compare");
+  if (other !== null) {
+    const found = areas.find((a) => a.id === other);
+    const g = found ? null : decodeShape(other);
+    if (found) out.compare = found.aoi;
+    else if (g?.ok) out.compare = { name: null, geometry: g.geometry };
+    else out.notes.push(g && !g.ok && g.problem === "range" ? typedProblemText("out_of_range") : messages.problems.invalid_aoi);
   }
 
   const from = p.get("from");
@@ -126,7 +160,19 @@ export function parseShare(query: string, areas: FeaturedArea[] = featuredAreas(
 
   if (p.get("view") === "table") out.grid = "table";
   if (p.get("measure") === "anomaly") out.measure = "anomaly";
+
+  const ref = p.get("ref");
+  if (ref !== null) {
+    const m = /^(\d{4})-(\d{4})$/.exec(ref);
+    if (m) out.reference = { start_year: Number(m[1]), end_year: Number(m[2]) };
+    else out.notes.push(messages.problems.invalid_reference_period);
+  }
   return out;
+}
+
+/** Story 8.4: checks a link's comparison years against the served /meta. Null when the service will take them. */
+export function referenceNote(reference: YearRange, meta: Meta): string | null {
+  return usable(reference, meta) ? null : messages.problems.invalid_reference_period;
 }
 
 /** Checks a link's range against the served record once /meta is known. Null when it fits. */

@@ -3,6 +3,7 @@ import { useEffect, useState } from "react";
 // Hash routes, so the static build works on any host with no server rewrite.
 export const ROUTES = [
   { id: "calendar", hash: "#/", label: "Calendar" },
+  { id: "globe", hash: "#/globe", label: "Globe" }, // Story 8.10: secondary view; the calendar stays the default
   { id: "evidence", hash: "#/evidence", label: "Evidence" },
   { id: "about", hash: "#/about", label: "About the data" },
 ] as const;

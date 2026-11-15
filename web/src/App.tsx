@@ -5,6 +5,7 @@ import { PlaceholderBanner } from "./components/PlaceholderBanner";
 import { AboutPage } from "./pages/AboutPage";
 import { CalendarPage } from "./pages/CalendarPage";
 import { EvidencePage } from "./pages/EvidencePage";
+import { GlobePage } from "./pages/GlobePage";
 import { useRoute } from "./route";
 
 export default function App() {
@@ -19,7 +20,7 @@ export default function App() {
     <>
       <PlaceholderBanner placeholder={placeholder} />
       <Masthead route={route} />
-      {route === "calendar" ? <CalendarPage /> : route === "evidence" ? <EvidencePage /> : <AboutPage />}
+      {route === "calendar" ? <CalendarPage /> : route === "globe" ? <GlobePage /> : route === "evidence" ? <EvidencePage /> : <AboutPage />}
     </>
   );
 }

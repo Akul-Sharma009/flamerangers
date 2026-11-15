@@ -145,5 +145,29 @@
     "quality": "NRT",
     "validated_satellite": false,
     "monthly_validation_only": true
+  },
+  "trend": {
+    "status": "too_few_years",
+    "test": "mann_kendall",
+    "min_years": 10,
+    "alpha": 0.05,
+    "left_out": [
+      {
+        "year": 2025,
+        "reason": "incomplete"
+      },
+      {
+        "year": 2026,
+        "reason": "incomplete"
+      }
+    ],
+    "years": null,
+    "record_switch_inside": false,
+    "s": null,
+    "z": null,
+    "p_value": null,
+    "tau": null,
+    "sen_slope_per_year": null,
+    "direction": null
   }
 }

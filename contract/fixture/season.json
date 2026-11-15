@@ -1,0 +1,751 @@
+{
+  "record_version": "20261114-1a2b3c4d",
+  "data_through": "2026-11-13",
+  "cautions": [],
+  "unit_label": "hotspots, Aqua MODIS units",
+  "aoi": {
+    "aoi_id": "772b2a9121b196af",
+    "name": "Sumatra",
+    "area_km2": 1071229.5,
+    "evidence_class_counts": {
+      "tuned": 113,
+      "tested_unseen": 0,
+      "reported_only": 0,
+      "not_evaluated": 0
+    },
+    "region_caveat": "none"
+  },
+  "reference_period": {
+    "start_year": 2003,
+    "end_year": 2025
+  },
+  "season_share": 0.1,
+  "typical": {
+    "months": [
+      {
+        "calendar_month": 1,
+        "median": 899.0,
+        "low": 450.0,
+        "high": 3232.0,
+        "years_counted": 23
+      },
+      {
+        "calendar_month": 2,
+        "median": 1878.0,
+        "low": 1021.0,
+        "high": 7014.0,
+        "years_counted": 23
+      },
+      {
+        "calendar_month": 3,
+        "median": 1869.7,
+        "low": 867.0,
+        "high": 5406.0,
+        "years_counted": 23
+      },
+      {
+        "calendar_month": 4,
+        "median": 701.0,
+        "low": 469.1,
+        "high": 1635.0,
+        "years_counted": 23
+      },
+      {
+        "calendar_month": 5,
+        "median": 898.0,
+        "low": 424.0,
+        "high": 2554.0,
+        "years_counted": 23
+      },
+      {
+        "calendar_month": 6,
+        "median": 1624.0,
+        "low": 856.3,
+        "high": 4732.0,
+        "years_counted": 23
+      },
+      {
+        "calendar_month": 7,
+        "median": 2619.6,
+        "low": 1247.0,
+        "high": 11647.0,
+        "years_counted": 23
+      },
+      {
+        "calendar_month": 8,
+        "median": 3699.2,
+        "low": 1921.0,
+        "high": 12451.0,
+        "years_counted": 22
+      },
+      {
+        "calendar_month": 9,
+        "median": 6107.0,
+        "low": 2939.0,
+        "high": 26763.0,
+        "years_counted": 23
+      },
+      {
+        "calendar_month": 10,
+        "median": 4295.0,
+        "low": 1989.0,
+        "high": 12092.0,
+        "years_counted": 23
+      },
+      {
+        "calendar_month": 11,
+        "median": 946.9,
+        "low": 628.0,
+        "high": 5308.0,
+        "years_counted": 23
+      },
+      {
+        "calendar_month": 12,
+        "median": 626.0,
+        "low": 404.0,
+        "high": 1392.0,
+        "years_counted": 23
+      }
+    ],
+    "peak_month": 9,
+    "season_length": 4,
+    "season_months": [
+      7,
+      8,
+      9,
+      10
+    ]
+  },
+  "years": [
+    {
+      "year": 2002,
+      "counts": [
+        null,
+        null,
+        null,
+        null,
+        null,
+        null,
+        3294.0,
+        8803.0,
+        10752.0,
+        5300.0,
+        2263.0,
+        698.0
+      ],
+      "complete": false,
+      "peak_month": null,
+      "season_length": null,
+      "season_months": []
+    },
+    {
+      "year": 2003,
+      "counts": [
+        547.0,
+        1040.0,
+        1990.0,
+        633.0,
+        944.0,
+        1860.0,
+        1611.0,
+        2450.0,
+        2985.0,
+        2735.0,
+        920.0,
+        658.0
+      ],
+      "complete": true,
+      "peak_month": 9,
+      "season_length": 5,
+      "season_months": [
+        3,
+        6,
+        8,
+        9,
+        10
+      ]
+    },
+    {
+      "year": 2004,
+      "counts": [
+        1359.0,
+        2989.0,
+        3021.0,
+        1575.0,
+        1058.0,
+        2278.0,
+        3471.0,
+        5876.0,
+        8503.0,
+        7787.0,
+        913.0,
+        654.0
+      ],
+      "complete": true,
+      "peak_month": 9,
+      "season_length": 3,
+      "season_months": [
+        8,
+        9,
+        10
+      ]
+    },
+    {
+      "year": 2005,
+      "counts": [
+        799.0,
+        2112.0,
+        1241.0,
+        647.0,
+        774.0,
+        1702.0,
+        2951.0,
+        2783.0,
+        5931.0,
+        2578.0,
+        884.0,
+        718.0
+      ],
+      "complete": true,
+      "peak_month": 9,
+      "season_length": 4,
+      "season_months": [
+        7,
+        8,
+        9,
+        10
+      ]
+    },
+    {
+      "year": 2006,
+      "counts": [
+        1283.0,
+        4765.0,
+        2455.0,
+        1002.0,
+        2554.0,
+        4732.0,
+        6556.0,
+        10833.0,
+        10419.0,
+        12092.0,
+        1794.0,
+        1031.0
+      ],
+      "complete": true,
+      "peak_month": 10,
+      "season_length": 4,
+      "season_months": [
+        7,
+        8,
+        9,
+        10
+      ]
+    },
+    {
+      "year": 2007,
+      "counts": [
+        450.0,
+        1249.0,
+        1134.0,
+        638.0,
+        529.0,
+        1520.0,
+        2496.0,
+        3675.0,
+        5854.0,
+        3241.0,
+        905.0,
+        624.0
+      ],
+      "complete": true,
+      "peak_month": 9,
+      "season_length": 4,
+      "season_months": [
+        7,
+        8,
+        9,
+        10
+      ]
+    },
+    {
+      "year": 2008,
+      "counts": [
+        777.0,
+        1407.0,
+        1012.0,
+        491.0,
+        862.0,
+        1624.0,
+        2802.0,
+        3912.0,
+        6353.0,
+        1989.0,
+        712.0,
+        527.0
+      ],
+      "complete": true,
+      "peak_month": 9,
+      "season_length": 3,
+      "season_months": [
+        7,
+        8,
+        9
+      ]
+    },
+    {
+      "year": 2009,
+      "counts": [
+        1871.0,
+        2364.0,
+        1992.0,
+        1163.0,
+        898.0,
+        3269.0,
+        5541.0,
+        5914.0,
+        10889.0,
+        7751.0,
+        2119.0,
+        1392.0
+      ],
+      "complete": true,
+      "peak_month": 9,
+      "season_length": 4,
+      "season_months": [
+        7,
+        8,
+        9,
+        10
+      ]
+    },
+    {
+      "year": 2010,
+      "counts": [
+        926.0,
+        2256.0,
+        867.0,
+        597.0,
+        968.0,
+        1292.0,
+        1247.0,
+        2435.0,
+        6412.0,
+        4754.0,
+        762.0,
+        735.0
+      ],
+      "complete": true,
+      "peak_month": 9,
+      "season_length": 3,
+      "season_months": [
+        8,
+        9,
+        10
+      ]
+    },
+    {
+      "year": 2011,
+      "counts": [
+        959.0,
+        1820.0,
+        940.0,
+        878.0,
+        750.0,
+        1613.0,
+        2881.0,
+        2056.0,
+        6372.0,
+        3450.0,
+        1201.0,
+        404.0
+      ],
+      "complete": true,
+      "peak_month": 9,
+      "season_length": 3,
+      "season_months": [
+        7,
+        9,
+        10
+      ]
+    },
+    {
+      "year": 2012,
+      "counts": [
+        899.0,
+        3290.0,
+        2052.0,
+        1380.0,
+        1460.0,
+        1891.0,
+        2679.0,
+        4581.0,
+        5333.0,
+        4046.0,
+        1128.0,
+        586.0
+      ],
+      "complete": true,
+      "peak_month": 9,
+      "season_length": 4,
+      "season_months": [
+        2,
+        8,
+        9,
+        10
+      ]
+    },
+    {
+      "year": 2013,
+      "counts": [
+        518.0,
+        1021.0,
+        1588.0,
+        608.0,
+        891.0,
+        1016.0,
+        2754.0,
+        3018.0,
+        2939.0,
+        4295.0,
+        685.0,
+        510.0
+      ],
+      "complete": true,
+      "peak_month": 10,
+      "season_length": 4,
+      "season_months": [
+        7,
+        8,
+        9,
+        10
+      ]
+    },
+    {
+      "year": 2014,
+      "counts": [
+        2311.0,
+        4017.0,
+        3469.0,
+        1498.0,
+        1546.0,
+        2144.0,
+        5868.0,
+        11068.0,
+        10784.0,
+        6485.0,
+        2038.0,
+        729.0
+      ],
+      "complete": true,
+      "peak_month": 8,
+      "season_length": 4,
+      "season_months": [
+        7,
+        8,
+        9,
+        10
+      ]
+    },
+    {
+      "year": 2015,
+      "counts": [
+        3232.0,
+        7014.0,
+        5406.0,
+        1635.0,
+        2017.0,
+        4642.0,
+        11647.0,
+        12451.0,
+        26763.0,
+        10048.0,
+        5308.0,
+        1294.0
+      ],
+      "complete": true,
+      "peak_month": 9,
+      "season_length": 4,
+      "season_months": [
+        7,
+        8,
+        9,
+        10
+      ]
+    },
+    {
+      "year": 2016,
+      "counts": [
+        648.0,
+        1818.0,
+        1343.0,
+        612.0,
+        750.0,
+        1311.0,
+        1953.0,
+        1921.0,
+        4730.0,
+        3439.0,
+        1245.0,
+        434.0
+      ],
+      "complete": true,
+      "peak_month": 9,
+      "season_length": 2,
+      "season_months": [
+        9,
+        10
+      ]
+    },
+    {
+      "year": 2017,
+      "counts": [
+        470.0,
+        1675.0,
+        2063.0,
+        701.0,
+        424.0,
+        1406.0,
+        1701.0,
+        2023.0,
+        3785.0,
+        4688.0,
+        909.0,
+        693.0
+      ],
+      "complete": true,
+      "peak_month": 10,
+      "season_length": 3,
+      "season_months": [
+        3,
+        9,
+        10
+      ]
+    },
+    {
+      "year": 2018,
+      "counts": [
+        1035.0,
+        1432.0,
+        1960.0,
+        650.0,
+        770.0,
+        1209.0,
+        2578.0,
+        4700.0,
+        6107.0,
+        5100.0,
+        1298.0,
+        566.0
+      ],
+      "complete": true,
+      "peak_month": 9,
+      "season_length": 3,
+      "season_months": [
+        8,
+        9,
+        10
+      ]
+    },
+    {
+      "year": 2019,
+      "counts": [
+        1455.0,
+        6118.0,
+        4353.0,
+        1626.0,
+        1492.0,
+        3277.0,
+        5600.0,
+        10638.0,
+        8260.0,
+        6426.0,
+        4002.0,
+        1357.0
+      ],
+      "complete": true,
+      "peak_month": 8,
+      "season_length": 5,
+      "season_months": [
+        2,
+        7,
+        8,
+        9,
+        10
+      ]
+    },
+    {
+      "year": 2020,
+      "counts": [
+        601.0,
+        1878.0,
+        1309.0,
+        501.0,
+        1019.0,
+        1249.0,
+        1430.0,
+        3536.0,
+        4564.0,
+        4950.0,
+        1150.0,
+        430.0
+      ],
+      "complete": true,
+      "peak_month": 10,
+      "season_length": 3,
+      "season_months": [
+        8,
+        9,
+        10
+      ]
+    },
+    {
+      "year": 2021,
+      "counts": [
+        832.0,
+        1555.0,
+        1749.0,
+        833.0,
+        866.0,
+        896.0,
+        2022.0,
+        2807.0,
+        4052.0,
+        2754.0,
+        628.0,
+        626.0
+      ],
+      "complete": true,
+      "peak_month": 9,
+      "season_length": 4,
+      "season_months": [
+        7,
+        8,
+        9,
+        10
+      ]
+    },
+    {
+      "year": 2022,
+      "counts": [
+        456.5,
+        1730.9,
+        899.0,
+        822.0,
+        1030.2,
+        856.3,
+        1929.9,
+        2615.3,
+        3366.0,
+        4268.1,
+        946.9,
+        533.4
+      ],
+      "complete": false,
+      "peak_month": 10,
+      "season_length": 3,
+      "season_months": [
+        8,
+        9,
+        10
+      ]
+    },
+    {
+      "year": 2023,
+      "counts": [
+        951.7,
+        1985.3,
+        2591.2,
+        1455.2,
+        1149.3,
+        1962.6,
+        2619.6,
+        4069.3,
+        9165.1,
+        5602.3,
+        1208.3,
+        1193.5
+      ],
+      "complete": true,
+      "peak_month": 9,
+      "season_length": 3,
+      "season_months": [
+        8,
+        9,
+        10
+      ]
+    },
+    {
+      "year": 2024,
+      "counts": [
+        905.3,
+        1936.0,
+        1869.7,
+        469.1,
+        610.4,
+        1648.2,
+        1758.1,
+        3723.3,
+        6308.8,
+        2774.1,
+        746.1,
+        541.9
+      ],
+      "complete": true,
+      "peak_month": 9,
+      "season_length": 3,
+      "season_months": [
+        8,
+        9,
+        10
+      ]
+    },
+    {
+      "year": 2025,
+      "counts": [
+        697.5,
+        1099.9,
+        1382.1,
+        522.9,
+        699.9,
+        865.1,
+        1981.2,
+        2279.5,
+        3163.8,
+        2873.2,
+        706.0,
+        612.7
+      ],
+      "complete": true,
+      "peak_month": 9,
+      "season_length": 4,
+      "season_months": [
+        7,
+        8,
+        9,
+        10
+      ]
+    },
+    {
+      "year": 2026,
+      "counts": [
+        1010.7,
+        1036.0,
+        1027.1,
+        898.9,
+        825.5,
+        1392.2,
+        1560.6,
+        4615.0,
+        3189.0,
+        2263.6,
+        261.3,
+        null
+      ],
+      "complete": false,
+      "peak_month": null,
+      "season_length": null,
+      "season_months": []
+    }
+  ]
+}

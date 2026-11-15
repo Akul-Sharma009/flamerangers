@@ -10,10 +10,10 @@ import shapely
 
 from burncal.core import aoi as core_aoi
 from burncal.core import regions as core_regions
-from burncal.core import grids, record, stats
+from burncal.core import grids, record, splice, stats, trend as core_trend
 from burncal.service.store import SATELLITES, Version
 
-CONTRACT_VERSION = "0.4.0"  # must equal info.version in contract/openapi.yaml (tested)
+CONTRACT_VERSION = "0.5.0"  # must equal info.version in contract/openapi.yaml (tested)
 UNIT_LABEL = "hotspots, Aqua MODIS units"
 EVIDENCE = ("tuned", "tested_unseen", "reported_only", "not_evaluated")
 
@@ -34,6 +34,7 @@ def meta(v: Version, regions: dict) -> dict:
         "record_switch": {"aqua_through": f"{record.AQUA_LAST:%Y-%m}", "viirs_from": f"{record.VIIRS_FIRST:%Y-%m}"},
         "satellite_switch": {"snpp_through": record.SNPP_LAST.isoformat(), "noaa20_from": record.NOAA20_FIRST.isoformat()},
         **record.meta_dates(v.data_through),
+        "reference_period_min_years": record.REFERENCE_MIN_YEARS,  # Story 8.3
         "flag_reference_years": {"start_year": grids.HISTORY_YEARS[0], "end_year": grids.HISTORY_YEARS[1]},
         "coverage": {"global": False, "regions": [
             {"region_id": rid, "name": name, "evidence_class": ev,
@@ -70,12 +71,24 @@ def _ym(t):
     return f"{t[0]:04d}-{t[1]:02d}"
 
 
-def calendar(v: Version, geom, name, start: date, end: date, regions: dict) -> dict:
-    aoi, cells = _aoi(v, geom, name, regions)
+def _series(v: Version, geom, start: date, end: date):
+    """The sums, extent, uncovered months, record months, the unrounded counts by month and the months shown."""
     sums = v.count(geom)
-    flags = v.flag_counts(cells)
     ext = v.extent_of(geom)
-    inputs, missing, uncovered = v.month_inputs(ext), v.missing(ext), v.uncovered(ext)
+    uncovered = v.uncovered(ext)
+    dt = v.data_through
+    record_months = [(y, m) for y in range(2002, dt.year + 1) for m in range(1, 13)
+                     if record.month_state(y, m, data_through=dt)[0] != "null"]
+    series = {t: float(sums[(t[0] - 2002) * 12 + t[1] - 1, 0]) for t in record_months if t not in uncovered}
+    shown = [(y, m) for y in range(start.year, end.year + 1) for m in range(1, 13)]
+    return sums, ext, uncovered, record_months, series, shown
+
+
+def _record_series(v: Version, geom):
+    """(sums, series, complete, extent): the area's monthly sums, month -> unrounded count for months in the record, the complete months."""
+    sums = v.count(geom)
+    ext = v.extent_of(geom)
+    missing, uncovered = v.missing(ext), v.uncovered(ext)
     dt = v.data_through
     record_months = [(y, m) for y in range(2002, dt.year + 1) for m in range(1, 13)
                      if record.month_state(y, m, data_through=dt)[0] != "null"]
@@ -83,12 +96,35 @@ def calendar(v: Version, geom, name, start: date, end: date, regions: dict) -> d
     complete = {t for t in record_months if not any(
         r in ("record_start", "data_through", "missing_days") for r in record.partial_reasons(
             t[0], t[1], data_through=dt, missing_days=t in missing, start=date(t[0], t[1], 1), end=dt))}
-    shown = [(y, m) for y in range(start.year, end.year + 1) for m in range(1, 13)]
+    return sums, series, complete, ext
+
+
+def shared_breaks(v: Version, geoms, start: date, end: date) -> list:
+    """Story 8.7: one set of count classes for several areas, from their months pooled (core.stats.colour_breaks)."""
+    pooled = []
+    for g in geoms:
+        series, shown = _series(v, g, start, end)[4:]
+        pooled += [series.get(t) for t in shown]
+    return stats.colour_breaks(pooled)
+
+
+def calendar(v: Version, geom, name, start: date, end: date, regions: dict, colour_breaks=None,
+             reference_period: dict | None = None) -> dict:
+    """`colour_breaks`: Story 8.7, classes shared with another area; None gives this area's own.
+    reference_period: Story 8.3, a checked {start_year, end_year}; None is the default (AD-16)."""
+    aoi, cells = _aoi(v, geom, name, regions)
+    sums, ext, uncovered, record_months, series, shown = _series(v, geom, start, end)
+    flags = v.flag_counts(cells)
+    inputs, missing = v.month_inputs(ext), v.missing(ext)
+    dt = v.data_through
+    complete = {t for t in record_months if not any(
+        r in ("record_start", "data_through", "missing_days") for r in record.partial_reasons(
+            t[0], t[1], data_through=dt, missing_days=t in missing, start=date(t[0], t[1], 1), end=dt))}
     in_range = {t for t in shown if (t[0], t[1]) >= (start.year, start.month) and (t[0], t[1]) <= (end.year, end.month)}
-    ref_years = record.meta_dates(dt)["reference_period"]
+    ref_years = dict(reference_period) if reference_period else record.meta_dates(dt)["reference_period"]  # Story 8.3
     st = stats.summarize(series, complete, shown, in_range=in_range,
                          reference_years=(ref_years["start_year"], ref_years["end_year"]))
-    breaks = st["colour_breaks"]
+    breaks = st["colour_breaks"] if colour_breaks is None else list(colour_breaks)
     months = []
     for t in shown:
         year, month = t
@@ -147,6 +183,26 @@ def calendar(v: Version, geom, name, start: date, end: date, regions: dict) -> d
                 "month": _ym(st["record_high"]["month"]), "count": r1(st["record_high"]["count"])},
         },
         "current_month": _card(v, geom, complete, ref_years, months),
+        "trend": trend(st["year_totals"]),  # Story 8.5
+    }
+
+
+def trend(year_totals: list[dict]) -> dict:
+    """Story 8.5: Mann-Kendall on the complete years in the range, Sen slope as the size. Rounded once here:
+    p to 4 decimals, z, tau and the slope to 2 (a slope of whole hotspots a year needs no more)."""
+    used, left = core_trend.annual_series(year_totals)
+    years = [y for y, _ in used]
+    res = core_trend.mann_kendall(years, [t for _, t in used])
+    return {
+        "status": "ok" if res else "too_few_years", "test": "mann_kendall", "min_years": core_trend.MIN_YEARS,
+        "alpha": core_trend.ALPHA, "left_out": left,
+        "years": {"start": years[0], "end": years[-1], "count": len(years)} if years else None,
+        "record_switch_inside": bool(years) and years[0] <= 2021 and years[-1] >= 2022,
+        "s": res["s"] if res else None, "z": round(res["z"], 2) + 0.0 if res else None,
+        "p_value": round(res["p_value"], 4) + 0.0 if res else None,
+        "tau": round(res["tau"], 2) + 0.0 if res else None,
+        "sen_slope_per_year": r1(res["sen_slope"]) if res else None,
+        "direction": res["direction"] if res else None,
     }
 
 
@@ -180,24 +236,100 @@ def _card(v: Version, geom, complete, ref_years, months) -> dict:
     }
 
 
+def _cell_rows(v: Version, cs, year: int, month: int) -> list[dict]:
+    """The served fields of each cell in `cs` for one month, from the published flags (Story 2.5's
+    flag_state, count and threshold). The one implementation behind /cells and /world_cells."""
+    f = v.flags[(v.flags["year"] == year) & (v.flags["month"] == month)]
+    f = cs.merge(f, on=["sw_lon", "sw_lat"], how="left")
+    ref = bool(grids.reference_year(year))
+    return [{"sw_lon": int(r.sw_lon), "sw_lat": int(r.sw_lat), "size_deg": 1,
+             "flag_state": r.flag_state if isinstance(r.flag_state, str) else "outside_record",
+             "count": None if np.isnan(r.count) else r1(r.count),
+             "threshold": None if np.isnan(r.threshold) or np.isnan(r.count) else r1(r.threshold),
+             "evidence_class": r.evidence_class,
+             "provisional": bool(r.provisional) if isinstance(r.provisional, (bool, np.bool_)) else False,
+             "reference_year": ref} for r in f.itertuples()]
+
+
 def cells(v: Version, geom, year: int, month: int) -> dict:
     """The area's whole 1-degree cells for one month, each with its own count, threshold and flag."""
     cs = v.cells_1deg_of(geom)
     boxes = shapely.box(cs["sw_lon"], cs["sw_lat"], cs["sw_lon"] + 1, cs["sw_lat"] + 1)
     partly = ~shapely.covers(geom, boxes)
-    f = v.flags[(v.flags["year"] == year) & (v.flags["month"] == month)]
-    f = cs.merge(f, on=["sw_lon", "sw_lat"], how="left")
-    out = []
-    for r, part in zip(f.itertuples(), partly):
-        out.append({"sw_lon": int(r.sw_lon), "sw_lat": int(r.sw_lat), "size_deg": 1,
-                    "flag_state": r.flag_state if isinstance(r.flag_state, str) else "outside_record",
-                    "count": None if np.isnan(r.count) else r1(r.count),
-                    "threshold": None if np.isnan(r.threshold) or np.isnan(r.count) else r1(r.threshold),
-                    "partly_inside": bool(part), "evidence_class": r.evidence_class,
-                    "provisional": bool(r.provisional) if isinstance(r.provisional, (bool, np.bool_)) else False,
-                    "reference_year": bool(grids.reference_year(year))})
+    out = [row | {"partly_inside": bool(part)} for row, part in zip(_cell_rows(v, cs, year, month), partly)]
     return {"record_version": v.record_version, "data_through": v.data_through.isoformat(),
             "cautions": [{"code": c} for c in core_aoi.scale_cautions(geom)],
             "month": f"{year:04d}-{month:02d}",
             "flag_reference_years": {"start_year": grids.HISTORY_YEARS[0], "end_year": grids.HISTORY_YEARS[1]},
             "cells": out}
+
+
+def raw_splice(cal: dict) -> dict:
+    """Story 7.1: the raw splice of a calendar answer. The counts are the calendar's own per-satellite raw
+    counts, so the query and cleaning are the record's. The colour classes use the record's colour breaks,
+    so the scale does not change when the values do."""
+    breaks = cal["statistics"]["colour_breaks"]
+    months = []
+    for m in cal["months"]:
+        year, month = int(m["month"][:4]), int(m["month"][5:])
+        count = splice.splice_count(year, month, m["raw"]["aqua"], m["raw"]["snpp"])
+        reason = None if count is not None else (m["null_reason"] or "outside_coverage")
+        months.append({"month": m["month"], "count": None if count is None else r1(count), "null_reason": reason,
+                       "source": None if count is None else splice.source(year, month),
+                       "early_bad_scan": count is not None and splice.early_bad_scan(year, month),
+                       "colour_class": stats.class_index(None if count is None else r1(count), breaks)})
+    return {"record_version": cal["record_version"], "data_through": cal["data_through"],
+            "cautions": cal["cautions"], "unit_label": cal["unit_label"], "aoi": cal["aoi"], "range": cal["range"],
+            "splice_from": f"{splice.SPLICE_FIRST[0]:04d}-{splice.SPLICE_FIRST[1]:02d}",
+            "early_bad_scan_through": f"{splice.EARLY_BAD_SCAN_LAST[0]:04d}-{splice.EARLY_BAD_SCAN_LAST[1]:02d}",
+            "colour_breaks": breaks, "months": months}
+
+
+def season_to_date(v: Version, geom, name, year: int, regions: dict) -> dict:
+    """Story 7.5: the year's running total against the median and band of complete past years' running totals."""
+    aoi, _ = _aoi(v, geom, name, regions)
+    _, series, complete, _ = _record_series(v, geom)
+    dt = v.data_through
+    ref = record.meta_dates(dt)["reference_period"]
+    st = stats.season_to_date(series, complete, year, reference_years=(ref["start_year"], ref["end_year"]))
+    months = []
+    for p in st["months"]:
+        t = (year, p["month"])
+        months.append({
+            "month": _ym(t), "cumulative": r1(p["cumulative"]), "to_date": t == (dt.year, dt.month),
+            "median": r1(p["median"]), "band_low": r1(p["band_low"]), "band_high": r1(p["band_high"])})
+    return {
+        "record_version": v.record_version, "data_through": dt.isoformat(),
+        "cautions": [{"code": c} for c in core_aoi.scale_cautions(geom)],
+        "unit_label": UNIT_LABEL, "aoi": aoi, "year": year, "start": 0.0,
+        "resolution": "month",
+        "band": {"lower_percentile": st["band"][0], "upper_percentile": st["band"][1]},
+        "reference_period": ref, "past_years": st["past_years"],
+        "months": months,
+    }
+
+
+def month_source(year: int, month: int, data_through: date) -> str | None:
+    """Where a month's counts come from: real Aqua through the record switch, converted VIIRS after; null outside the record."""
+    if record.month_state(year, month, data_through=data_through)[0] == "null":
+        return None
+    return "aqua_real" if (year, month) <= (record.AQUA_LAST.year, record.AQUA_LAST.month) else "viirs_converted"
+
+
+def world_cells(v: Version, year: int, month: int, regions: dict) -> dict:
+    """Story 8.9: every 1-degree cell the store holds, for one month. Cells outside the loaded extents
+    are absent (not zero), and so are the cells of an extent whose month has no feeding day loaded.
+    Until the world store exists this is the evaluated regions' extents; `coverage` says which."""
+    cs = v.evidence
+    keep = np.zeros(len(cs), bool)
+    boxes = shapely.box(cs["sw_lon"], cs["sw_lat"], cs["sw_lon"] + 1, cs["sw_lat"] + 1)
+    for name, box in v.extents.items():
+        if (year, month) not in v.uncovered(name):
+            keep |= shapely.covers(box, boxes)
+    cs = cs[keep].reset_index(drop=True)
+    src = month_source(year, month, v.data_through)
+    return {"record_version": v.record_version, "data_through": v.data_through.isoformat(),
+            "month": f"{year:04d}-{month:02d}", "source": src, "size_deg": 1,
+            "flag_reference_years": {"start_year": grids.HISTORY_YEARS[0], "end_year": grids.HISTORY_YEARS[1]},
+            "coverage": meta(v, regions)["coverage"],
+            "cells": [{k: x for k, x in c.items() if k != "size_deg"} | {"source": src} for c in _cell_rows(v, cs, year, month)]}

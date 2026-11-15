@@ -134,6 +134,7 @@ export const COPY = {
       { id: "viirs", name: "VIIRS 375 m active-fire hotspots from FIRMS, standard and near real time", satellites: ["SNPP", "NOAA20"] },
       { id: "viirs-swath", name: "The VIIRS swath product used to fit the conversion", satellites: ["SNPP"] },
       { id: "natural-earth", name: "Natural Earth land outlines, for the land-only rule", satellites: [] },
+      { id: "natural-earth-admin", name: "Natural Earth country and first-level region outlines, for picking an area by name", satellites: [] },
     ],
     evidenceHeading: "Evidence",
     evidenceLink: "How the conversion scored, and what the scores can't show",

@@ -4,7 +4,10 @@ import { SERVICE_BASE_URL } from "../config";
 
 export type Meta = components["schemas"]["Meta"];
 export type Calendar = components["schemas"]["Calendar"];
+export type RawSplice = components["schemas"]["RawSplice"];
 export type CalendarRequest = components["schemas"]["CalendarRequest"];
+export type Season = components["schemas"]["Season"];
+export type SeasonRequest = components["schemas"]["SeasonRequest"];
 export type HotspotsCsvRequest = components["schemas"]["HotspotsCsvRequest"];
 export type AoiRequest = CalendarRequest["aoi"];
 export type Problem = components["schemas"]["Problem"];
@@ -17,6 +20,7 @@ const STATUS: Record<ProblemCode, number> = {
   too_large_for_sync: 413,
   no_land: 422,
   rate_limited: 429,
+  invalid_reference_period: 400, // Story 8.3
 };
 
 // The UI looks the user-facing sentence up by code; the client carries none.
@@ -34,8 +38,12 @@ export class ProblemError extends Error {
 export interface ServiceClient {
   getMeta(): Promise<Meta>;
   postCalendar(req: CalendarRequest): Promise<Calendar>;
+  /** Story 7.1: the raw splice. Optional so a service without it (older tests) still fits. */
+  postRawSplice?(req: CalendarRequest): Promise<RawSplice>;
   postAnalyticsCsv(req: CalendarRequest): Promise<string>;
   postHotspotsCsv(req: HotspotsCsvRequest): Promise<string>;
+  /** Story 7.3/7.4. Optional so existing test doubles stay valid; the page shows no profile without it. */
+  postSeason?(req: SeasonRequest): Promise<Season>;
 }
 
 /** A date range as the contract sends it: first and last day (UTC), both included. */
@@ -57,9 +65,10 @@ export function wholeRecord(meta: Meta): DateRange {
  * as is, /hotspots.csv with its own options added. A range of null is the whole
  * record. /cells takes one month and no range (CellsRequest).
  */
-export function rangeRequest(meta: Meta, aoi: AoiRequest, range: DateRange | null): CalendarRequest {
+export function rangeRequest(meta: Meta, aoi: AoiRequest, range: DateRange | null, sharedScaleWith?: AoiRequest): CalendarRequest {
   const { start, end } = range ?? wholeRecord(meta);
-  return { record_version: meta.record_version, aoi, start, end };
+  // Story 8.7: naming a second area asks the service for one set of colour classes for both.
+  return { record_version: meta.record_version, aoi, start, end, ...(sharedScaleWith ? { shared_scale_with: sharedScaleWith } : {}) };
 }
 
 async function fromFixture<T>(load: () => Promise<{ default: unknown }>): Promise<T> {
@@ -67,7 +76,9 @@ async function fromFixture<T>(load: () => Promise<{ default: unknown }>): Promis
 }
 
 const loadMeta = () => import("../../../contract/fixture/meta.json");
+const loadRawSplice = () => import("../../../contract/fixture/examples/raw_splice.json");
 const loadCalendar = () => import("../../../contract/fixture/calendar.json");
+const loadSeason = () => import("../../../contract/fixture/season.json");
 
 function fixtureClient(): ServiceClient {
   return {
@@ -84,6 +95,23 @@ function fixtureClient(): ServiceClient {
         });
       }
       return fromFixture<Calendar>(loadCalendar);
+    },
+    async postRawSplice(req) {
+      const meta = await fromFixture<Meta>(loadMeta);
+      if (req.record_version !== meta.record_version) {
+        throw new ProblemError({ type: "about:blank", title: "version_superseded", status: STATUS.version_superseded, code: "version_superseded", current_record_version: meta.record_version });
+      }
+      return fromFixture<RawSplice>(loadRawSplice);
+    },
+    async postSeason(req) {
+      const meta = await fromFixture<Meta>(loadMeta);
+      if (req.record_version !== meta.record_version) {
+        throw new ProblemError({
+          type: "about:blank", title: "version_superseded", status: STATUS.version_superseded,
+          code: "version_superseded", current_record_version: meta.record_version,
+        });
+      }
+      return fromFixture<Season>(loadSeason);
     },
     // The fixture holds no CSV; downloads need the service.
     postAnalyticsCsv: () => Promise.reject(new Error("fixture mode serves no CSV")),
@@ -122,6 +150,12 @@ export function createClient(
     },
     async postCalendar(req) {
       return parse<Calendar>(await post("/calendar", req));
+    },
+    async postRawSplice(req) {
+      return parse<RawSplice>(await post("/raw_splice", req));
+    },
+    async postSeason(req) {
+      return parse<Season>(await post("/season", req));
     },
     async postAnalyticsCsv(req) {
       return parseText(await post("/analytics.csv", req));
