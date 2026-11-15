@@ -679,6 +679,18 @@ The first draft passed its tests but an independent review found it could not ca
 
 The points where the plan left room are listed in `DECISIONS.md` ("Contract 0.2.0"). Both owners have agreed to them.
 
+## Story 6.4: the public link (branch `teammate/6.4-public-link`, in progress, 15 Nov)
+
+- Fixed before any deploy: `pyyaml` (used by the service since contract 0.4.0) and `pydantic` are runtime dependencies now; the host installs runtime dependencies only, so the service would not have started. See `DECISIONS.md`.
+- Waiting on the lead's host choice (Story 2.8 options) before deploying the service and web with `VITE_SERVICE_BASE_URL` and `CORS_ORIGINS`, measuring the hosted p95, and setting a keep-warm.
+
+| Criterion | Test or evidence |
+| --- | --- |
+| The hosted service starts with runtime dependencies only | `test_6_4_every_runtime_import_of_the_service_is_a_runtime_dependency` |
+| AC1 first request after an hour idle within the target | Not done (host not chosen) |
+| AC2 a failing refresh leaves the last good version | `test_2_6_ad11_*` (store); hosted check not done |
+| AC3 free limits against the judging period | Not done |
+
 ## Next
 
 From the lead's review of PRs 3 to 11 and the Codex adversarial review of the prototype (both 14 Nov; Codex: needs attention, three high findings, all folded into item 1). Merged with two fixes: `/meta` from a store now says contract 0.3.0 (a test ties it to `openapi.yaml`), and a hotspot search with no record file in its range gives the header and no rows instead of a 500.

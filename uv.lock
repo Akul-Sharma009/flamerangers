@@ -57,6 +57,8 @@ dependencies = [
     { name = "numpy" },
     { name = "pandas" },
     { name = "pyarrow" },
+    { name = "pydantic" },
+    { name = "pyyaml" },
     { name = "shapely" },
     { name = "uvicorn" },
 ]
@@ -67,7 +69,6 @@ dev = [
     { name = "jsonschema" },
     { name = "openapi-spec-validator" },
     { name = "pytest" },
-    { name = "pyyaml" },
     { name = "referencing" },
 ]
 
@@ -78,6 +79,8 @@ requires-dist = [
     { name = "numpy", specifier = "==2.5.4" },
     { name = "pandas", specifier = "==3.1.1" },
     { name = "pyarrow", specifier = "==26.0.1" },
+    { name = "pydantic", specifier = "==2.14.3" },
+    { name = "pyyaml", specifier = "==6.0.3" },
     { name = "shapely", specifier = "==2.2.0" },
     { name = "uvicorn", specifier = "==0.54.0" },
 ]
@@ -88,7 +91,6 @@ dev = [
     { name = "jsonschema", specifier = ">=4.26.0" },
     { name = "openapi-spec-validator", specifier = ">=0.9.0" },
     { name = "pytest" },
-    { name = "pyyaml", specifier = ">=6.0.3" },
     { name = "referencing", specifier = ">=0.37.0" },
 ]
 
