@@ -793,7 +793,7 @@ The points where the plan left room are listed in `DECISIONS.md` ("Contract 0.2.
 
 1. DONE (19:55): PR 17 and PR 18 merged, `HF_DATASET` set; the daily workflow's first run passed from the fix branch (run 43709476744) and production serves `20261114-072d10c1`. Lead: merge the fix PR (`teammate/2.9-ci-fix`) so the 09:30 schedule uses it. The submission's daily-refresh sentence is filled.
 2. Lead, 20:15: world or six regions (data owner recommends six regions; see the 2.8 AC3 entry in `DECISIONS.md`).
-3. Data owner, about 20:30: 6.2 fresh-clone run on final master.
+3. DONE (20:00): 6.2 fresh clone of master `bf17ab7` passes every check; see `DECISIONS.md` (Story 6.2, final master).
 4. Before judging: watch Active CPU on the Vercel usage page (Hobby: 4 h a month); keep-warm runs every 5 minutes.
 5. Open, not before the build stop: `GZipMiddleware` for `/world_cells` (lead's code); the 400 answers' placeholder `record_version`; re-record the parity pass after any `burncal/core` change.
 

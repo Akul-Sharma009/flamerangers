@@ -89,7 +89,7 @@ development_status:
 
   epic-6: in-progress
   6-1-nasa-datasets-and-references-t-drafts-a-reviews: review  # draft in docs/submission/datasets-references.md; lead places the text
-  6-2-readme-and-fresh-clone-run-both-t-runs-the-clone: in-progress  # fresh clone of master passed 15 Nov after PR 12
+  6-2-readme-and-fresh-clone-run-both-t-runs-the-clone: review  # fresh clone of final master bf17ab7 passed 15 Nov 20:00 (526 Python, 394 web tests; gitleaks clean)
   6-3-security-and-readiness-checks-a: done  # 15 Nov: /security-review and /codex:review (base 596416b) clean; gitleaks 101 commits + files, no leaks; pip-audit and npm audit clean
   6-4-the-link-stays-up-through-judging-t: in-progress  # six regions (20261113-19dfbcc8) in production from the bundle, p95 1.14 s; web live on Vercel, CORS allows its origin, keep-warm workflow merged (PR 16)
   6-5-demo-assets-and-submission-text-a: in-progress
