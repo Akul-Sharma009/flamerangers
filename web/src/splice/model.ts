@@ -21,8 +21,10 @@ export function withSplice(calendar: Calendar, splice: RawSplice): Calendar {
         ...m,
         count: s.count, null_reason: s.null_reason, source: null, colour_class: s.colour_class,
         ratio_to_median: null, anomaly_count: null, anomaly_pct: null, anomaly_class: null, rank: null,
+        cells_flagged_strong: null, cells_flagged_marginal: null,
       };
     }),
+    statistics: { ...calendar.statistics, top_years: [] },
     year_totals: calendar.year_totals.map((y) => ({ ...y, total: null, rank: null, share_of_max: null })),
   };
 }
@@ -44,9 +46,10 @@ export function bars(calendar: Calendar, splice: RawSplice, series: Series): Bar
   });
 }
 
-/** The tallest served count of either series: the y axis is the same in both views, so the step shows. */
-export function axisTop(calendar: Calendar, splice: RawSplice): number {
+/** The tallest served count of the shown series (each view has its own axis), at least the top colour break. */
+export function axisTop(calendar: Calendar, splice: RawSplice, series: Series): number {
   let top = calendar.statistics.colour_breaks.at(-1) ?? 0;
-  for (const c of [...calendar.months.map((m) => m.count), ...splice.months.map((m) => m.count)]) if (c !== null && c > top) top = c;
+  const counts = series === "record" ? calendar.months.map((m) => m.count) : splice.months.map((m) => m.count);
+  for (const c of counts) if (c !== null && c > top) top = c;
   return top;
 }

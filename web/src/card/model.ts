@@ -53,6 +53,7 @@ export type CardModel =
       noaa20: { sentence: string | null; figures: Figure[] } | null;
       ruler: RulerData;
       rulerCaption: string | null;
+      rulerScale: string | null;
       /** The second sentence: the highest month on record. null if none served. */
       recordHigh: { sentence: string | null; figures: Figure[] } | null;
     }
@@ -105,7 +106,8 @@ function buildLoaded(calendar: Calendar, meta: Meta, cm: CurrentMonth, sentences
     ? fill(sentences.current_month_count, values)
     : fill(sentences.current_month, values);
   const usual = fill(sentences.current_month_usual, values);
-  const flagged = fill(sentences.cells_flagged, values);
+  const noFlags = cm.cells_flagged_strong === 0 && cm.cells_flagged_marginal === 0;
+  const flagged = (noFlags ? fill(sentences.cells_flagged_none, values) : null) ?? fill(sentences.cells_flagged, values);
 
   const figures: Figure[] = [];
   // With no typical activity there is no ratio at all, not even a dash.
@@ -151,6 +153,7 @@ function buildLoaded(calendar: Calendar, meta: Meta, cm: CurrentMonth, sentences
     noaa20: cm.validated_satellite ? null : noaa20(meta, sentences),
     ruler: rulerData(cm, year, monthName),
     rulerCaption: fill(sentences.ruler_caption, values),
+    rulerScale: fill(sentences.ruler_scale, values),
     recordHigh: recordHigh(calendar, sentences),
   };
 }
@@ -161,8 +164,8 @@ function fedBy(calendar: Calendar, month: string): string | null {
   if (!m) return null;
   const parts = m.inputs
     .filter((i) => i.feeds_record)
-    .map((i) => `${messages.labels.satellite[i.satellite]}, ${formatCount(i.days)} ${i.days === 1 ? "day" : "days"}`);
-  return parts.length ? parts.join("; ") : null;
+    .map((i) => `${messages.labels.satellite[i.satellite]}, ${formatCount(i.days)}\u00a0${i.days === 1 ? "day" : "days"}`);
+  return parts.length ? parts.join("\n") : null;
 }
 
 /** AR-23: NOAA-20 against Suomi NPP, reported only. "Not yet run" until served. */

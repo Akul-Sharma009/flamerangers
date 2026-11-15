@@ -57,7 +57,7 @@ const render = (calendar: Calendar, m: Meta = meta, sentences?: Sentences, width
 
 /** The value of the figure `key` in rendered markup, or null. */
 function figure(html: string, key: string): string | null {
-  const m = html.match(new RegExp(`data-figure="${key}"><dt>[^<]*</dt><dd>([^<]*)</dd>`));
+  const m = html.match(new RegExp(`data-figure="${key}"><dt>[^<]*</dt><dd[^>]*>([^<]*)</dd>`));
   return m ? m[1].replace(/&amp;/g, "&") : null;
 }
 
@@ -81,7 +81,7 @@ describe("AC1: the card shows every served value of the current month", () => {
     expect(figure(html, "reference_period")).toBe("2003–2025");
     expect(figure(html, "same_days")).toBe(`1–${cm.day} November`);
     expect(figure(html, "data_through")).toBe("13 November 2026"); // served 2026-11-13
-    expect(figure(html, "satellite")).toBe("Suomi NPP (VIIRS), 2 days; NOAA-20 (VIIRS), 11 days");
+    expect(figure(html, "satellite")).toBe("Suomi NPP (VIIRS), 2\u00a0days\nNOAA-20 (VIIRS), 11\u00a0days");
   });
 
   it("the NRT label is the contract's quality sentence; SP gets its own", () => {

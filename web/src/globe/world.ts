@@ -123,7 +123,7 @@ export function markFeatures(w: WorldCells) {
 
 export const STATE_ORDER: FlagState[] = ["strong", "marginal", "none", "not_flaggable", "outside_record"];
 
-export interface Palette { strong: string; marginal: string; none: string; not_flaggable: string; outside_record: string; ink: string; land: string; rule: string; paper: string }
+export interface Palette { strong: string; marginal: string; none: string; not_flaggable: string; outside_record: string; ink: string; land: string; rule: string; paper: string; tint: string; tintOpacity: number }
 
 /**
  * The picture's map: a flat world (longitude across, latitude down) with land,
@@ -136,12 +136,12 @@ export function worldMapMarkup(w: WorldCells, land: string, p: Palette, scale = 
   const X = (lon: number) => (lon + 180) * scale;
   const Y = (lat: number) => (90 - lat) * scale;
   const out: string[] = [
-    `<defs><pattern id="wm-hatch" width="4" height="4" patternUnits="userSpaceOnUse" patternTransform="rotate(45)"><line x1="0" y1="0" x2="0" y2="4" stroke="${p.rule}" stroke-width="1"/></pattern></defs>`,
     `<rect width="${width}" height="${height}" fill="${p.paper}" stroke="${p.rule}"/>`,
-    `<path d="${land}" fill="url(#wm-hatch)" stroke="${p.rule}" stroke-width="0.5"/>`,
+    `<path d="${land}" fill="${p.land}" stroke="${p.rule}" stroke-width="0.5"/>`,
   ];
   for (const c of w.cells) {
-    out.push(`<rect x="${X(c.sw_lon)}" y="${Y(c.sw_lat + 1)}" width="${scale}" height="${scale}" fill="${p[c.flag_state]}" stroke="${p.ink}" stroke-width="0.2"/>`);
+    if (c.flag_state === "outside_record") continue;
+    out.push(`<rect x="${X(c.sw_lon)}" y="${Y(c.sw_lat + 1)}" width="${scale}" height="${scale}" fill="${p.tint}" fill-opacity="${p.tintOpacity}"/>`);
   }
   for (const c of flaggedCells(w)) {
     const cx = X(c.sw_lon + 0.5);

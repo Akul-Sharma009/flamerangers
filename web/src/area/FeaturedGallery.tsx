@@ -1,15 +1,10 @@
 // The featured-area gallery (Story 8.8): the six evaluated regions as cards, so a
 // judge reaches each in one click. A card shows the region's outline (drawn from
 // contract/regions.geojson, unchanged; drawing is display, not a number), the
-// contract's evidence-class sentence, and, for the southern African savanna, the
-// Story 3.6 caveat sentence before the area is opened.
+// contract's evidence-class sentence. The whole card opens the area (button's ::after
+// stretches over it).
 import { messages } from "../api/messages";
 import type { AoiInput, FeaturedArea } from "./featured";
-
-/** Featured areas that carry a region caveat, keyed by region_id; the sentence is the contract's. */
-const CARD_CAVEAT: Record<string, keyof typeof messages.labels.region_caveat> = {
-  southern_africa: "southern_africa",
-};
 
 type Pt = [number, number];
 
@@ -48,7 +43,6 @@ export function FeaturedGallery({ areas, currentName, onSelect }: GalleryProps) 
   return (
     <ul className="featured gallery">
       {areas.map((a) => {
-        const caveatKey = CARD_CAVEAT[a.id];
         const label = messages.labels.evidence_class[a.evidenceClass];
         return (
           <li key={a.id} className="card" data-region={a.id} data-class={a.evidenceClass}>
@@ -65,7 +59,6 @@ export function FeaturedGallery({ areas, currentName, onSelect }: GalleryProps) 
                 {a.name}
               </button>
               <p className="card-label" id={`card-label-${a.id}`}>{label}</p>
-              {caveatKey ? <p className="caution card-caveat" data-caveat={caveatKey}>{messages.labels.region_caveat[caveatKey]}</p> : null}
             </div>
           </li>
         );

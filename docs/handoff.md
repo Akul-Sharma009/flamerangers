@@ -874,3 +874,7 @@ Checks on the merged master: `uv run pytest` 310 passed, 1 skipped (Sumatra reco
 ## Story 8.8: featured-area gallery
 
 - Merged 15 Nov. The Featured tab of the area picker is now six cards (`web/src/area/FeaturedGallery.tsx`): outline from `contract/regions.geojson`, the contract's evidence-class sentence, and the southern African savanna caveat sentence on its card before opening. Opening keeps the dates and the link shows `area=<id>`. No new wording; no service change. Details: DECISIONS.md.
+
+## UI fixes after the lead's review
+
+- 15 Nov, not committed yet. Seventeen fixes the lead checked in the browser (fixture mode): clickable gallery cards without the caveat, ruler scale note and labels, own y axis per record-chart view, trend year labels, null months in the hotspot map, the analysis tab block (seasonal profile, running total, trend, record chart), raw view without record marks, whole-page compare with linked hover, plainer globe, sticky About margin, lighter caveat cell map, select-based date pickers. Tests updated for the intended changes. Checks: pytest (526), check_imports, tsc, vitest (394), build, wording.py passed. Contract wording to agree with the data owner: new `sentences.ruler_scale` and `sentences.cells_flagged_none`, reworded `notes.globe_uncovered`. Not yet checked against the live service. Details: DECISIONS.md.

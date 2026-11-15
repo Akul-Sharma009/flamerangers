@@ -88,13 +88,14 @@ export function ComparedCalendars({
   pair, measure, onMeasure, view, onView,
 }: { pair: Pair; measure: Measure; onMeasure: (m: Measure) => void; view: View; onView: (v: View) => void }) {
   const both =  pair && pair.a.status === "ready" && pair.b.status === "ready" ? { a: pair.a, b: pair.b } : null;
+  const [linked, setLinked] = useState<string | null>(null);
   const same = both ? sharesScale(both.a.calendar, both.b.calendar) : false;
   return (
     <>
       {both && same ? <p className="comparenote" data-compare="shared-scale">{W.sharedScale}</p> : null}
       <div className="comparegrids">
-        <Side label={W.first} result={pair.a} measure={measure} onMeasure={onMeasure} view={view} onView={onView} />
-        <Side label={W.second} result={pair.b} measure={measure} onMeasure={onMeasure} view={view} onView={onView} />
+        <Side label={W.first} result={pair.a} measure={measure} onMeasure={onMeasure} view={view} onView={onView} linked={linked} onLinked={setLinked} />
+        <Side label={W.second} result={pair.b} measure={measure} onMeasure={onMeasure} view={view} onView={onView} linked={linked} onLinked={setLinked} />
       </div>
       {both && !same ? <p className="comparenote" data-compare="not-shared" role="status">{W.notShared}</p> : null}
       {/* One key for both: the classes are identical. */}
@@ -105,8 +106,8 @@ export function ComparedCalendars({
 }
 
 function Side({
-  label, result, measure, onMeasure, view, onView,
-}: { label: string; result: AreaResult; measure: Measure; onMeasure: (m: Measure) => void; view: View; onView: (v: View) => void }) {
+  label, result, measure, onMeasure, view, onView, linked, onLinked,
+}: { linked: string | null; onLinked: (k: string | null) => void; label: string; result: AreaResult; measure: Measure; onMeasure: (m: Measure) => void; view: View; onView: (v: View) => void }) {
   if (result.status !== "ready") {
     return (
       <div className="compareside" data-side={label}>
@@ -125,7 +126,7 @@ function Side({
         {formatCount(c.aoi.area_km2)} km² · {formatYearMonth(c.range.start.slice(0, 7))} to {formatYearMonth(c.range.end.slice(0, 7))} · {c.unit_label} · record {c.record_version}
       </p>
       <CaveatLine calendar={c} />
-      <CalendarGrid calendar={c} meta={result.meta} measure={measure} onMeasureChange={onMeasure} view={view} onViewChange={onView} />
+      <CalendarGrid calendar={c} meta={result.meta} measure={measure} onMeasureChange={onMeasure} view={view} onViewChange={onView} linked={linked} onShownChange={onLinked} />
     </div>
   );
 }

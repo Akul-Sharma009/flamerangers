@@ -6,8 +6,8 @@
 
 .evmap { margin: 8px 0 0; }
 .evmap svg { display: block; max-width: 100%; height: auto; }
-.evcell { stroke: var(--ink); stroke-width: 0.8; }
-.ev-line { stroke: var(--ink); stroke-width: 0.9; }
+.evcell { stroke: var(--rule); stroke-width: 0.6; }
+.ev-line { stroke: var(--muted); stroke-width: 0.7; }
 .evkey { list-style: none; margin: 6px 0 0; padding: 0; font-size: 11.5px; color: var(--muted); }
 .evkey li { display: flex; align-items: flex-start; gap: 6px; margin-bottom: 3px; }
 .evkey svg { flex: none; margin-top: 1px; }

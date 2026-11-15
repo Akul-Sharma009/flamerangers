@@ -59,6 +59,7 @@ export function CurrentMonthCard({
       </ul>
       {card.rulerCaption ? <p className="rulercap">{card.rulerCaption}</p> : null}
       <Ruler data={card.ruler} width={rulerWidth} />
+      {card.rulerScale ? <p className="rulerscale">{card.rulerScale}</p> : null}
       {card.recordHigh ? (
         <div className="second">
           {card.recordHigh.sentence !== null ? <p>{card.recordHigh.sentence}</p> : <Figures figures={card.recordHigh.figures} />}
@@ -74,7 +75,7 @@ function Figures({ figures, small = false }: { figures: Figure[]; small?: boolea
       {figures.map((f) => (
         <div key={f.key} data-figure={f.key}>
           <dt>{f.label}</dt>
-          <dd>{f.value}</dd>
+          <dd className={f.key === "satellite" ? "lines" : undefined}>{f.value}</dd>
         </div>
       ))}
     </dl>
@@ -101,12 +102,18 @@ function Ruler({ data, width: fixedWidth }: { data: RulerData; width?: number })
     <div className="ruler" ref={wrapRef}>
       {l ? (
         <svg width={l.width} height={l.height} viewBox={`0 0 ${l.width} ${l.height}`} role="img" aria-label={data.name}>
+          <g transform={`translate(0 ${l.top})`}>
           <line className="axis" x1={l.axis.x1} x2={l.axis.x2} y1={l.axis.y} y2={l.axis.y} />
           {l.past.map((p) => (
             <circle key={p.year} className="past" cx={p.x} cy={p.y} r={4} data-year={p.year}>
               <title>{p.label}</title>
             </circle>
           ))}
+          {l.pastLabel ? (
+            <text className="pastlabel" x={l.pastLabel.x} y={96} textAnchor={l.pastLabel.anchor}>
+              {l.pastLabel.label}
+            </text>
+          ) : null}
           {l.median ? (
             <g className="median">
               <line x1={l.median.x} x2={l.median.x} y1={30} y2={62} />
@@ -127,6 +134,7 @@ function Ruler({ data, width: fixedWidth }: { data: RulerData; width?: number })
               </text>
             </g>
           ) : null}
+          </g>
         </svg>
       ) : null}
       <details className="rulertable">

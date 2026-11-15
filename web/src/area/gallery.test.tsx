@@ -56,12 +56,10 @@ describe("Story 8.8 featured gallery", () => {
     }
   });
 
-  it("shows the Story 3.6 savanna caveat on that card only, before the area is opened", () => {
-    const sentence = messages.labels.region_caveat.southern_africa;
+  it("leaves the region caveats off the cards (they show once the area is opened)", () => {
     const html = gallery();
-    expect(html.split(sentence).length - 1).toBe(1);
-    const card = html.split('<li class="card"').find((c) => c.includes('data-region="southern_africa"'))!;
-    expect(plain(card)).toContain(sentence);
+    expect(html).toContain('data-region="southern_africa"');
+    expect(html).not.toContain(messages.labels.region_caveat.southern_africa);
     expect(html).not.toContain(messages.labels.region_caveat.untuned_region);
   });
 

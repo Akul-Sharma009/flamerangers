@@ -26,6 +26,8 @@ export interface HotspotMonthPanelProps {
   aoi: AoiInput;
   /** "YYYY-MM": the month picked in the grid. */
   month: string;
+  /** Set when the month's served count is null: no loading, the served reason is shown. */
+  nullMonth?: { null_reason: S["NullReason"] | null };
   loadHotspots?: HotspotLoader;
   loadCells?: CellsLoader;
   /** Tests swap the WebGL map for a stand-in. */
@@ -33,7 +35,7 @@ export interface HotspotMonthPanelProps {
 }
 
 export function HotspotMonthPanel({
-  meta, aoi, month, loadHotspots = defaultLoadHotspots, loadCells = defaultLoadCells, MapComponent,
+  meta, aoi, month, nullMonth, loadHotspots = defaultLoadHotspots, loadCells = defaultLoadCells, MapComponent,
 }: HotspotMonthPanelProps) {
   const [outcome, setOutcome] = useState<HotspotOutcome | null>(null);
   const [cells, setCells] = useState<Cells | null>(null);
@@ -45,7 +47,9 @@ export function HotspotMonthPanel({
     cache.current.clear();
   }, [meta.record_version, geometryKey]);
 
+  const isNull = !!nullMonth;
   useEffect(() => {
+    if (isNull) return;
     const hit = cache.current.get(month);
     if (hit) {
       setOutcome(hit.outcome);
@@ -67,7 +71,18 @@ export function HotspotMonthPanel({
       live = false;
       clearTimeout(t);
     };
-  }, [month, meta, aoi, loadHotspots, loadCells]);
+  }, [month, meta, aoi, loadHotspots, loadCells, isNull]);
+
+  if (nullMonth) {
+    const heading = fill(words("heading"), { month: formatYearMonth(month) });
+    const reason = nullMonth.null_reason ? messages.labels.null_reason[nullMonth.null_reason] : "";
+    return (
+      <section className="hotspotmap" aria-label={heading} data-month={month}>
+        <h3>{heading}</h3>
+        {reason ? <p className="hm-note" role="status">{reason}</p> : null}
+      </section>
+    );
+  }
 
   return (
     <HotspotMonthView
