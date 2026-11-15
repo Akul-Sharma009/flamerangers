@@ -1,0 +1,124 @@
+{
+ "label": "Reported only, not a validation against Aqua: converted NOAA-20 counts against converted Suomi NPP counts, January 2022 to October 2026, C1 unchanged.",
+ "test_satellite": "NOAA-20",
+ "reference_satellite": "Suomi NPP",
+ "period_start": "2022-01",
+ "period_end": "2026-10",
+ "error": "mean absolute difference per 1-degree land cell-month (whole region: per month)",
+ "bias": "(NOAA-20 total minus Suomi NPP total) over Suomi NPP total, percent",
+ "pooled": {
+  "1deg": {
+   "mean_abs_difference": 5.018844648157742,
+   "bias_pct": 7.176642352646355,
+   "cell_months": 46632,
+   "test_total": 2031198.0480736406,
+   "reference_total": 1895187.2380833987
+  }
+ },
+ "regions": {
+  "sumatra": {
+   "name": "Sumatra",
+   "1deg": {
+    "mean_abs_difference": 1.0178654780098795,
+    "bias_pct": 4.94040155383266,
+    "cell_months": 4698,
+    "test_total": 27896.83396566159,
+    "reference_total": 26583.502209443122
+   },
+   "region": {
+    "mean_abs_difference": 43.3840291893472,
+    "bias_pct": 4.940401553832646,
+    "cell_months": 58,
+    "test_total": 27896.83396566159,
+    "reference_total": 26583.502209443126
+   }
+  },
+  "australia_grassland": {
+   "name": "Australian grassland",
+   "1deg": {
+    "mean_abs_difference": 3.9375701072682685,
+    "bias_pct": 0.45794667192149235,
+    "cell_months": 4698,
+    "test_total": 164704.2984578855,
+    "reference_total": 163953.47895750013
+   },
+   "region": {
+    "mean_abs_difference": 161.87418622269337,
+    "bias_pct": 0.45794667192149235,
+    "cell_months": 58,
+    "test_total": 164704.2984578855,
+    "reference_total": 163953.47895750013
+   }
+  },
+  "amazon_forest": {
+   "name": "Amazon forest",
+   "1deg": {
+    "mean_abs_difference": 3.646695099659014,
+    "bias_pct": 3.1418184684811616,
+    "cell_months": 3248,
+    "test_total": 110320.99792919609,
+    "reference_total": 106960.49339377199
+   },
+   "region": {
+    "mean_abs_difference": 127.15284429521796,
+    "bias_pct": 3.141818468481175,
+    "cell_months": 58,
+    "test_total": 110320.9979291961,
+    "reference_total": 106960.49339377199
+   }
+  },
+  "southern_africa": {
+   "name": "Southern African savanna",
+   "1deg": {
+    "mean_abs_difference": 19.6754008545165,
+    "bias_pct": 7.693448992412935,
+    "cell_months": 8700,
+    "test_total": 1560889.120825312,
+    "reference_total": 1449381.6805284764
+   },
+   "region": {
+    "mean_abs_difference": 2478.662394799179,
+    "bias_pct": 7.693448992412952,
+    "cell_months": 58,
+    "test_total": 1560889.1208253123,
+    "reference_total": 1449381.6805284764
+   }
+  },
+  "siberia": {
+   "name": "Siberian boreal forest",
+   "1deg": {
+    "mean_abs_difference": 0.9378476841939429,
+    "bias_pct": 17.322864580216034,
+    "cell_months": 24360,
+    "test_total": 117294.67914669336,
+    "reference_total": 99975.97618024115
+   },
+   "region": {
+    "mean_abs_difference": 317.6924044547183,
+    "bias_pct": 17.322864580216034,
+    "cell_months": 58,
+    "test_total": 117294.67914669336,
+    "reference_total": 99975.97618024115
+   }
+  },
+  "punjab": {
+   "name": "Punjab cropland",
+   "1deg": {
+    "mean_abs_difference": 5.271233349466216,
+    "bias_pct": 3.641494341847239,
+    "cell_months": 928,
+    "test_total": 50092.11774889185,
+    "reference_total": 48332.10681396572
+   },
+   "region": {
+    "mean_abs_difference": 52.89519074926845,
+    "bias_pct": 3.6414943418472547,
+    "cell_months": 58,
+    "test_total": 50092.11774889185,
+    "reference_total": 48332.106813965715
+   }
+  }
+ },
+ "params_sha256": "8bfbd1ec448a636817b9898fd588fbe6e60e784f0051db97e3f60c7a2939f28c",
+ "code_revision": "ba27753129f2"
+}

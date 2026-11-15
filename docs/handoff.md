@@ -679,6 +679,21 @@ The first draft passed its tests but an independent review found it could not ca
 
 The points where the plan left room are listed in `DECISIONS.md` ("Contract 0.2.0"). Both owners have agreed to them.
 
+## Story 2.10: NOAA-20 against Suomi NPP, reported only (branch `teammate/2.10-noaa20`, 15 Nov)
+
+- Result: `docs/results/noaa20_check_20261115T051158Z.json` (for the lead to copy into `evidence/scoring/`; the evidence page then shows it). Pooled at 1°: mean absolute difference 5.02, bias +7.2%. NOAA-20 is higher in all six regions; **Siberia +17.3%**, the rest +0.5% to +7.7%. Reported to the lead as a finding; C1 unchanged.
+- `/meta` serves the headline once a version is published with `--noaa20-check` (waits for the next publish, so for the host choice).
+- Also on this branch: the Sumatra (September 2006) and Australian threshold misses traced to hotspots on small islands, likely left out of the harness's country files (`docs/cleaning-differences.md`; not confirmed row by row).
+
+| Criterion | Test or evidence |
+| --- | --- |
+| AC1 C1 unchanged on each satellite, Jan 2022 to Oct 2026 | `test_2_10_ac1_c1_is_applied_unchanged_to_each_satellite`, `test_2_10_ac1_excluded_rows_and_rows_outside_the_period_count_nothing` |
+| AC1 error and bias per region, 1° and whole region | `test_2_10_ac1_figures_per_region_at_1deg_and_whole_region`, `burncal/core/test_compare.py`; six-region run above |
+| AC2 file labelled reported only, not a validation | `test_2_10_ac2_the_file_says_reported_only_and_not_a_validation` |
+| AC2 `/meta` serves the headline | `test_2_10_ac2_meta_serves_the_noaa20_headline_rounded_once`, `..._is_null_until_the_run_exists`, `test_2_10_ac2_publish_puts_the_noaa20_headline_in_the_version` |
+| AC2 nothing fitted, no final-set data | The step reads only cleaned rows of 2022–2026 and the frozen params (hash in the file) |
+| AC3 a large difference goes to the lead | Siberia +17.3%, in `DECISIONS.md` and the report |
+
 ## Next
 
 From the lead's review of PRs 3 to 11 and the Codex adversarial review of the prototype (both 14 Nov; Codex: needs attention, three high findings, all folded into item 1). Merged with two fixes: `/meta` from a store now says contract 0.3.0 (a test ties it to `openapi.yaml`), and a hotspot search with no record file in its range gives the header and no rows instead of a 500.

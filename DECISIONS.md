@@ -1010,3 +1010,32 @@ Each entry has: a status (**ASSUMED** or **TESTED**), its evidence, and a "revis
 - **Deployed and rolled back (15 Nov).** With the store pointer on the six-region version, the hosted service (Vercel sin1, code `cbe834c`) answered every area, but slowly: first requests 4.4–32.1 s (Southern Africa's whole extent 32.1 s, its polygon 31.4 s; Sumatra polygon 7.3 s), repeats 1.5–29 s, and one repeat for Siberia's whole extent failed with a 500 after 154 s. The cause, from the runtime error: Hugging Face answered `429 Too Many Requests` ("rate limit your IP"; policy 3,000 requests per 300 s per IP, anonymous). Range reads make many requests, from a shared Vercel address, so the public dataset cannot serve option 1 without a token. The pointer was set back to Sumatra (`20261113-9cedd502`) and the previous deployment promoted within minutes; checked after: `/meta` placeholder false, 20 Sumatra calendars p95 0.95 s, all 200.
 - **Options now (the lead's call):** a Hugging Face token on the host (a secret, which the service does not hold today); another public object store without that limit (Cloudflare R2 or S3: a new account, possibly paid); fewer, larger range requests (bigger row groups, which this test argues against for the cold case); or option 3 (serve the regions whose points fit in `/tmp`).
 - **Revisit if:** first requests from Vercel (sin1) differ from these; or a whole-extent area must meet 10 s on a cold instance, which then needs warming the instance's cache at start-up or a coarser pre-summed table for the cut cells.
+
+## Story 2.5: the Sumatra and Australian threshold misses trace to island hotspots (15 Nov)
+
+- **Status:** ASSUMED (consistent with the evidence; the harness's country files are not on the data owner's machine to confirm row by row)
+- **Decision:** The product keeps hotspots on small islands, because they are land by the product's rule (Natural Earth 1:10m). Nothing is changed to match the harness's history. Both misses are written up in `docs/cleaning-differences.md`.
+  - **Sumatra, September at 105°E 6°S.** Of the product's 41 Aqua hotspots in September 2006, 2 lie on one small island (about 25 km², 105.49°E 5.94°S, near Krakatau). 41 − 2 = 39, the harness's count. Every row is otherwise kept, inside the month and away from cell edges, so cleaning, dates and cell edges are ruled out. Likeliest cause: the harness read the FIRMS country archive file for Indonesia, which is cut to a country outline that leaves out the island; the product reads the area API, which returns everything in the box.
+  - **Australia, 136°E 16°S, months 1, 2, 10, 11, 12.** Not the McArthur River mine (that is the cell below) and not the static mask (no row in the cell is static). In January and February nearly every hotspot in the cell is on small Gulf of Carpentaria islands, and in October to December 8–22% are. Same likely cause.
+- **Evidence:** row checks against Natural Earth 1:10m land in `store/build/clean/*/AQUA_*.parquet` (counts and coordinates in `docs/cleaning-differences.md`).
+- **Revisit if:** the FIRMS country archive files (Indonesia and Australia, MODIS) show the island rows present; then the cause is elsewhere. To confirm, download those two files (no key) and look for the island rows.
+
+## Story 2.10: NOAA-20 against Suomi NPP, reported only (15 Nov)
+
+- **Status:** TESTED (code and run); the figures are reported only, not a validation against Aqua
+- **Decision:** C1 is applied unchanged to each satellite's cleaned rows in the six regions, January 2022 to October 2026, with the record's own region rules and fire seasons. The test plan's error (mean absolute difference per 1° land cell-month; land cells are the 1° cells that meet the region on Natural Earth land, plus any cell holding a hotspot) and bias ((NOAA-20 total − Suomi NPP total) ÷ Suomi NPP total) are computed per region at 1° and whole region (per month), and pooled at 1°. Nothing is fitted or adjusted from the result, no final-set data is read, and C1 is not changed. `convert`'s region, season and C1 steps are factored out without change so both use one implementation. `publish --noaa20-check=<headline.json>` puts the headline into a version and `/meta` serves it, rounded once to 1 decimal; until such a version is published, `/meta` serves `null`.
+- **Result** (`docs/results/noaa20_check_20261115T051158Z.json`, code `ba27753129f2`, the frozen params hash; for the lead to copy into `evidence/scoring/` with its manifest entry):
+
+| Region | 1° mean abs. difference | Bias | 1° cell-months | Whole-region monthly mean abs. difference |
+| --- | --- | --- | --- | --- |
+| Sumatra | 1.02 | +4.9% | 4,698 | 43.4 |
+| Australian grassland | 3.94 | +0.5% | 4,698 | 161.9 |
+| Amazon forest | 3.65 | +3.1% | 3,248 | 127.2 |
+| Southern Africa | 19.68 | +7.7% | 8,700 | 2,478.7 |
+| Siberia | 0.94 | **+17.3%** | 24,360 | 317.7 |
+| Punjab | 5.27 | +3.6% | 928 | 52.9 |
+| Pooled | 5.02 | +7.2% | 46,632 | |
+
+- **Finding for the lead (AC3):** converted NOAA-20 counts are higher than converted Suomi NPP counts in every region, and much higher in Siberia (+17.3%). Since 3 November 2026 only NOAA-20 feeds the record, so the current month may read high against the converted years, most in Siberia. C1 is not changed.
+- **Evidence:** `test_2_10_ac1_*` (C1 unchanged: NOAA-20 rows get the weights the same rows get as Suomi NPP, equal to the record's; excluded rows and rows outside the period count nothing; figures per region at 1° and whole region), `test_2_10_ac2_*` (the file's label; `/meta` serves the headline rounded once, `null` without it; publish carries it and hashes it into the version), `test_2_10_ac1_*` in `burncal/core/test_compare.py`. The refactored `convert` reproduces the built Sumatra records exactly (Suomi NPP 2023, Aqua 2010, NOAA-20 2026: maximum weight difference 0.0). Run: 174 s, 4.3 GB peak.
+- **Revisit if:** the lead wants the card to carry a NOAA-20 caution from this result (a contract change), or a later run uses standard NOAA-20 files for August to October 2026 (this run used near-real-time files for those months, as the record does).
