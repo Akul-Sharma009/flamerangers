@@ -631,7 +631,7 @@ Checks on the merged master: `uv run pytest` 310 passed, 1 skipped (Sumatra reco
 | Sun 09:00 | The six evaluated regions are published (Story 2.8) | Data owner |
 | Before any global run | One global year is measured for size, download time and quota | Lead |
 | Sun 15:00 | Stories 6.5 and 6.1 are started | Lead, data owner |
-| Sun 15:00 | The planning documents the evidence view links to are copied into `docs/planning/`, after the lead has read each | Lead |
+| Sun 15:00 | The planning documents the evidence view links to are copied into `docs/planning/`, after the lead has read each | Lead. Copied 15 Nov: the lead's session pre-screened the three files and the lead approved the copy with two sentences shortened (`docs/planning/README.md`). The security review, gitleaks scan of the history and Codex review are still open. |
 
 ## Things to keep in mind
 

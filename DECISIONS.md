@@ -876,3 +876,12 @@ Each entry has: a status (**ASSUMED** or **TESTED**), its evidence, and a "revis
 - **Caveat mapping:** the card caveat is tied to the region id `southern_africa`; Siberia is also `tested_unseen` but the contract has no caveat sentence for it, so it carries none.
 - **Not done:** the cards show no tuning claim beyond the contract sentence; no gallery outside the picker; no check against a live store (only Sumatra has data there; other regions then show whatever the service answers, unchanged).
 - **Revisit if:** the lead wants the word "locked" on the cards (needs a contract label), or a region gains its own caveat sentence.
+
+## The lead's decisions for Stories 6.2, 6.3 and 6.5 (15 Nov 2026)
+
+- **Status:** ASSUMED (the lead's choices; no test decides them).
+- **6.3, planning files made public:** `GUARDRAILS.md` and `research/test-plan.md` are copied unchanged into `docs/planning/`. `DECISIONS.md` is copied with two sentences shortened so no line remarks on a person (listed in `docs/planning/README.md`). The lead's name stays: it is already public as the commit author and the repository owner. The pre-screen found no secret, key, local path or email in any of the three. The wording check flags three lines in them ("beats the baselines" as a section heading, and two rules that forbid the claim); these are the planning record's own words and are left as they are, and the check's default paths do not include `docs/planning/`.
+- **6.2, README:** says plainly that the parity check's input case is not public, so a fresh clone serves Aqua counts through December 2021 but cannot publish converted counts. Added to the shared "Frozen inputs" section, not to the data owner's publish step on `teammate/2.8-coverage`, to avoid a merge conflict.
+- **6.5, submission text:** the summary's two claims, the "impact is one public link" sentence and the project name are approved as drafted. Official dataset names and citations are used as published, even where they contain the word this project does not use; everything the project writes itself says "hotspots".
+- **Still open for 6.3:** `/security-review`, a gitleaks scan of the full history, and the Codex review before the repo goes public, all run by the lead.
+- **Revisit if:** a reviewer finds anything in `docs/planning/` that should not be public, or the live form limits the summary's length.

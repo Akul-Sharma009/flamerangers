@@ -51,6 +51,8 @@ uvx pre-commit install
 
 `burncal/core/params/MANIFEST.json` lists a hash for each of these. It also lists two intermediate CSVs (`intermediate/rows_sumatra_201509.csv` and `intermediate/footprints_sumatra_201509.csv`, with their `README.txt`). Those are 37 MB of debugging aids that stay in the planning repo; they are not part of this repo.
 
+The parity check also needs its input case, which is kept in the planning record and is not public. So a fresh clone can build and serve the Aqua counts through December 2021, but cannot publish converted counts from January 2022; the published record holds those.
+
 `evidence/scoring/` holds the scoring outputs, copied unchanged, with hashes in its own `MANIFEST.json`. They contain scores only. Never edit files in either folder.
 
 ## Run the web against the fixture
