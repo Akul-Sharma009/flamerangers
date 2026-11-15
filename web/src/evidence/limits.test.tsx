@@ -150,24 +150,39 @@ describe("Story 5.6: what the scores can't show", () => {
     expect(view.reported.choice).toEqual({ set: REPORTED_ONLY, region: POOLED, scale: DEFAULT_SCALE });
   });
 
+  // Story 2.10's file is in evidence.json since 15 Nov; these two tests build the evidence without it.
+  const withoutNoaa20: Evidence = {
+    ...evidence,
+    sources: evidence.sources.filter((s) => s.set !== "noaa20_check"),
+    tables: evidence.tables.filter((t) => t.set !== "noaa20_check"),
+  };
+
   it("AC4: until Story 2.10's file exists, the NOAA-20 comparison alone says not yet run", () => {
-    expect(evidence.sources.some((s) => s.set === "noaa20_check")).toBe(false);
-    const block = limitsSection.match(/<div class="limit-block" data-note="noaa20" data-ran="false">([\s\S]*?)<\/div>/)![1];
+    const h = render({ region: POOLED, scale: DEFAULT_SCALE }, withoutNoaa20);
+    const block = h.match(/<div class="limit-block" data-note="noaa20" data-ran="false">([\s\S]*?)<\/div>/)![1];
     expect(text(block)).toContain(messages.notes.noaa20_check_not_run);
     // Said once, for that comparison only.
-    const notRun = text(html).split(messages.notes.noaa20_check_not_run).length - 1;
+    const notRun = text(h).split(messages.notes.noaa20_check_not_run).length - 1;
     expect(notRun).toBe(1);
-    expect(text(html)).not.toContain(messages.notes.noaa20_check);
+    expect(text(h)).not.toContain(messages.notes.noaa20_check);
+  });
+
+  it("AC4: the real Story 2.10 file is shown, labelled reported only and not a validation against Aqua", () => {
+    const source = evidence.sources.find((s) => s.set === "noaa20_check")!;
+    expect(source.label.toLowerCase()).toContain("reported only, not a validation against aqua");
+    const block = limitsSection.match(/<div class="limit-block" data-note="noaa20" data-ran="true">([\s\S]*?)<\/div>\s*<\/section>/)![1];
+    expect(text(block)).toContain(messages.notes.noaa20_check);
+    expect(text(limitsSection)).not.toContain(messages.notes.noaa20_check_not_run);
   });
 
   it("AC4: once the file exists it is shown labelled reported only, not a validation against Aqua", () => {
     const file = "noaa20_check_20261115T000000Z.json";
     const f = (pointer: string, value: number, display: string): Figure => ({ value, display, source: { file, pointer } });
     const withNoaa20: Evidence = {
-      ...evidence,
-      sources: [...evidence.sources, { file, sha256: "0".repeat(64), set: "noaa20_check", label: "reported only, not a validation against Aqua", run_id: null }],
+      ...withoutNoaa20,
+      sources: [...withoutNoaa20.sources, { file, sha256: "0".repeat(64), set: "noaa20_check", label: "reported only, not a validation against Aqua", run_id: null }],
       tables: [
-        ...evidence.tables,
+        ...withoutNoaa20.tables,
         { id: "noaa20_check.figures", title: "NOAA-20 against Suomi NPP", set: "noaa20_check", note: null, columns: [{ key: "value", label: "value" }], rows: [{ key: "/pooled/bias", label: "pooled / bias", cells: { value: f("/pooled/bias", -0.02, "-0.020") } }] },
       ],
     };

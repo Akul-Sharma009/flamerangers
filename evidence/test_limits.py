@@ -137,20 +137,25 @@ def test_5_6_reported_only_claims_are_marked_not_used_for_the_pick():
 
 # --- NOAA-20 (Story 2.10) -------------------------------------------------------------
 
-def test_5_6_noaa20_has_no_result_file_yet():
-    assert build.noaa20_file(build.manifest_hashes()) is None
-    assert "noaa20_check" not in SOURCES
-    assert not any(t["set"] == "noaa20_check" for t in DOC["tables"])
+def test_5_6_noaa20_result_file_is_in_the_evidence():
+    # Story 2.10's result was copied into scoring/ on 15 Nov (reported only).
+    name = build.noaa20_file(build.manifest_hashes())
+    assert name == "noaa20_check_20261115T051158Z.json"
+    assert SOURCES["noaa20_check"] == name
+    assert any(t["set"] == "noaa20_check" for t in DOC["tables"])
 
 
 def _with_noaa20(tmp_path, monkeypatch, label):
+    # A scoring folder like the real one, minus the real NOAA-20 file, so the test file is the only one.
     for f in build.SCORING.iterdir():
-        shutil.copy(f, tmp_path / f.name)
+        if not f.name.startswith(build.NOAA20_PREFIX):
+            shutil.copy(f, tmp_path / f.name)
     name = "noaa20_check_20261115T000000Z.json"
     body = {"label": label, "meta": {"run_id": "abc123"}, "pooled": {"bias": -0.02, "mae": 1.5, "months": 58}}
     data = json.dumps(body).encode()
     (tmp_path / name).write_bytes(data)
     manifest = json.loads((tmp_path / "MANIFEST.json").read_text(encoding="utf-8"))
+    manifest["files"] = {k: v for k, v in manifest["files"].items() if not k.startswith(build.NOAA20_PREFIX)}
     manifest["files"][name] = {"sha256": hashlib.sha256(data).hexdigest(), "bytes": len(data)}
     (tmp_path / "MANIFEST.json").write_text(json.dumps(manifest), encoding="utf-8")
     monkeypatch.setattr(build, "SCORING", tmp_path)

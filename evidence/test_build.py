@@ -57,8 +57,9 @@ def test_5_2_ac1_every_figure_names_a_field_in_a_listed_scoring_file():
 
 
 def test_5_2_ac1_sources_are_the_three_sets():
+    # Story 2.10's NOAA-20 file (reported only) joined them on 15 Nov; it is not a scored set.
     sets = {s["set"]: s for s in DOC["sources"]}
-    assert set(sets) == {"selection", "final", "reported_only"}
+    assert set(sets) == {"selection", "final", "reported_only", "noaa20_check"}
     final = json.loads((build.SCORING / build.FINAL).read_text(encoding="utf-8"))
     assert sets["selection"]["file"] == Path(final["meta"]["selection_result"]).name
     assert "used once" in sets["final"]["label"]
