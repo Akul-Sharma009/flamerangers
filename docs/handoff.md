@@ -30,6 +30,7 @@ Updated: Sat 14 Nov 2026, late evening SGT (PRs 3 to 11 merged; the lead's revie
 | 3.6 Provenance and evidence caveats | Done | Merged 15 Nov. The caveat claims are approved and in use; `notes.month_complete` is approved and in the contract 0.4.0 draft, so complete months show no sentence until 0.4.0 merges. The caveat on an untuned area was checked in the browser before the claims were reworded, not after. See below. |
 | 3.8 Anomaly view and flags | Done | Merged 15 Nov. The lead approved flags per tier out of M, marks on both tiers, and six sentences now in the contract 0.4.0 draft; labels show until 0.4.0 merges. The 1° cell panel is not yet checked against a live service. See below. |
 | 3.9 Most active months and years | Done | Merged 15 Nov. The lead approved the left-column placement (a recorded change from UI-CONCEPT.md), the "=" tie mark and the phone scroll; its four sentences are in the 0.4.0 draft. See below. |
+| 4.3 Picture downloads | Done | Merged 15 Nov. The calendar and the current-month ruler download as PNG or SVG with their provenance. The lead approved the web's own source line, title and two error lines, marked for a later contract. See below. |
 | 2.3 Ingest and cleaning | Done | PR 3, merged 14 Nov |
 | 2.4 Weights and the record | Done | PR 4, merged 14 Nov, with the weaker-class tie rule (225 / 570 / 6 / 38); full C1 parity PASS |
 | 2.5 Grids, thresholds, flags | In progress | PR 5, merged 14 Nov. Open: AC2 results for Australia and Amazon not recorded; static-input check (Next) |
@@ -632,3 +633,12 @@ Checks on the merged master: `uv run pytest` 310 passed, 1 skipped (Sumatra reco
 - Product tests sit beside the code. The scoring harness stays in the planning record and nothing here imports it.
 - The service holds each version it serves in memory (current and previous). A global store will not fit that way; it needs reads by tile.
 - Starlette warns that `httpx` in its test client is deprecated in favour of `httpx2`. Not acted on.
+
+## Story 4.3: picture downloads
+
+- New code is in `web/src/download/`: `capture.ts` (writes each element's resolved paint onto a copy of the live chart, drops focus rings), `figure.ts` (adds title, area, dates, unit, legend, notes, data-through, record version and source line), `save.ts` (SVG, or PNG at 2×), `content.ts` (what each picture says), `PictureDownload.tsx` (format choice and button). Existing files only gained a small hook each: `CalendarPage.tsx` (a ref and the control under the legend) and `CurrentMonthCard.tsx` (a ref, a `geometry` prop and the control under the ruler).
+- The chart in the file is a copy of the one on screen, so its numbers are the screen's served values; the browser computes none. An unnamed area is shown by its box coordinates.
+- Pictures: the calendar (follows the Counts / Anomalies switch, so the legend matches) and the current-month ruler. The rankings panel is HTML lists, not a chart, so it has no picture. In the table view the grid is not drawn, so the calendar button says to show the grid.
+- Checks: `npm run test` (276 passed, 11 of them Story 4.3), `npm run build`, `evidence/wording.py` passed. In the browser at 1280 px the calendar SVG (300 cells, served counts, styled) and the ruler SVG and PNG downloaded with the right names; the calendar picture was viewed and is correct. The calendar PNG path shares the ruler's code and was not separately downloaded.
+- Waiting for the contract: the source line, the calendar title and two error lines (see `DECISIONS.md`, "Story 4.3"). Story 4.4 moves the controls.
+

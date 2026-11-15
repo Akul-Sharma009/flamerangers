@@ -817,3 +817,16 @@ Each entry has: a status (**ASSUMED** or **TESTED**), its evidence, and a "revis
   The web shows the card sentences (it already read an optional `sentences:` section), adds `missing_days_to_date` to the card's notes when served true, states each refused range in its sentence, and shows `range_and_reference` under the dates tab's bounds. The version is 0.4.0 in `openapi.yaml`, `messages.yaml`, the README, `CONTRACT_VERSION` and the fixtures (rebuilt with `tools/build_fixture.py`); web types regenerated.
 - **Evidence:** 139 web tests (new: all seven sentences served, the headline is the contract's sentence, figures without a sentence, missing-days note only when served, refusal sentences and the range note in the dates tab); 302 Python tests passed, 10 skipped (new: null flag counts outside the record, integers inside, `missing_days_to_date` false for the test store); imports, evidence, wording and gitleaks checks pass. The analytics CSV writes the null flag counts as empty cells, which `CSV_SPEC.md` already defines as null. Not tested: `missing_days_to_date` true against a store whose current month has missing days (the test store has none).
 - **Revisit if:** the data owner wants the missing-days signal per satellite or as a list of days, or wants different wording for `missing_days_to_date`; the teammate's 2.8 branch also edits `burncal/service/answers.py`, so expect a merge conflict in `calendar()` and `_card()`.
+
+## Story 4.3: picture wording waits for the contract (15 Nov 2026)
+
+- **Status:** ASSUMED.
+- **Decision:** The picture's source line and error lines have no sentence in `messages.yaml` 0.3.0. `web/src/download/words.ts` reads optional `sentences.picture_source` and falls back to: "Source: NASA FIRMS active-fire detections (Aqua MODIS through December 2021, VIIRS converted to Aqua MODIS units from January 2022)." (`TODO(picture_source)`). The calendar title repeats the page heading's words (`TODO(picture_title)`). Two states are typed in `PictureDownload.tsx` (`TODO(picture_errors)`): "The picture could not be made. Please try again." and "Show the grid view to download the calendar picture." Everything else is a contract sentence (`notes.hotspot_definition`, `notes.record_switch`, `notes.placeholder` when `meta.placeholder`) or a served value.
+- **Evidence:** `download.test.tsx`; picture checked in the browser.
+- **Revisit if:** the contract adds these sentences, or the data owner words the source differently.
+
+## Story 4.3: pictures are a styled copy of the live chart, no new dependency (15 Nov 2026)
+
+- **Status:** ASSUMED.
+- **Decision:** The file embeds a copy of the on-screen SVG with each element's computed paint and type written onto it, so the numbers are the screen's. PNG is that SVG drawn on a canvas at 2×. No library (html2canvas, dom-to-image). Which charts: the calendar and the ruler, the only SVG charts; the rankings panel is lists. The PNG relies on system fonts named in the page's font stacks, so type may differ slightly from the screen on a machine without them.
+- **Revisit if:** a judge's machine renders the fonts badly, or a Tier 1 chart is added that is not SVG.

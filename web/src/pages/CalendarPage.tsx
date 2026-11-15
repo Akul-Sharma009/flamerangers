@@ -6,6 +6,8 @@ import { defaultArea, type AoiInput } from "../area/featured";
 import { loadArea, type AreaResult } from "../area/load";
 import { areaProblemText } from "../area/words";
 import { CurrentMonthCard } from "../card/CurrentMonthCard";
+import { calendarPicture } from "../download/content";
+import { PictureDownload } from "../download/PictureDownload";
 import { formatYearMonth } from "../format";
 import type { Measure } from "../grid/anomaly";
 import { CalendarGrid } from "../grid/CalendarGrid";
@@ -75,6 +77,7 @@ export function CalendarView({
   // The measure and the picked month live here so the legend and the cell panel follow the grid.
   const [measure, setMeasure] = useState<Measure>(initialMeasure);
   const [picked, setPicked] = useState<string | null>(null);
+  const calRef = useRef<HTMLElement>(null);
   const ready = result?.status === "ready" ? result : null;
   const calendar = ready?.calendar ?? null;
   // Story 3.9: the ranked item marked on the calendar. It belongs to the calendar it
@@ -102,7 +105,7 @@ export function CalendarView({
         {/* The region caveat sits beside the map, not only on the evidence page (Story 3.6). */}
         {ready ? <RegionCaveat calendar={ready.calendar} meta={ready.meta} aoi={selected} /> : null}
         {/* The headline sentence and ruler sit under the locator (UI-CONCEPT.md, left column). */}
-        {ready ? <CurrentMonthCard calendar={ready.calendar} meta={ready.meta} /> : null}
+        {ready ? <CurrentMonthCard calendar={ready.calendar} meta={ready.meta} geometry={selected.geometry} /> : null}
         {calendar ? (
           <ol className="notes">
             <li>{messages.notes.hotspot_definition}</li>
@@ -113,7 +116,7 @@ export function CalendarView({
       </div>
       {/* A refused area draws no calendar at all: never a grid of zeros. */}
       {ready ? (
-        <section aria-label="Calendar" className="calsection">
+        <section aria-label="Calendar" className="calsection" ref={calRef}>
           <div className="gridhead">
             <h2>
               Hotspots per month, {formatYearMonth(ready.calendar.range.start.slice(0, 7))} to{" "}
@@ -124,6 +127,11 @@ export function CalendarView({
           <CaveatLine calendar={ready.calendar} />
           <CalendarGrid calendar={ready.calendar} meta={ready.meta} measure={measure} onMeasureChange={setMeasure} onPick={setPicked} highlight={highlight} />
           <GridLegend calendar={ready.calendar} measure={measure} />
+          <PictureDownload
+            label="calendar"
+            find={() => calRef.current?.querySelector<SVGSVGElement>('svg[role="grid"]') ?? null}
+            {...calendarPicture(ready.calendar, ready.meta, measure, selected.geometry)}
+          />
           {/* The anomaly view shows each 1° cell's flag state for the picked month, else the current month. */}
           {measure === "anomaly" ? (
             <FlagCellsPanel
