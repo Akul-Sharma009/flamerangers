@@ -650,3 +650,7 @@ Checks on the merged master: `uv run pytest` 310 passed, 1 skipped (Sumatra reco
 - Checks: `npm run test` (288 passed, 10 of them Story 4.4), `npm run build`, `evidence/wording.py` passed. Browser at 1280 px and 375 px (fixture mode): block present, CSV buttons disabled with the note, pictures enabled, no horizontal overflow. Not checked against a live service: a real CSV download, the busy state and a real 413 (covered only by unit tests with a fake service).
 
 
+
+## Story 3.10: accessibility and phone-width pass
+
+- Done in the worktree, not committed. Anomaly view: a bar marks below-mean classes (grid, table, legend) so the sides differ in greyscale. 32 px targets, picker arrow keys and Escape, a skip control, evidence table names. Checks: tsc, vitest (288), build, wording.py passed. Details and the `TODO(skip_link)` wording: DECISIONS.md.

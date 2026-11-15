@@ -841,3 +841,13 @@ Each entry has: a status (**ASSUMED** or **TESTED**), its evidence, and a "revis
   - Button names "Download analytics CSV", "Download hotspot CSV", "All satellites", and the year buttons (the bare year, named "Download hotspot CSV for 2020" for screen readers). Suggested for the contract `client:` section as `csv_unavailable` and `csv_busy`.
 - **Not done:** the 413's estimated size is not shown (no contract sentence for it). No "saved" message: the browser's own download bar is the success signal.
 - **Revisit if:** the service's 413 offers something other than years, or the lead wants the size shown.
+
+## Story 3.10: accessibility and phone-width pass (15 Nov 2026)
+
+- **Status:** TESTED (script checks plus a browser look at 375 px and the default pane width; no screen reader run).
+- **Blocker found:** the anomaly ramp's cool and warm sides share lightness (L* 32/30, 58/56, 80/77), so below and above the mean look alike in greyscale. Contrast of tile text is fine (at least 4.7:1).
+- **Fix:** hues unchanged. A short bar marks every below-mean (cool) class, in the grid cells and the legend swatches. The table view needs none: each cell already prints the served, signed `anomaly_pct` (a table minus sign added at first doubled it; the lead's review removed it). Display only; the served class is the source (AD-8). The count ramp already passed all four simulations (minimum dE 7.6 in greyscale).
+- **Polish:** header links, view switches, "Change area or dates", rankings buttons and the Downloads block (buttons, format select, checkbox) now have at least 32 px height; picker tabs take Left/Right arrows with roving tabindex; Escape closes the picker; a skip control; evidence tables carry the names of their regions.
+- **Wording (TODO(skip_link)), approved by the lead on 15 Nov:** "Skip to the page content". No contract sentence exists. It is a button because the hash is the router.
+- **Not fixed:** grid cells stay 18 px wide at 375 px (the table view is the phone alternative); MapLibre's own animation under reduced motion was not traced.
+- **Revisit if:** a screen-reader pass finds the below-mark bar noisy, or the contract adds a skip sentence.

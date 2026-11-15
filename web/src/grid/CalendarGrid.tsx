@@ -309,6 +309,9 @@ function Cell({ c, w, h, showNums, anomaly }: { c: CellModel; w: number; h: numb
         </>
       )}
       {c.monthToDate ? <rect className="mtd" x={1} y={1} width={w - 2} height={h - 2} /> : null}
+      {/* Story 3.10: below the mean is also marked with a short bar, so the two sides of the
+          diverging ramp differ without colour (greyscale). Display only; the class is served. */}
+      {anomaly && !isNull && c.tone?.startsWith("cool") ? <path className="below-mark" d="M9,3.5 H15" /> : null}
       {c.flag === "strong" ? <path className="flag-strong" d="M1.5,1.5 L7,1.5 L1.5,7 Z" /> : null}
       {c.flag === "marginal" ? <circle className="flag-marginal" cx={4.5} cy={4.5} r={2.4} /> : null}
       {/* The 3 November 2026 change of feeding satellite: a short rule on the month's left edge,
