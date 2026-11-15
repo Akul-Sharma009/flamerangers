@@ -16,6 +16,7 @@ Updated: Sat 14 Nov 2026, late evening SGT (PRs 3 to 11 merged; the lead's revie
 | 2.2 C1 in core | Done | Full parity PASS on the lead's machine (worst miss 2.1e-9). Merged (PR 2) |
 | 1.5 Web shell | Review | Draws Sumatra from the fixture; committed. See below. |
 | 5.1 Scoring files and claims | Done | `evidence/claims.yaml` written and checked; the lead approved the wording. See below. |
+| 6.2 README and fresh-clone run | In progress | Lead's sections (web against the fixture, evidence rebuild) on `lead/6-2-readme`; the data owner's (run the service, rebuild one region) on `teammate/2.8-coverage` (6384b21). See below. |
 | 6.6 Pitch storyline | Done | Drafted in `docs/pitch/storyline.md` as a 7-slide deck. See below. |
 | 5.2 Evidence build and checks | Done | Merged to `master`. See below. |
 | 5.3 The outcome in plain words | Done | Merged to `master`. See below. |
@@ -574,6 +575,11 @@ One year (2024) of FIRMS standard data, MODIS_SP (Aqua and Terra rows) and VIIRS
 - Pending in the text: the web address and repository address; Story 6.1 (NASA data, References, the haze source, product documentation, links for FIRMS, Worldview, GWIS and INPE); Stories 2.8 and 2.9 (regions, daily current month); 3.6, 3.8, 3.9, 3.10, 4.3, 4.4, 5.5 to 5.7 (listed as still to come).
 - Checks: `uv run python evidence/wording.py docs/submission` passed; `uv run pytest` 307 passed, 10 skipped.
 - For the lead: the list under "Needs the lead" in `docs/submission/text.md`, and the two Story 6.5 entries in `DECISIONS.md`.
+## Story 6.2: README, the lead's sections (branch `lead/6-2-readme`)
+
+- README gains "Run the web against the fixture" (no service; or the service with no store, at `VITE_SERVICE_BASE_URL=http://localhost:8000`) and "Rebuild the evidence" (`evidence/build.py`, `--check`, `pytest evidence`, then the web build and `evidence/wording.py`). Both sit just above "Status", away from the data owner's sections (above "Layout" on `teammate/2.8-coverage`), so the two should merge without a README conflict.
+- **Checked on the lead's machine (15 Nov, on master plus this branch):** evidence check passed, 109 evidence tests passed, web build passed, wording check passed. Web with no service: calendar, `#/evidence` and the placeholder banner render, no console errors. Web against the service with no store: `/meta` and `/calendar` answered 200 (CORS preflight 200), the same page and banner, no console errors.
+- **Still open for 6.2:** the data owner's fresh-clone check ran on `teammate/2.8-coverage`, which starts before Stories 3.4, 3.5 and 3.7 (71 web tests; master has 139). Rerun the fresh clone on master once 2.8 and this branch are merged. A fresh clone cannot publish converted counts (from January 2022) without the parity case from the planning record; the README says the case is needed but not that it is not public. The lead decides whether the README says so plainly or the case is published.
 
 ## Contract 0.3.0
 
