@@ -830,3 +830,14 @@ Each entry has: a status (**ASSUMED** or **TESTED**), its evidence, and a "revis
 - **Status:** ASSUMED.
 - **Decision:** The file embeds a copy of the on-screen SVG with each element's computed paint and type written onto it, so the numbers are the screen's. PNG is that SVG drawn on a canvas at 2×. No library (html2canvas, dom-to-image). Which charts: the calendar and the ruler, the only SVG charts; the rankings panel is lists. The PNG relies on system fonts named in the page's font stacks, so type may differ slightly from the screen on a machine without them.
 - **Revisit if:** a judge's machine renders the fonts badly, or a Tier 1 chart is added that is not SVG.
+
+## Story 4.4: one Downloads block in the left column; three words of its own (15 Nov 2026)
+
+- **Status:** ASSUMED. Wording approved by the lead on 15 Nov. At review the lead's session keyed the block on the area and dates, so a 413's year buttons never ask for a different area.
+- **Decision:** All downloads sit in one "Downloads" block under the footnotes in the left column (UI-CONCEPT.md: "the downloads as plain links"): analytics CSV, hotspot CSV with an "All satellites" checkbox, then the calendar and ruler pictures (4.3's control, moved from under each chart). The CSV text is saved as the service sends it. A 413 shows `problems.too_large_for_sync` and one button per year in the problem's `years`; each sends the same request with `year`. Other problems show their contract sentence; a network failure shows `client.service_unreachable`. In fixture mode (no service) the two CSV buttons are disabled and a line says why, so no broken download is offered.
+- **Wording with no contract sentence (TODO labels), for the lead to approve:**
+  - `TODO(csv_fixture)`: "The CSV files come from the data service, which this copy of the page is not connected to."
+  - `TODO(csv_busy)`: "Preparing the file…"
+  - Button names "Download analytics CSV", "Download hotspot CSV", "All satellites", and the year buttons (the bare year, named "Download hotspot CSV for 2020" for screen readers). Suggested for the contract `client:` section as `csv_unavailable` and `csv_busy`.
+- **Not done:** the 413's estimated size is not shown (no contract sentence for it). No "saved" message: the browser's own download bar is the success signal.
+- **Revisit if:** the service's 413 offers something other than years, or the lead wants the size shown.
