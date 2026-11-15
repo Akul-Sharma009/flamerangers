@@ -805,7 +805,7 @@ The points where the plan left room are listed in `DECISIONS.md` ("Contract 0.2.
 4. Before judging: Active CPU was 43 min of 4 h for the cycle 16 Oct to 15 Nov; keep-warm runs every 5 minutes.
 5. DONE (20:35): the lead closed Story 2.9 and Epics 7 and 8 after reviewing the UI (PR 23). Spot-checked live on Sumatra: trend, reference period, raw splice, seasonal profile, season to date, month map, country picker, two-area comparison and the globe all load, with no console errors and no "unreachable" message.
 6. DONE (20:30): PR 22 fixed the 400 answers' placeholder `record_version` and the phone-width overflow (evidence, globe, calendar; checked live at 375 px). Still open after judging: `GZipMiddleware` for `/world_cells` before any world store; re-record the parity pass after any `burncal/core` change.
-7. IN PROGRESS (data only, after the build stop): Kalimantan as a covered area (PR 24; 110–120°E, 5°S–5°N, not featured, cells not evaluated). Download running since 20:28; then build, upload its state to the dataset's `state/`, and run the daily workflow, which publishes and deploys all seven areas. Check a Kalimantan province live.
+7. DONE (21:55): Kalimantan is live as a seventh covered area (110–120°E, 5°S–5°N; not featured, cells not evaluated). Production serves `20261114-dcc739ea` with seven areas; the daily refresh includes it from now on. Details in `DECISIONS.md`.
 8. Tomorrow 09:30 SGT: the first scheduled daily run; check it.
 9. Left for the lead: the demo deck (6.5) and pasting the submission fields.
 
