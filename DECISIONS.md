@@ -802,3 +802,16 @@ Each entry has: a status (**ASSUMED** or **TESTED**), its evidence, and a "revis
 - **Decision:** The page states two results, both fixed claims quoted whole by id: `aqua-through-2021` (why real Aqua runs through 2021) and `noaa20-untested`. How C1 scored is left to the evidence page, linked three times. The claims come from `evidence.json` through the same lazy import as the evidence view, so the page shares that chunk (about 158 kB gzipped) and the calendar's bundle does not grow. If `evidence.json` lacks a claim, `client.evidence_unavailable` shows in its place.
 - **Evidence:** `about.test.tsx` "quotes only the two fixed claims", "a claim missing from evidence.json…"; `npm run build` shows one evidence chunk.
 - **Revisit if:** the page should load faster on phones (then the evidence build could write a small claims-only file).
+
+## Story 4.3: picture wording waits for the contract (15 Nov 2026)
+
+- **Status:** ASSUMED.
+- **Decision:** The picture's source line and error lines have no sentence in `messages.yaml` 0.3.0. `web/src/download/words.ts` reads optional `sentences.picture_source` and falls back to: "Source: NASA FIRMS active-fire detections (Aqua MODIS through December 2021, VIIRS converted to Aqua MODIS units from January 2022)." (`TODO(picture_source)`). The calendar title repeats the page heading's words (`TODO(picture_title)`). Two states are typed in `PictureDownload.tsx` (`TODO(picture_errors)`): "The picture could not be made. Please try again." and "Show the grid view to download the calendar picture." Everything else is a contract sentence (`notes.hotspot_definition`, `notes.record_switch`, `notes.placeholder` when `meta.placeholder`) or a served value.
+- **Evidence:** `download.test.tsx`; picture checked in the browser.
+- **Revisit if:** the contract adds these sentences, or the data owner words the source differently.
+
+## Story 4.3: pictures are a styled copy of the live chart, no new dependency (15 Nov 2026)
+
+- **Status:** ASSUMED.
+- **Decision:** The file embeds a copy of the on-screen SVG with each element's computed paint and type written onto it, so the numbers are the screen's. PNG is that SVG drawn on a canvas at 2×. No library (html2canvas, dom-to-image). Which charts: the calendar and the ruler, the only SVG charts; the rankings panel is lists. The PNG relies on system fonts named in the page's font stacks, so type may differ slightly from the screen on a machine without them.
+- **Revisit if:** a judge's machine renders the fonts badly, or a Tier 1 chart is added that is not SVG.
