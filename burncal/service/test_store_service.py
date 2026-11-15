@@ -381,7 +381,7 @@ def test_4_2_ac3_header_explains_the_row_count_and_limits(client, versions):
     assert keys == HOTSPOT_KEYS
     assert head["record_version"] == versions[0] and head["data_through"] == "2026-11-13"
     assert "weight" in head["row_count_note"] and "December 2021" in head["row_count_note"]
-    assert text.count("\n# counting_limits: ") == 3 and head["row_filter"] == "rows that feed the record"
+    assert text.count("\n# counting_limits: ") == 6 and head["row_filter"] == "rows that feed the record"
 
 
 # --- Story 4.1: analytics CSV -----------------------------------------------------

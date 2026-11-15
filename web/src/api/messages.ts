@@ -43,6 +43,9 @@ export interface Messages {
     | "range_and_reference"
     | "month_complete"
     | "partly_inside"
+    | "rank_tie"
+    | "no_complete_month"
+    | "no_complete_year"
     | "missing_days_to_date"
   >;
   client: Table<
@@ -58,6 +61,8 @@ export interface Messages {
   >;
   /** Card templates with {placeholders} (0.4.0). src/card/words.ts reads them. */
   sentences?: Record<string, string>;
+  /** The six counting limits, in order (0.4.0): the about page lists them, both CSV headers write them. */
+  counting_limits?: string[];
 }
 
 export const messages = raw as Messages;

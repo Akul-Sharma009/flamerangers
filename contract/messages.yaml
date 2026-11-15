@@ -86,8 +86,22 @@ notes:
   range_and_reference: "Rankings cover the dates you chose. Medians and anomalies always use the reference period."
   month_complete: "Complete month: every day of input data is in."
   partly_inside: "Partly inside the area. The count and flag are for the whole cell."
+  rank_tie: "An equals sign after a rank means the rank is shared: those values are equal."
+  no_complete_month: "No complete month falls in these dates, so none is ranked."
+  no_complete_year: "No complete year falls in these dates, so none is ranked."
   missing_days_to_date: "Some days of input data are missing so far this month, so the count to date may be low."
 
+
+# The six limits that apply to every count, whatever the area or month. The
+# about-the-data page lists them and both CSV headers write one
+# `counting_limits` line each, in this order (0.4.0).
+counting_limits:
+  - "Hotspot location files carry no cloud or missing-data information, and do not remove detections duplicated by overlapping orbits, so where passes overlap the same burning can be counted twice."
+  - "Confidence values are not comparable between sensors, which is one reason no confidence filter is applied."
+  - "The day/night flag is set differently in near-real-time data (by the direction of the orbit) and in standard data (by the sun's angle). This site works out day and night from the sun's position for every hotspot."
+  - "Terra and Aqua are drifting from their orbits, which is one reason the record switch sits after December 2021."
+  - "Early VIIRS data, in 2012 and 2013, had bad scans. The validation reported those years only and never used them to choose the method."
+  - "No cropland region was used to tune or choose the method. Punjab, where crop residue is burned, was scored as reported only. So the evidence for small crop burns is weaker."
 # Card sentences with {placeholders}. The service fills no words; the web fills
 # each placeholder with a served value, formatted only (0.4.0).
 sentences:
@@ -103,6 +117,7 @@ sentences:
   flag_reference: "Flag thresholds come from {flag_start}–{flag_end}, a different period from the mean, so a large anomaly can have no flag and a flag can come with a small anomaly."
   anomaly_scale: "Anomaly as a percentage of the {reference_start}–{reference_end} mean for the calendar month. Each class starts at the value shown."
   cells_heading: "Flag state of each one-degree cell in {month}."
+  rankings_range: "Only complete months and years from {range_start} to {range_end} are ranked."
 
 # States the web finds itself, before or instead of a service answer. The
 # service never sends these; they are here so the web types no words (0.3.0; date sentences 0.4.0).
