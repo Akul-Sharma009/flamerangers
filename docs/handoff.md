@@ -690,6 +690,20 @@ The points where the plan left room are listed in `DECISIONS.md` ("Contract 0.2.
 | AC1 first request after an hour idle within the target | Not done (host not chosen) |
 | AC2 a failing refresh leaves the last good version | `test_2_6_ad11_*` (store); hosted check not done |
 | AC3 free limits against the judging period | Not done |
+## Story 6.1: NASA datasets and references (branch `teammate/6.1-datasets`, draft for the lead, 15 Nov)
+
+- `docs/submission/datasets-references.md`: field 7 (NASA data) and field 8 (References), ready to paste, and the link and citation for each of the about page's four `[pending: Story 6.1]` marks.
+- For the lead: the about page lists NOAA-21 under VIIRS, but no published version holds NOAA-21; four items stay `[unverified]` (listed in the file).
+
+| Criterion | Test or evidence |
+| --- | --- |
+| AC1 each NASA dataset with link, citation and its use | Field 7 in the file; each DOI resolved at doi.org |
+| AC2 every external resource listed | Field 8: datasets, Natural Earth, two papers, services named in the text, every pinned library with its licence |
+| AC2 every citation checked or marked `[unverified]` | Checking method at the top of the file; four marks remain |
+
+## Story 6.2: fresh-clone run, rerun on master (15 Nov)
+
+- Fresh clone of master at `b1e8e2e` (after PR 12): `uv sync`, import check, pytest 405 passed and 11 skipped (no local store), evidence check, fixture `/meta`, web `npm ci`, typecheck, 313 tests, build and wording check all passed.
 
 ## Next
 

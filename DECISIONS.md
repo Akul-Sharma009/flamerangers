@@ -1017,3 +1017,16 @@ Each entry has: a status (**ASSUMED** or **TESTED**), its evidence, and a "revis
 - **Decision:** `pyyaml` and `pydantic` are pinned runtime dependencies (6.0.3 and 2.14.3, the locked versions). Contract 0.4.0 made `burncal/service/app.py` read `messages.yaml` with `yaml`, but `pyyaml` was a dev dependency, and the host installs runtime dependencies only (`uv export --no-dev`), so the next deploy would have failed at start-up. `pydantic` was already installed through FastAPI, but the service imports it directly, so it is now declared too.
 - **Evidence:** `test_6_4_every_runtime_import_of_the_service_is_a_runtime_dependency` (parses every non-test module in `burncal/service` and `burncal/core`) failed with `{'pydantic', 'yaml'}` before and passes after; full pytest 417 passed; import check passed. The fresh-clone run did not catch this, because a clone installs the dev group.
 - **Revisit if:** the service gains an import; the test names it.
+## Story 6.1: datasets and references drafted, every citation checked or marked (15 Nov)
+
+- **Status:** ASSUMED (drafted by the data owner; the lead reviews and places the text)
+- **Decision:** `docs/submission/datasets-references.md` holds submission fields 7 (NASA data) and 8 (References), ready to paste, and the link and citation for each of the about page's four sources. It names three NASA datasets: MODIS Collection 6.1 hotspots from FIRMS (standard MCD14ML and near real time MCD14DL), VIIRS 375 m hotspots from FIRMS for Suomi NPP and NOAA-20 (near real time with DOIs; standard archive files without), and the VNP14IMG V002 swath product that C1's detection model was fitted on (688 granules, 2014, 2016, 2017 and 2020). NOAA-21 is not listed as a source of the record, because no download plan takes it.
+- **Evidence:** every DOI resolved at doi.org to the product's catalogue page; the two papers' authors, titles and pages from Crossref; the FIRMS acknowledgement from the FIRMS tools page; the Natural Earth licence (public domain) from its terms page; library versions and licences from the installed, pinned packages. Still `[unverified]`: a DOI for the standard VIIRS archive (FIRMS gives none), INPE's page stating its single reference satellite, a page naming Sumatra as a source of Singapore's haze, and the joins in the assembled FIRMS acknowledgement.
+- **Revisit if:** FIRMS publishes DOIs for the standard VIIRS archive, or the record adds NOAA-21.
+
+## Story 6.2: fresh-clone run on master after 2.8 merged (15 Nov)
+
+- **Status:** TESTED
+- **Decision:** none new; the README's setup lines work from a fresh clone of master at `b1e8e2e` (PR 12 merged).
+- **Evidence:** fresh clone: `uv sync`, import check passed, `uv run pytest` 405 passed and 11 skipped (no local store; parity case set), `evidence/build.py --check` passed, service in fixture mode answered `/meta` (placeholder true), web `npm ci`, typecheck, 313 tests and build passed, wording check passed.
+- **Revisit if:** the README's setup changes; rerun before the repo goes public.
