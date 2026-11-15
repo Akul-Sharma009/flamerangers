@@ -818,6 +818,7 @@ Checks on the merged master: `uv run pytest` 310 passed, 1 skipped (Sumatra reco
 ## Story 8.1: shareable link
 
 - Merged 15 Nov. `web/src/share.ts` encodes and reads the area, dates and view in the hash (`#/?area=sumatra&from=2015-01-01&to=2020-12-31&view=table&measure=anomaly`); `CalendarPage` reads it on first load and rewrites it with `replaceState`. No new wording; no Copy link button; no link length limit (approved). Details and the length measurements: DECISIONS.md.
+- 15 Nov fix: an address edited in an open tab (or Back and Forward) now loads what it names (`addressChange` in `share.ts`; `CalendarPage` remounts on `hashchange`). Checked against the live service. Web changed after the deployed build, so the web needs a rebuild and redeploy.
 
 ## Story 8.8: featured-area gallery
 

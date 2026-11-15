@@ -22,7 +22,7 @@ import { CaveatLine, RegionCaveat } from "../provenance/RegionCaveat";
 import { currentHighlight, type Marked } from "../ranks/model";
 import { RankingsPanel } from "../ranks/RankingsPanel";
 import type { RankWords } from "../ranks/words";
-import { currentQuery, encodeShare, parseShare, rangeNote } from "../share";
+import { addressChange, currentQuery, encodeShare, parseShare, rangeNote } from "../share";
 
 const UNREACHABLE = messages.client.service_unreachable;
 
@@ -35,8 +35,16 @@ interface View {
 }
 
 export function CalendarPage({ service = client }: { service?: ServiceClient }) {
+  // Story 8.1: an address edited in an open tab (or Back and Forward) loads what it names. The page
+  // starts over from the new address, exactly as opening the link fresh does.
+  const [opened, setOpened] = useState(0);
+  return <LinkedCalendar key={opened} service={service} onRelink={() => setOpened((n) => n + 1)} />;
+}
+
+function LinkedCalendar({ service, onRelink }: { service: ServiceClient; onRelink: () => void }) {
   // Story 8.1: the address may carry the area, the dates and the view. No state in it is the default area, as before.
   const [link] = useState(() => parseShare(currentQuery(window.location.hash)));
+  const written = useRef(window.location.hash);
   const [view, setView] = useState<View>(() => ({ selected: link.area, range: link.range, result: null }));
   const [look, setLook] = useState<{ measure: Measure; grid: GridView }>({ measure: link.measure, grid: link.grid });
   const [notes, setNotes] = useState<string[]>(link.notes);
@@ -82,7 +90,19 @@ export function CalendarPage({ service = client }: { service?: ServiceClient }) 
   useEffect(() => {
     const hash = encodeShare({ area: view.selected, range: view.range, ...look });
     if (window.location.hash !== hash) window.history.replaceState(null, "", hash);
+    written.current = hash;
   }, [view.selected, view.range, look]);
+
+  // A hashchange comes only from outside the page: the address bar, Back and Forward, or a link.
+  useEffect(() => {
+    const onChange = () => {
+      const what = addressChange(window.location.hash, written.current);
+      if (what === "restore") window.history.replaceState(null, "", written.current);
+      else if (what === "reload") onRelink();
+    };
+    window.addEventListener("hashchange", onChange);
+    return () => window.removeEventListener("hashchange", onChange);
+  }, [onRelink]);
 
   return (
     <CalendarView

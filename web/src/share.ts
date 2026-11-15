@@ -23,6 +23,7 @@ import { defaultArea, featuredAreas, type AoiInput, type FeaturedArea } from "./
 import { typedProblemText } from "./area/words";
 import type { Measure } from "./grid/anomaly";
 import type { View } from "./grid/CalendarGrid";
+import { routeFromHash } from "./route";
 
 export interface ShareState {
   area: AoiInput;
@@ -138,4 +139,16 @@ export function rangeNote(range: DateRange, meta: Meta): string | null {
 export function currentQuery(hash: string): string {
   const i = hash.indexOf("?");
   return i < 0 ? "" : hash.slice(i + 1);
+}
+
+/**
+ * What the calendar does when the address changes in an open tab (an edited address, Back or Forward).
+ * `written` is the address the page last wrote for its own state (replaceState fires no hashchange).
+ *   "ignore"  another page's route, or the address the page already shows.
+ *   "restore" "#/" with no state (the Calendar link in the masthead): keep the shown state and write it back.
+ *   "reload"  read the link again and load what it names, as opening it fresh does.
+ */
+export function addressChange(hash: string, written: string): "ignore" | "restore" | "reload" {
+  if (routeFromHash(hash) !== "calendar" || hash === written) return "ignore";
+  return currentQuery(hash) === "" ? "restore" : "reload";
 }
