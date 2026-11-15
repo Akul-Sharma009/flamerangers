@@ -42,7 +42,7 @@ C1 was chosen by a rule fixed before scoring and tested on held-back years again
 
 > **[flag-precision-vs-b]** C1 failed the flag-precision test against (b): 0.704 against 0.736. Under the rule fixed beforehand the outcome was "nothing beat one global factor", and the project lead kept C1 as a recorded deviation after seeing the scores.
 
-The impact is one public link, with no login, where haze and air-quality desks, scientists who study burning and land managers can read two decades of hotspots on one scale [pending: web address]. Today the published record covers Sumatra; the evaluated regions [pending: Story 2.8] and a current month refreshed daily [pending: Story 2.9] are still to come.
+The impact is one public link, with no login, where haze and air-quality desks, scientists who study burning and land managers can read two decades of hotspots on one scale: https://burncal-web-eight.vercel.app. Today the published record covers the six evaluated regions; the rest of the world and a current month refreshed daily [pending: Story 2.9] are still to come.
 <!-- /field:summary -->
 
 Words: 327.
@@ -62,10 +62,10 @@ Words: 45. The deck itself is the field's content; this line only describes it i
 Must be publicly accessible.
 
 <!-- field:link -->
-[pending: web address]
+https://burncal-web-eight.vercel.app
 <!-- /field:link -->
 
-Words: 3. The service runs on Vercel; the web app's host is not chosen yet. The hosted service still answers from the fixture until the data owner redeploys it with a published record (`docs/handoff.md`, Next, item 2).
+Words: 1. The web app and the service both run on Vercel (Story 6.4); the service answers from the published record for the six evaluated regions. The web app is a static build: a change under `web/` shows only after a rebuild and redeploy.
 
 ## 6. Project Details
 
@@ -106,12 +106,12 @@ The record holds satellite hotspot counts over land. It holds no smoke, haze, ai
 
 **What exists today.** NASA FIRMS serves MODIS and VIIRS hotspots, each sensor as it is, and offers no harmonization or climatology tool; FIRMS and Worldview map hotspot dots for a date; GWIS distributes burned area, not hotspot counts; INPE's operational rule keeps to one reference satellite, Aqua (links in field 8; INPE's rule is still `[unverified]`). This project joins MODIS and VIIRS into one monthly record in Aqua units, chosen by a rule fixed before scoring, and states its own failures beside the numbers.
 
-**Tools and technologies.** Python 3.14 with uv, FastAPI, Uvicorn, DuckDB, PyArrow, Shapely, NumPy and pandas for the pipeline and the service; React, TypeScript, Vite, D3, MapLibre GL, Terra Draw, topojson-client and world-atlas (Natural Earth land outlines) for the web app; pytest, Vitest and Playwright for tests; gitleaks for secret scanning; Vercel hosts the service. The code is open in the public repository [pending: repository address].
+**Tools and technologies.** Python 3.14 with uv, FastAPI, Uvicorn, DuckDB, PyArrow, Shapely, NumPy and pandas for the pipeline and the service; React, TypeScript, Vite, D3, MapLibre GL, Terra Draw, topojson-client and world-atlas (Natural Earth land outlines) for the web app; pytest, Vitest and Playwright for tests; gitleaks for secret scanning; Vercel hosts the service. The code is open in the public repository, https://github.com/Akul-Sharma009/flamerangers.
 
 **NASA datasets.** MODIS and VIIRS hotspots from NASA FIRMS, and the VIIRS swath product from NASA LP DAAC. Named in field 7.
 <!-- /field:details -->
 
-Words: 1137. Long; if the form has a limit, cut the paragraph after "What it does", "What exists today" and the `comparator-vs-b` claim first.
+Words: 1135. Long; if the form has a limit, cut the paragraph after "What it does", "What exists today" and the `comparator-vs-b` claim first.
 
 ## 7. NASA data
 

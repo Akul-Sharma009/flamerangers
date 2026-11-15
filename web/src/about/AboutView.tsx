@@ -134,6 +134,11 @@ export function AboutView({
           <p>{t(COPY.validation.fed)}</p>
           <Note k="validated_satellite_false" className="quoted" text={notes.validated_satellite_false} />
           <Note k="monthly_validation_only" text={notes.monthly_validation_only} />
+          {meta.noaa20_check && meta.noaa20_check.pooled.bias_pct > 0 && (
+            <p data-note="noaa20_high">
+              {t(COPY.validation.noaa20High)} <a href={EVIDENCE_HASH}>{COPY.validation.noaa20Link}</a>.
+            </p>
+          )}
           <p>
             {COPY.validation.more} <a href={EVIDENCE_HASH}>{COPY.margin.evidenceLink}</a>.
           </p>

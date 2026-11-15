@@ -83,6 +83,11 @@ export const COPY = {
     noaa21: "{noaa21} is not covered either. This site does not use its hotspots.",
     fed:
       "The conversion was fitted and tested on {snpp}. Since {noaa20_from} the record has been fed by {noaa20}, converted with the same method, on the untested assumption that it detects hotspots the way {snpp} did. A month fed by a satellite outside the validation says so:",
+    // Shown only when /meta carries the NOAA-20 comparison and it reads higher (Story 2.10). No figure is typed here:
+    // the figures are on the evidence page, from the evidence file.
+    noaa20High:
+      "Compared over the same months, converted {noaa20} counts read higher than converted {snpp} counts, so a month fed by {noaa20}, such as the current month, may read high. The figures, region by region, are on the evidence page:",
+    noaa20Link: "NOAA-20 against Suomi NPP",
     more: "The evidence page lists the other limits of the scores.",
   },
 

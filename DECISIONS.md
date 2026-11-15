@@ -1085,3 +1085,12 @@ Each entry has: a status (**ASSUMED** or **TESTED**), its evidence, and a "revis
 - **Measured in production** (`burncal-stub.vercel.app`, from Singapore): `/meta` says `20261113-19dfbcc8`, contract 0.4.0, six regions loaded, NOAA-20 headline present (pooled 5.0, +7.2%); six region calendars 200 with nulls only January to June 2002 and December 2026; 20 Sumatra calendars p50 0.98 s, **p95 1.14 s**, max 1.88 s; whole extents 1.13 to 3.85 s; one year of `/hotspots.csv` 1.36 s.
 - **Rollback:** promote the previous production deployment (`dpl_9ttqARwG4hsf9J6nf4JPQ8gt31os`, Sumatra `9cedd502`), re-upload a `CURRENT.json` naming `9cedd502` to the dataset, then check `/meta` and 20 calendars.
 - **Revisit if:** the bundle passes 5 GB (a seventh region or the world), Vercel ends the beta or limits it by plan, a redeploy is needed often (each changed version uploads about 3 GB), or the cold start grows past about 10 s.
+
+## NOAA-20 "may read high" on the about page; submission addresses (15 Nov 2026)
+
+- **Status:** TESTED (about-page unit test for shown, absent and negative cases; seen in the browser against the live service). Wording approved by the lead on 15 Nov.
+- **Decision:** the about page's validation section adds one web-owned paragraph, shown only when `/meta` carries `noaa20_check` and its pooled `bias_pct` is above zero: converted NOAA-20 counts read higher than converted Suomi NPP counts, so a month fed by NOAA-20, such as the current month, may read high, with a link to the evidence page's "NOAA-20 against Suomi NPP" block. No figure is typed in the copy; the figures stay on the evidence page (served +7.2% pooled, +0.5% to +17.3% by region, Siberia highest).
+- **Not done:** the one-note contract 0.5.0 (the same note on the current-month card). The lead chose the about page only: the card already says the satellite is outside the validation, and a contract bump needs both owners and a service redeploy this late.
+- **Submission text:** the web and repository addresses are filled; the summary now says the published record covers the six evaluated regions (approved by the lead), with the world and the daily current month still to come.
+- **Revisit if:** the served comparison stops reading higher (the paragraph then hides itself), or the lead reopens 0.5.0.
+

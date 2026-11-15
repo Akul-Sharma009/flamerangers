@@ -142,6 +142,24 @@ describe("Story 5.7 AC1: the page explains the data from any view", () => {
     expect(s).toContain(messages.notes.monthly_validation_only);
   });
 
+  it("says a NOAA-20 month may read high only when the served comparison reads higher", () => {
+    const figures = (bias_pct: number) => ({ mean_abs_difference: 5, bias_pct, cell_months: 10 });
+    const withCheck = (bias_pct: number) =>
+      ({ ...meta, noaa20_check: { reported_only: true, validated_against_aqua: false, period_start: "2022-01", period_end: "2026-10", pooled: figures(bias_pct), regions: [] } }) as unknown as Meta;
+    const note = (h: string) => h.match(/<p data-note="noaa20_high">([\s\S]*?)<\/p>/);
+
+    expect(meta.noaa20_check).toBeNull();
+    expect(note(html)).toBeNull();
+    expect(note(render(withCheck(-1)))).toBeNull();
+
+    const shown = note(render(withCheck(7.2)))!;
+    const words = text(shown[1]!);
+    expect(words).toContain(`${messages.labels.satellite.NOAA20}, such as the current month, may read high`);
+    expect(words).toContain("are on the evidence page");
+    expect(shown[1]).toContain(`<a href="${ROUTES.find((r) => r.id === "evidence")!.hash}">${COPY.validation.noaa20Link}</a>`);
+    expect(words).not.toMatch(/7\.2|%/); // no figure typed: they are on the evidence page
+  });
+
   it("explains detection limits under cloud and smoke", () => {
     const s = section("detection");
     expect(s).toMatch(/Thick cloud hides the ground/);
