@@ -11,8 +11,12 @@ import type { Measure } from "../grid/anomaly";
 import { CalendarGrid } from "../grid/CalendarGrid";
 import { FlagCellsPanel } from "../grid/FlagCells";
 import { GridLegend } from "../grid/GridLegend";
+import type { Highlight } from "../grid/highlight";
 import type { CellsLoader } from "../provenance/cells";
 import { CaveatLine, RegionCaveat } from "../provenance/RegionCaveat";
+import { currentHighlight, type Marked } from "../ranks/model";
+import { RankingsPanel } from "../ranks/RankingsPanel";
+import type { RankWords } from "../ranks/words";
 
 const UNREACHABLE = messages.client.service_unreachable;
 
@@ -52,7 +56,7 @@ export function CalendarPage({ service = client }: { service?: ServiceClient }) 
 
 /** The page for one state of the view. Exported so tests can render each state. */
 export function CalendarView({
-  view, onSelect, onSelectRange, initialOpen, initialMeasure = "count", loadFlagCells,
+  view, onSelect, onSelectRange, initialOpen, initialMeasure = "count", loadFlagCells, initialHighlight = null, rankWords,
 }: {
   view: View;
   onSelect: (aoi: AoiInput) => void;
@@ -62,6 +66,10 @@ export function CalendarView({
   initialMeasure?: Measure;
   /** Story 3.8: the /cells loader for the anomaly view's cell panel (tests pass their own). */
   loadFlagCells?: CellsLoader;
+  /** Story 3.9: a ranked item marked on first draw (tests). */
+  initialHighlight?: Highlight | null;
+  /** Story 3.9: the rankings' contract words (tests pass their own). */
+  rankWords?: RankWords;
 }) {
   const { selected, range, result } = view;
   // The measure and the picked month live here so the legend and the cell panel follow the grid.
@@ -69,11 +77,16 @@ export function CalendarView({
   const [picked, setPicked] = useState<string | null>(null);
   const ready = result?.status === "ready" ? result : null;
   const calendar = ready?.calendar ?? null;
+  // Story 3.9: the ranked item marked on the calendar. It belongs to the calendar it
+  // was chosen from, so a new area or range clears it.
+  const [marked, setMarked] = useState<Marked>({ of: undefined, item: initialHighlight });
+  const highlight = currentHighlight(marked, calendar);
+  const setHighlight = (item: Highlight | null) => setMarked({ of: calendar, item });
   const problemText =
     result?.status === "problem" ? areaProblemText(result.code) : result?.status === "failed" ? UNREACHABLE : null;
 
   return (
-    <main className="page ledger">
+    <main className={`page ledger${ready ? " has-ranks" : ""}`}>
       <div className="leftcol">
         <AreaLocator
           selected={selected}
@@ -100,7 +113,7 @@ export function CalendarView({
       </div>
       {/* A refused area draws no calendar at all: never a grid of zeros. */}
       {ready ? (
-        <section aria-label="Calendar">
+        <section aria-label="Calendar" className="calsection">
           <div className="gridhead">
             <h2>
               Hotspots per month, {formatYearMonth(ready.calendar.range.start.slice(0, 7))} to{" "}
@@ -109,7 +122,7 @@ export function CalendarView({
             <span>{ready.calendar.unit_label} · record {ready.calendar.record_version}</span>
           </div>
           <CaveatLine calendar={ready.calendar} />
-          <CalendarGrid calendar={ready.calendar} meta={ready.meta} measure={measure} onMeasureChange={setMeasure} onPick={setPicked} />
+          <CalendarGrid calendar={ready.calendar} meta={ready.meta} measure={measure} onMeasureChange={setMeasure} onPick={setPicked} highlight={highlight} />
           <GridLegend calendar={ready.calendar} measure={measure} />
           {/* The anomaly view shows each 1° cell's flag state for the picked month, else the current month. */}
           {measure === "anomaly" ? (
@@ -126,6 +139,10 @@ export function CalendarView({
         <section aria-label="Calendar">
           <p className="loading">Loading…</p>
         </section>
+      ) : null}
+      {/* Story 3.9: below the hero's left side, beside the grid; after the grid on a phone. */}
+      {ready ? (
+        <RankingsPanel calendar={ready.calendar} highlight={highlight} onHighlight={setHighlight} words={rankWords} />
       ) : null}
     </main>
   );
