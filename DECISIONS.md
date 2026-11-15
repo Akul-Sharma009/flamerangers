@@ -1206,9 +1206,10 @@ Each entry has: a status (**ASSUMED** or **TESTED**), its evidence, and a "revis
 
 ## Kalimantan added as a covered area, not a featured region (15 Nov 2026)
 
-- **Status:** ASSUMED until its data is published and checked live.
+- **Status:** TESTED (live 15 Nov, 21:55 SGT; see the last bullet).
 - **Decision:** At the user's request, Indonesian Borneo is added as an extra covered area, `kalimantan`, extent 110–120°E, 5°S–5°N, so a drawn area or a province picked by name there gets a calendar. It is not a featured region and not in `contract/regions.geojson` (no contract change): its cells are "not evaluated" and the area carries the untuned-region caution. It starts at 110°E because Sumatra's extent already holds 90–110°E and extents may not overlap; an area crossing 110°E is outside coverage. The daily refresh knows it, and leaves it out of a version until its build state exists. Its data is downloaded, built and published after the 21:00 build stop (data only, no code).
 - **Evidence:** `test_2_8_kalimantan_is_a_covered_area_east_of_sumatra`, `test_2_8_refresh_leaves_out_an_area_not_built_yet`; full suite passes.
+- **Live:** downloaded 20:28–21:25 (42 files, two passes), built in 17 s (1,953,546 rows, 887,713 feeding, 100 one-degree cells, 1.4 GB peak), its state uploaded to the dataset (172 files), then the daily workflow (run 43719032001) published `20261114-dcc739ea` with seven areas (81,781,613 rows) and deployed it; the web was redeployed after. A 3°×3° box in Central Kalimantan: 300 months, nulls only outside the record, September 2015 at 6,253; its cells are all `not_evaluated` with the `untuned_region` caveat. Picking "Kalimantan Tengah, Indonesia" by name on the live site loads its calendar with the untuned caution.
 - **Revisit if:** Kalimantan should be featured (a contract change with the lead), or Sumatra's extent is reworked so all of Borneo fits one area.
 
 ## Story 6.4: the web app's host and the service's allowed origin (15 Nov 2026)
