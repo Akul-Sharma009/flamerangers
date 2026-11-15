@@ -81,6 +81,30 @@ Each step prints counts only and never prints the key. Regions are the `region_i
    uv run python tools/check_numbers.py store/published
    ```
 
+Without the parity case (for example on GitHub), publish uses the recorded pass `burncal/pipeline/parity_pass.json`, which counts only while `burncal/core` and the C1 params are unchanged. After any change there, rerun the case where it is available and commit the new pass:
+
+```bash
+BURNCAL_PARITY_CASE_DIR=<parity case folder> uv run python -m burncal.pipeline.parity --record
+```
+
+## Refresh all six regions (Story 2.9)
+
+Brings every region up to the day before FIRMS's last near-real-time day, re-downloading only the files whose span changed and rebuilding only those years, then publishes one new version. `<prev raw root>` holds each region's last raw folder (`<prev raw root>/<region_id>/` with `coverage.json`), `<prev build root>` its `clean/` and `record/` folders; everything new goes under `<out root>`, which must not exist.
+
+```bash
+uv run python -m burncal.pipeline.refresh store/published <prev raw root> <prev build root> <out root> --noaa20-check=<headline.json>
+```
+
+The daily GitHub workflow (`.github/workflows/daily-refresh.yml`) does the same from the build state in the store dataset, then deploys. It needs the secrets `FIRMS_MAP_KEY`, `HF_TOKEN`, `VERCEL_TOKEN` and the repository variable `HF_DATASET`.
+
+## Build the service's deploy folder
+
+Code, contract files and the current store version, with `points.parquet` split into parts under 100 MB (see `deploy/README.md`):
+
+```bash
+uv run python tools/build_deploy.py store/published <out dir>
+```
+
 ## Layout
 
 - `contract/`: the API contract and the Sumatra fixture (written first, changed only by both owners).
