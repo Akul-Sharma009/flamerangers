@@ -851,3 +851,11 @@ Each entry has: a status (**ASSUMED** or **TESTED**), its evidence, and a "revis
 - **Wording (TODO(skip_link)), approved by the lead on 15 Nov:** "Skip to the page content". No contract sentence exists. It is a button because the hash is the router.
 - **Not fixed:** grid cells stay 18 px wide at 375 px (the table view is the phone alternative); MapLibre's own animation under reduced motion was not traced.
 - **Revisit if:** a screen-reader pass finds the below-mark bar noisy, or the contract adds a skip sentence.
+
+## Story 7.8: all-candidates table (15 Nov 2026)
+
+- **Status:** TESTED for the numbers (the evidence check covers every cell; vitest checks each reason against its noise mark). The reason wording was approved by the lead on 15 Nov, after the lead's review checked each reason against the scores and corrected four: 1A (within noise of 4A on each measure, not behind it), M5 (the Aqua-only precision failure applies to every method, so it was dropped), 3B and M4 (plainer size words), and C1 ("The pick.").
+- **What:** a collapsed table on the evidence page (expand button, scrolls inside its own region) with one row each for the 13 single approaches and C1, C2, C3 on the selection set: count error against (b) with its 95% interval and noise mark, pooled 1° flag precision and recall. All read by `evidence/build.py` into the `selection.candidates` table; no browser arithmetic.
+- **Evidence:** the singles are in `selection_20261113T145716Z.json`, the combinations in `selection_20261113T151303Z.json`. The build now lists the first as a second source of the selection set (placed before the second, which stays the one the final run names). The reasons are plain words with no numbers, kept in `web/src/evidence/candidates.ts` because the frozen schema has no field for text on a row.
+- **Not done:** (a), (b) and the comparator are not rows (not candidates); no by-region view of the candidates.
+- **Revisit if:** the lead changes a reason, or the schema gains a row note field (the reasons could then come from the build).

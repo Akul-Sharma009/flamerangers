@@ -654,3 +654,7 @@ Checks on the merged master: `uv run pytest` 310 passed, 1 skipped (Sumatra reco
 ## Story 3.10: accessibility and phone-width pass
 
 - Done in the worktree, not committed. Anomaly view: a bar marks below-mean classes (grid, table, legend) so the sides differ in greyscale. 32 px targets, picker arrow keys and Escape, a skip control, evidence table names. Checks: tsc, vitest (288), build, wording.py passed. Details and the `TODO(skip_link)` wording: DECISIONS.md.
+
+## Story 7.8: all-candidates table
+
+- Done in the worktree, not committed. Collapsed table on the evidence page: 16 rows (13 singles, C1 to C3), figures from `evidence.json` table `selection.candidates`, reasons in `web/src/evidence/candidates.ts` marked `TODO(candidate_reasons)`. Checks: pytest, `evidence/build.py --check`, tsc, vitest (294), build, wording.py passed. Details: DECISIONS.md.
