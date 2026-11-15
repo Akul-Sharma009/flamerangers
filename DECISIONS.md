@@ -1030,3 +1030,31 @@ Each entry has: a status (**ASSUMED** or **TESTED**), its evidence, and a "revis
 - **Decision:** none new; the README's setup lines work from a fresh clone of master at `b1e8e2e` (PR 12 merged).
 - **Evidence:** fresh clone: `uv sync`, import check passed, `uv run pytest` 405 passed and 11 skipped (no local store; parity case set), `evidence/build.py --check` passed, service in fixture mode answered `/meta` (placeholder true), web `npm ci`, typecheck, 313 tests and build passed, wording check passed.
 - **Revisit if:** the README's setup changes; rerun before the repo goes public.
+## Story 2.5: the Sumatra and Australian threshold misses trace to island hotspots (15 Nov)
+
+- **Status:** ASSUMED (consistent with the evidence; the harness's country files are not on the data owner's machine to confirm row by row)
+- **Decision:** The product keeps hotspots on small islands, because they are land by the product's rule (Natural Earth 1:10m). Nothing is changed to match the harness's history. Both misses are written up in `docs/cleaning-differences.md`.
+  - **Sumatra, September at 105°E 6°S.** Of the product's 41 Aqua hotspots in September 2006, 2 lie on one small island (about 25 km², 105.49°E 5.94°S, near Krakatau). 41 − 2 = 39, the harness's count. Every row is otherwise kept, inside the month and away from cell edges, so cleaning, dates and cell edges are ruled out. Likeliest cause: the harness read the FIRMS country archive file for Indonesia, which is cut to a country outline that leaves out the island; the product reads the area API, which returns everything in the box.
+  - **Australia, 136°E 16°S, months 1, 2, 10, 11, 12.** Not the McArthur River mine (that is the cell below) and not the static mask (no row in the cell is static). In January and February nearly every hotspot in the cell is on small Gulf of Carpentaria islands, and in October to December 8–22% are. Same likely cause.
+- **Evidence:** row checks against Natural Earth 1:10m land in `store/build/clean/*/AQUA_*.parquet` (counts and coordinates in `docs/cleaning-differences.md`).
+- **Revisit if:** the FIRMS country archive files (Indonesia and Australia, MODIS) show the island rows present; then the cause is elsewhere. To confirm, download those two files (no key) and look for the island rows.
+
+## Story 2.10: NOAA-20 against Suomi NPP, reported only (15 Nov)
+
+- **Status:** TESTED (code and run); the figures are reported only, not a validation against Aqua
+- **Decision:** C1 is applied unchanged to each satellite's cleaned rows in the six regions, January 2022 to October 2026, with the record's own region rules and fire seasons. The test plan's error (mean absolute difference per 1° land cell-month; land cells are the 1° cells that meet the region on Natural Earth land, plus any cell holding a hotspot) and bias ((NOAA-20 total − Suomi NPP total) ÷ Suomi NPP total) are computed per region at 1° and whole region (per month), and pooled at 1°. Nothing is fitted or adjusted from the result, no final-set data is read, and C1 is not changed. `convert`'s region, season and C1 steps are factored out without change so both use one implementation. `publish --noaa20-check=<headline.json>` puts the headline into a version and `/meta` serves it, rounded once to 1 decimal; until such a version is published, `/meta` serves `null`.
+- **Result** (`docs/results/noaa20_check_20261115T051158Z.json`, code `ba27753129f2`, the frozen params hash; for the lead to copy into `evidence/scoring/` with its manifest entry):
+
+| Region | 1° mean abs. difference | Bias | 1° cell-months | Whole-region monthly mean abs. difference |
+| --- | --- | --- | --- | --- |
+| Sumatra | 1.02 | +4.9% | 4,698 | 43.4 |
+| Australian grassland | 3.94 | +0.5% | 4,698 | 161.9 |
+| Amazon forest | 3.65 | +3.1% | 3,248 | 127.2 |
+| Southern Africa | 19.68 | +7.7% | 8,700 | 2,478.7 |
+| Siberia | 0.94 | **+17.3%** | 24,360 | 317.7 |
+| Punjab | 5.27 | +3.6% | 928 | 52.9 |
+| Pooled | 5.02 | +7.2% | 46,632 | |
+
+- **Finding for the lead (AC3):** converted NOAA-20 counts are higher than converted Suomi NPP counts in every region, and much higher in Siberia (+17.3%). Since 3 November 2026 only NOAA-20 feeds the record, so the current month may read high against the converted years, most in Siberia. C1 is not changed.
+- **Evidence:** `test_2_10_ac1_*` (C1 unchanged: NOAA-20 rows get the weights the same rows get as Suomi NPP, equal to the record's; excluded rows and rows outside the period count nothing; figures per region at 1° and whole region), `test_2_10_ac2_*` (the file's label; `/meta` serves the headline rounded once, `null` without it; publish carries it and hashes it into the version), `test_2_10_ac1_*` in `burncal/core/test_compare.py`. The refactored `convert` reproduces the built Sumatra records exactly (Suomi NPP 2023, Aqua 2010, NOAA-20 2026: maximum weight difference 0.0). Run: 174 s, 4.3 GB peak.
+- **Revisit if:** the lead wants the card to carry a NOAA-20 caution from this result (a contract change), or a later run uses standard NOAA-20 files for August to October 2026 (this run used near-real-time files for those months, as the record does).

@@ -704,6 +704,20 @@ The points where the plan left room are listed in `DECISIONS.md` ("Contract 0.2.
 ## Story 6.2: fresh-clone run, rerun on master (15 Nov)
 
 - Fresh clone of master at `b1e8e2e` (after PR 12): `uv sync`, import check, pytest 405 passed and 11 skipped (no local store), evidence check, fixture `/meta`, web `npm ci`, typecheck, 313 tests, build and wording check all passed.
+## Story 2.10: NOAA-20 against Suomi NPP, reported only (branch `teammate/2.10-noaa20`, 15 Nov)
+
+- Result: `docs/results/noaa20_check_20261115T051158Z.json` (for the lead to copy into `evidence/scoring/`; the evidence page then shows it). Pooled at 1°: mean absolute difference 5.02, bias +7.2%. NOAA-20 is higher in all six regions; **Siberia +17.3%**, the rest +0.5% to +7.7%. Reported to the lead as a finding; C1 unchanged.
+- `/meta` serves the headline once a version is published with `--noaa20-check` (waits for the next publish, so for the host choice).
+- Also on this branch: the Sumatra (September 2006) and Australian threshold misses traced to hotspots on small islands, likely left out of the harness's country files (`docs/cleaning-differences.md`; not confirmed row by row).
+
+| Criterion | Test or evidence |
+| --- | --- |
+| AC1 C1 unchanged on each satellite, Jan 2022 to Oct 2026 | `test_2_10_ac1_c1_is_applied_unchanged_to_each_satellite`, `test_2_10_ac1_excluded_rows_and_rows_outside_the_period_count_nothing` |
+| AC1 error and bias per region, 1° and whole region | `test_2_10_ac1_figures_per_region_at_1deg_and_whole_region`, `burncal/core/test_compare.py`; six-region run above |
+| AC2 file labelled reported only, not a validation | `test_2_10_ac2_the_file_says_reported_only_and_not_a_validation` |
+| AC2 `/meta` serves the headline | `test_2_10_ac2_meta_serves_the_noaa20_headline_rounded_once`, `..._is_null_until_the_run_exists`, `test_2_10_ac2_publish_puts_the_noaa20_headline_in_the_version` |
+| AC2 nothing fitted, no final-set data | The step reads only cleaned rows of 2022–2026 and the frozen params (hash in the file) |
+| AC3 a large difference goes to the lead | Siberia +17.3%, in `DECISIONS.md` and the report |
 
 ## Next
 

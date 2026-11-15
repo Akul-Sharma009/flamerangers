@@ -53,7 +53,7 @@ development_status:
   2-7-hotspots-for-any-search-t: done
   2-8-coverage-for-the-evaluated-regions-then-the-world-t: in-progress  # merged to master (PR 12); six regions published and on the store, hosted serves Sumatra only (option 1 rate-limited); world waits for the lead
   2-9-the-current-month-refreshed-daily-t: backlog
-  2-10-noaa-20-against-suomi-npp-reported-only-t: backlog
+  2-10-noaa-20-against-suomi-npp-reported-only-t: review  # result in docs/results; Siberia +17.3% reported to the lead
   epic-2-retrospective: optional
 
   epic-3: in-progress

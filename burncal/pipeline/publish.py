@@ -1,6 +1,6 @@
 """Story 2.6: publish one immutable store version and switch the pointer (AD-11, AD-12).
 
-Run: uv run python -m burncal.pipeline.publish <store root> <data_through> <record dir>,<grids dir>,<raw dir> [...]
+Run: uv run python -m burncal.pipeline.publish <store root> <data_through> [--noaa20-check=<headline.json>] <record dir>,<grids dir>,<raw dir> [...]
 
 The raw dir holds coverage.json: the build extent and, per FIRMS source, the date ranges downloaded
 and available. A version is written whole under a temporary name, renamed, and only then named in
@@ -90,14 +90,17 @@ def input_manifest(raw_dir) -> dict:
     return {p.name: _sha256(p) for p in sorted(Path(raw_dir).iterdir()) if p.is_file()}
 
 
-def record_version(raw_dirs, data_through: date, code_revision: str) -> str:
-    """YYYYMMDD-<8 hex>: the hash covers the input manifests, the parameter file and the code revision."""
+def record_version(raw_dirs, data_through: date, code_revision: str, extra: dict | None = None) -> str:
+    """YYYYMMDD-<8 hex>: the hash covers the input manifests, the parameter file and the code revision
+    (and any extra file the version carries, such as the NOAA-20 check)."""
     raw_dirs = [raw_dirs] if isinstance(raw_dirs, (str, Path)) else list(raw_dirs)
     inputs = {Path(d).name: input_manifest(d) for d in raw_dirs}
     if len(raw_dirs) == 1:
         inputs = next(iter(inputs.values()))
-    h = hashlib.sha256(json.dumps({"inputs": inputs, "params": _sha256(c1_params.PARAMS_FILE),
-                                   "code": code_revision}, sort_keys=True).encode())
+    body = {"inputs": inputs, "params": _sha256(c1_params.PARAMS_FILE), "code": code_revision}
+    if extra:
+        body["extra"] = extra
+    h = hashlib.sha256(json.dumps(body, sort_keys=True).encode())
     return f"{data_through:%Y%m%d}-{h.hexdigest()[:8]}"
 
 
@@ -175,14 +178,17 @@ def _load_check(vdir: Path) -> None:
         raise RuntimeError(f"the new version does not load, so the pointer is not switched: {type(exc).__name__}: {exc}") from exc
 
 
-def publish_many(builds, store_root, *, data_through: date, code_revision: str, parity_check=None) -> str:
+def publish_many(builds, store_root, *, data_through: date, code_revision: str, parity_check=None,
+                 noaa20_check=None) -> str:
     """Several extents in one version. builds: (record dir, grids dir, raw dir) per extent; the extent's
     name is its raw dir's name. Extents must not overlap. Each keeps its own coverage tables, and its
     record rows under records/<name>/; grids, evidence and points are joined."""
     builds = [tuple(map(Path, b)) for b in builds]
     gate = _parity_gate(data_through, parity_check, code_revision)
     root = Path(store_root)
-    version = record_version([raw for _, _, raw in builds], data_through, code_revision)
+    n20_sha = _sha256(Path(noaa20_check)) if noaa20_check else None
+    version = record_version([raw for _, _, raw in builds], data_through, code_revision,
+                             {"noaa20_check": n20_sha} if n20_sha else None)
     final = root / "versions" / version
     if not final.exists():
         tmp = root / "versions" / f".{version}.tmp"
@@ -221,6 +227,10 @@ def publish_many(builds, store_root, *, data_through: date, code_revision: str, 
         manifest = {"record_version": version, "data_through": data_through.isoformat(), "extents": extents,
                     "code_revision": code_revision, "params_sha256": params_sha256(),
                     "inputs": inputs, "rows_in_counts": n_points, "parity": gate}
+        if noaa20_check:
+            # Story 2.10: the reported-only check's headline figures, served by /meta
+            shutil.copy2(noaa20_check, tmp / "noaa20_check.json")
+            manifest["noaa20_check_sha256"] = n20_sha
         (tmp / "manifest.json").write_text(json.dumps(manifest, indent=1))
         _load_check(tmp)
         os.replace(tmp, final)
@@ -233,5 +243,10 @@ def publish_many(builds, store_root, *, data_through: date, code_revision: str, 
 if __name__ == "__main__":
     # publish <store root> <data_through> <record dir>,<grids dir>,<raw dir> [more extents ...]
     rev = clean_code_revision()
-    builds = [tuple(arg.split(",")) for arg in sys.argv[3:]]
-    print(publish_many(builds, sys.argv[1], data_through=date.fromisoformat(sys.argv[2]), code_revision=rev))
+    args = sys.argv[3:]
+    n20 = None
+    if args and args[0].startswith("--noaa20-check="):
+        n20, args = args[0].split("=", 1)[1], args[1:]
+    builds = [tuple(arg.split(",")) for arg in args]
+    print(publish_many(builds, sys.argv[1], data_through=date.fromisoformat(sys.argv[2]), code_revision=rev,
+                       noaa20_check=n20))

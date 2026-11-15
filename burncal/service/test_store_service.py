@@ -642,3 +642,25 @@ def test_3_2_missing_days_to_date_reads_the_area_extent(store_root, versions, tm
     pd.concat([miss, pd.DataFrame([row])], ignore_index=True).to_parquet(path, index=False)
     c = TestClient(create_app(root)).post("/calendar", json=_body(versions[0])).json()
     assert c["current_month"]["missing_days_to_date"] is True
+
+
+# --- Story 2.10: /meta serves the NOAA-20 check's headline figures -------------------------
+def test_2_10_ac2_meta_serves_the_noaa20_headline_rounded_once(store_root, versions, tmp_path):
+    import shutil
+    root = tmp_path / "copy"
+    shutil.copytree(store_root, root)
+    head = {"reported_only": True, "validated_against_aqua": False, "period_start": "2022-01", "period_end": "2026-10",
+            "pooled": {"mean_abs_difference": 1.23456, "bias_pct": -7.25001, "cell_months": 580},
+            "regions": [{"region_id": "sumatra", "name": "Sumatra",
+                         "figures": {"mean_abs_difference": 2.04999, "bias_pct": 3.96, "cell_months": 580}}]}
+    (root / "versions" / versions[0] / "noaa20_check.json").write_text(json.dumps(head))
+    m = TestClient(create_app(root)).get("/meta").json()
+    valid(m, "Meta")
+    n = m["noaa20_check"]
+    assert n["reported_only"] is True and n["validated_against_aqua"] is False
+    assert n["pooled"] == {"mean_abs_difference": 1.2, "bias_pct": -7.3, "cell_months": 580}
+    assert n["regions"][0]["figures"] == {"mean_abs_difference": 2.0, "bias_pct": 4.0, "cell_months": 580}
+
+
+def test_2_10_ac2_meta_noaa20_check_is_null_until_the_run_exists(client):
+    assert client.get("/meta").json()["noaa20_check"] is None
