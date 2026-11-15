@@ -1094,3 +1094,16 @@ Each entry has: a status (**ASSUMED** or **TESTED**), its evidence, and a "revis
 - **Submission text:** the web and repository addresses are filled; the summary now says the published record covers the six evaluated regions (approved by the lead), with the world and the daily current month still to come.
 - **Revisit if:** the served comparison stops reading higher (the paragraph then hides itself), or the lead reopens 0.5.0.
 
+## Epics 7 and 8 built in parallel; contract 0.5.0 drafted (15 Nov 2026)
+
+- **Status:** TESTED on fixtures and synthetic data only (503 Python tests, 394 web tests, typecheck, build, import, evidence and wording checks; the merged page seen in the browser in fixture mode and against the live 0.4.0 service). Not yet run on a real store or hosted.
+- **How:** nine sessions, one per story pair, each in its own worktree; the lead's session reviewed each diff and merged them on `integrate/epics-7-8`. Stories: 7.1/7.2 raw splice (`/raw_splice`), 7.3/7.4 seasonal profile (`/season`), 7.5/7.6 season to date (`/season_to_date`), 7.7 hotspot map (existing `/hotspots.csv`), 8.2 country or first-level unit (Natural Earth 5.1.2 admin-0 and admin-1, public domain, simplified, loaded lazily, `admin=` link field), 8.3/8.4 reference period (`/calendar` option), 8.5/8.6 Mann-Kendall trend with the Sen slope (`Calendar.trend`), 8.7 two areas side by side (`/calendar` option `shared_scale_with`), 8.9/8.10 cells worldwide and the globe (`/world_cells`, `#/globe`).
+- **Contract 0.5.0:** all additions are optional; with no new option every existing answer is unchanged (8.3 pins this with a byte-identical test). It needs the data owner's agreement before the service is redeployed.
+- **Lead's choices:** 8.7's comparison pools both areas' months into one set of colour classes (approved 15 Nov); a calendar viewed alone keeps its own classes.
+- **Session choices (ASSUMED):** 7.5 band is the 10th to 90th percentile of complete past years, monthly resolution; 8.3 needs whole years inside /meta's reference period, at least 5 years, flags keep 2003–2011 and the rankings follow the range; 8.5 needs at least 10 complete years, reports a direction only when p < 0.05; 7.7 draws at most 5,000 points, counted ones first.
+- **Citations:** Mann (1945) and Sen (1968) checked in Crossref by the 8.5 session; Kendall's 1975 book could not be confirmed, so the site cites Kendall (1938), Biometrika 30(1/2), DOI 10.2307/2332226, checked in Crossref by the lead's session.
+- **Found at integration:** two sessions both named an endpoint `/season` (7.5 renamed to `/season_to_date`); the admin boundary files sat in a git-ignored `data/` folder (moved to `boundaries/`); the trend indicator crashed the page on a service without `trend` (now shows nothing).
+- **Deploy order:** the service first, then the web. A 0.5.0 web on the 0.4.0 service works but its new panels say the service could not be reached.
+- **Open:** 8.9 measured a worldwide month at about 4.08 MB of JSON, close to Vercel's 4.5 MB response limit; fine for six regions, a problem for a world store. 8.10's globe opens on the current month on a real store; the fixture has only September 2015.
+- **Revisit if:** any answer differs from the fixtures on the real store, or the data owner disagrees with a 0.5.0 field.
+

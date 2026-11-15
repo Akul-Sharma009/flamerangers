@@ -746,6 +746,12 @@ The points where the plan left room are listed in `DECISIONS.md` ("Contract 0.2.
 - **Keep-warm:** Hobby cron runs at most once a day, so `.github/workflows/keep-warm.yml` asks `/meta` every 5 minutes (about 8,600 calls a month, negligible CPU). Whether it keeps an instance warm depends on how long Vercel keeps an idle instance, which the docs don't state; check the cold-start rate in the logs after a day.
 - **Not checked:** the account's usage so far this month (dashboard, Usage tab).
 
+## Epics 7 and 8 (15 Nov, branch `integrate/epics-7-8`)
+
+- Fifteen stories built in parallel and merged: 7.1–7.7 and 8.2–8.10 (7.8, 8.1 and 8.8 were already done). Contract 0.5.0 drafted: `/raw_splice`, `/season`, `/season_to_date`, `/world_cells`, `Calendar.trend`, and the `/calendar` options `reference_period` and `shared_scale_with`. All optional; old answers unchanged.
+- Checked on fixtures only. Before going live: the data owner agrees 0.5.0, redeploys the service, then the web (service first). Then check each new panel on the live site.
+- Details, choices and open items: `DECISIONS.md` ("Epics 7 and 8 built in parallel").
+
 ## Next
 
 From the lead's review of PRs 3 to 11 and the Codex adversarial review of the prototype (both 14 Nov; Codex: needs attention, three high findings, all folded into item 1). Merged with two fixes: `/meta` from a store now says contract 0.3.0 (a test ties it to `openapi.yaml`), and a hotspot search with no record file in its range gives the header and no rows instead of a 500.

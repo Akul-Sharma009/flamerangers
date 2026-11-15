@@ -96,26 +96,26 @@ development_status:
   6-6-pitch-storyline-drafted-on-saturday-a: done
   epic-6-retrospective: optional
 
-  epic-7: backlog
-  7-1-raw-splice-series-t: backlog
-  7-2-raw-against-harmonized-toggle-a: backlog
-  7-3-seasonal-profile-statistics-t: backlog
-  7-4-seasonal-profile-chart-a: backlog
-  7-5-season-to-date-statistics-t: backlog
-  7-6-season-to-date-chart-a: backlog
-  7-7-hotspot-map-for-a-month-a: backlog
+  epic-7: in-progress
+  7-1-raw-splice-series-t: review  # built 15 Nov on integrate/epics-7-8 (contract 0.5.0 draft); checked on fixtures only, not yet on a real store or hosted
+  7-2-raw-against-harmonized-toggle-a: review  # built 15 Nov on integrate/epics-7-8 (contract 0.5.0 draft); checked on fixtures only, not yet on a real store or hosted
+  7-3-seasonal-profile-statistics-t: review  # built 15 Nov on integrate/epics-7-8 (contract 0.5.0 draft); checked on fixtures only, not yet on a real store or hosted
+  7-4-seasonal-profile-chart-a: review  # built 15 Nov on integrate/epics-7-8 (contract 0.5.0 draft); checked on fixtures only, not yet on a real store or hosted
+  7-5-season-to-date-statistics-t: review  # built 15 Nov on integrate/epics-7-8 (contract 0.5.0 draft); checked on fixtures only, not yet on a real store or hosted
+  7-6-season-to-date-chart-a: review  # built 15 Nov on integrate/epics-7-8 (contract 0.5.0 draft); checked on fixtures only, not yet on a real store or hosted
+  7-7-hotspot-map-for-a-month-a: review  # built 15 Nov on integrate/epics-7-8 (contract 0.5.0 draft); checked on fixtures only, not yet on a real store or hosted
   7-8-all-candidates-table-a: done
   epic-7-retrospective: optional
 
-  epic-8: backlog
+  epic-8: in-progress
   8-1-shareable-link-a: done
-  8-2-administrative-unit-selection-a: backlog
-  8-3-reference-period-as-a-request-option-t: backlog
-  8-4-reference-period-control-a: backlog
-  8-5-trend-test-t: backlog
-  8-6-trend-indicator-a: backlog
-  8-7-two-area-comparison-a: backlog
+  8-2-administrative-unit-selection-a: review  # built 15 Nov on integrate/epics-7-8 (contract 0.5.0 draft); checked on fixtures only, not yet on a real store or hosted
+  8-3-reference-period-as-a-request-option-t: review  # built 15 Nov on integrate/epics-7-8 (contract 0.5.0 draft); checked on fixtures only, not yet on a real store or hosted
+  8-4-reference-period-control-a: review  # built 15 Nov on integrate/epics-7-8 (contract 0.5.0 draft); checked on fixtures only, not yet on a real store or hosted
+  8-5-trend-test-t: review  # built 15 Nov on integrate/epics-7-8 (contract 0.5.0 draft); checked on fixtures only, not yet on a real store or hosted
+  8-6-trend-indicator-a: review  # built 15 Nov on integrate/epics-7-8 (contract 0.5.0 draft); checked on fixtures only, not yet on a real store or hosted
+  8-7-two-area-comparison-a: review  # built 15 Nov on integrate/epics-7-8 (contract 0.5.0 draft); checked on fixtures only, not yet on a real store or hosted
   8-8-featured-area-gallery-a: done
-  8-9-cell-states-for-one-month-worldwide-t: backlog
-  8-10-globe-of-unusual-burning-a: backlog
+  8-9-cell-states-for-one-month-worldwide-t: review  # built 15 Nov on integrate/epics-7-8 (contract 0.5.0 draft); checked on fixtures only, not yet on a real store or hosted
+  8-10-globe-of-unusual-burning-a: review  # built 15 Nov on integrate/epics-7-8 (contract 0.5.0 draft); checked on fixtures only, not yet on a real store or hosted
   epic-8-retrospective: optional

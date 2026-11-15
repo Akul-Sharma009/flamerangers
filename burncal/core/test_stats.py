@@ -90,3 +90,55 @@ def test_review_share_of_max_uses_complete_years_only():
                           in_range=set(months), reference_years=(2003, 2004))
     shares = {y["year"]: y["share_of_max"] for y in out["year_totals"]}
     assert shares[2003] == 1.0 and shares[2004] == 1.0 and shares[2005] == 500.0 / 120.0
+
+
+def _years(totals, extra=None):
+    """Each year has `totals[y]` hotspots in every month, all complete."""
+    s = {(y, m): float(v) for y, v in totals.items() for m in range(1, 13)}
+    return s, set(s) | set(extra or [])
+
+
+def test_7_5_ac1_cumulative_series_and_median_and_band_of_complete_past_years():
+    s, complete = _years({2003: 1, 2004: 2, 2005: 3})
+    s.update({(2006, 1): 10.0, (2006, 2): 5.0})            # the selected year, to date
+    complete -= {(2006, 1), (2006, 2)}
+    got = stats.season_to_date(s, complete, 2006, reference_years=(2003, 2005))
+    assert got["past_years"] == [2003, 2004, 2005]
+    assert got["band"] == (10, 90) and got["start"] == 0.0
+    m = got["months"]
+    assert [p["cumulative"] for p in m[:3]] == [10.0, 15.0, None]   # null after the data: missing is not zero
+    assert m[0]["median"] == 2.0 and m[11]["median"] == 24.0         # median of 12, 24, 36
+    assert m[11]["band_low"] == pytest.approx(14.4) and m[11]["band_high"] == pytest.approx(33.6)
+
+
+def test_7_5_a_past_year_that_is_not_complete_is_left_out_and_so_is_the_selected_part_year():
+    s, complete = _years({2003: 1, 2004: 2})
+    complete.discard((2004, 7))                               # a month with missing days
+    s.update({(2002, m): 100.0 for m in range(7, 13)})        # 2002 starts in July
+    complete |= {(2002, m) for m in range(7, 13)}
+    got = stats.season_to_date(s, complete, 2005, reference_years=(2002, 2004))
+    assert got["past_years"] == [2003]
+    assert all(p["cumulative"] is None for p in got["months"])  # 2005 is not in the record at all
+
+
+def test_7_5_a_year_starting_mid_year_has_no_curve_rather_than_one_starting_in_july():
+    s, _ = _years({2003: 1})
+    s.update({(2002, m): 100.0 for m in range(7, 13)})
+    assert stats.running_total(s, 2002) == [None] * 12
+
+
+def test_7_5_ac2_the_curve_starts_at_zero_and_nothing_is_counted_on_1_january():
+    s, complete = _years({2003: 1})
+    got = stats.season_to_date(s, complete, 2004, reference_years=(2003, 2003))
+    assert got["start"] == 0.0 and got["months"][0]["cumulative"] is None
+
+
+def test_7_5_no_past_year_gives_no_median_or_band():
+    got = stats.season_to_date({(2026, 1): 4.0}, set(), 2026, reference_years=(2003, 2025))
+    assert got["past_years"] == [] and got["months"][0] == {
+        "month": 1, "cumulative": 4.0, "median": None, "band_low": None, "band_high": None}
+
+
+def test_7_5_percentile_is_linear_between_values():
+    assert stats.percentile([10, 20, 30, 40], 50) == 25.0
+    assert stats.percentile([5], 90) == 5 and stats.percentile([], 50) is None

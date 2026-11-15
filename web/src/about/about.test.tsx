@@ -191,7 +191,7 @@ describe("Story 5.7 AC2: the counting limits, record version, sources and eviden
 
   it("lists every data source with its Story 6.1 citation and links, and the FIRMS acknowledgement", () => {
     const sources = COPY.margin.sources;
-    expect(sources.map((s) => s.id)).toEqual(["modis", "viirs", "viirs-swath", "natural-earth"]);
+    expect(sources.map((s) => s.id)).toEqual(["modis", "viirs", "viirs-swath", "natural-earth", "natural-earth-admin"]);
     for (const s of sources) {
       expect(html).toContain(`data-source="${s.id}"`);
       const c = CITATIONS[s.id];

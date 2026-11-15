@@ -1,0 +1,26 @@
+/* Season to date (Story 7.6). */
+.std { margin: 22px 0 0; grid-column: 1 / -1; }
+.std .stdhead { display: flex; flex-wrap: wrap; align-items: baseline; justify-content: space-between; gap: 6px 16px; }
+.std h2 { font: 600 17px var(--serif); margin: 0; }
+.std label { font: 12px var(--sans); color: var(--muted); display: inline-flex; gap: 6px; align-items: center; }
+.std select { font: 12px var(--sans); color: var(--ink); background: var(--paper); border: 1px solid var(--ink); padding: 3px 8px; min-height: 32px; }
+.std .stdusual { font-size: 13px; color: var(--muted); margin: 6px 0; line-height: 1.45; max-width: 70ch; }
+.std .stdnote { font-size: 12px; color: var(--muted); margin: 4px 0; max-width: 70ch; }
+.stdchart { display: block; max-width: 100%; height: auto; overflow: visible; }
+.stdchart .band { fill: var(--c2); fill-opacity: .45; stroke: none; }
+.stdchart .axis { stroke: var(--ink); stroke-width: 1; }
+.stdchart .medline { fill: none; stroke: var(--ink); stroke-width: 1.5; stroke-dasharray: 4 3; }
+.stdchart .yearline { fill: none; stroke: var(--c5); stroke-width: 3; stroke-linejoin: round; }
+.stdchart .yearline.todate { stroke-dasharray: 2 4; stroke-linecap: round; }
+.stdchart .todatept { fill: var(--paper); stroke: var(--c5); stroke-width: 2.5; }
+.stdchart text { font-family: var(--sans); font-size: 11.5px; fill: var(--ink); }
+.stdchart .tick { fill: var(--muted); font-size: 11px; }
+.stdchart .lab.year { font-weight: 700; font-size: 12.5px; }
+.stdchart .lab.band { fill: var(--muted); }
+.stdtable { margin: 8px 0 0; font-size: 12px; }
+.stdtable summary { cursor: pointer; color: var(--muted); min-height: 24px; }
+.stdtable table { border-collapse: collapse; margin-top: 6px; }
+.stdtable caption { text-align: left; color: var(--muted); padding-bottom: 4px; }
+.stdtable th, .stdtable td { padding: 2px 10px; border-bottom: 1px solid var(--faint); text-align: right; font-variant-numeric: tabular-nums; }
+.stdtable th[scope="row"], .stdtable th:first-child { text-align: left; font-weight: 400; }
+.stdchart .key { fill: var(--muted); font-size: 11px; }

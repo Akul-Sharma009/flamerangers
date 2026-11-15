@@ -2,6 +2,8 @@
 // type it, or set the date range (Story 3.4).
 import { useState, type FormEvent } from "react";
 import type { DateRange } from "../api/client";
+import { AdminPicker } from "./admin/AdminPicker";
+import { ADMIN_COPY } from "./admin/copy";
 import { DatesPanel, type DatesSetting } from "./DatesPanel";
 import { featuredAreas, type AoiInput, type FeaturedArea } from "./featured";
 import { FeaturedGallery } from "./FeaturedGallery";
@@ -11,7 +13,7 @@ import {
 } from "./typed";
 import { typedProblemText } from "./words";
 
-export type PickerTab = "featured" | "draw" | "type" | "dates";
+export type PickerTab = "featured" | "admin" | "draw" | "type" | "dates";
 export type TypedForm = "corners" | "vertices";
 
 interface Props {
@@ -34,6 +36,7 @@ interface Props {
 
 const TABS: { id: PickerTab; label: string }[] = [
   { id: "featured", label: "Featured areas" },
+  { id: "admin", label: ADMIN_COPY.tab },
   { id: "draw", label: "Draw" },
   { id: "type", label: "Type coordinates" },
   { id: "dates", label: "Dates" },
@@ -123,6 +126,8 @@ export function AreaPicker({
           <FeaturedGallery areas={list} currentName={currentName} onSelect={onSelect} />
         </div>
       ) : null}
+
+      {tab === "admin" ? <AdminPicker onSelect={onSelect} /> : null}
 
       {tab === "draw" ? (
         <div role="tabpanel" id="picker-panel-draw" aria-labelledby="picker-tab-draw">

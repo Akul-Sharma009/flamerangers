@@ -47,6 +47,14 @@ export interface Messages {
     | "no_complete_month"
     | "no_complete_year"
     | "missing_days_to_date"
+    | "raw_splice_toggle"
+    | "raw_splice_jump"
+    | "early_viirs_bad_scans"
+    | "season_definition"
+    | "season_year_partial"
+    | "globe_cells"
+    | "globe_uncovered"
+    | "globe_select"
   >;
   client: Table<
     | "coordinates_out_of_range"
@@ -58,11 +66,14 @@ export interface Messages {
     | "date_before_record"
     | "date_after_data_through"
     | "dates_out_of_order"
+    | "admin_too_wide"
   >;
   /** Card templates with {placeholders} (0.4.0). src/card/words.ts reads them. */
   sentences?: Record<string, string>;
   /** The six counting limits, in order (0.4.0): the about page lists them, both CSV headers write them. */
   counting_limits?: string[];
+  /** Story 7.7: the hotspot map's words; {limit} and {month} are filled in by the panel. */
+  hotspot_map?: Record<string, string>;
 }
 
 export const messages = raw as Messages;

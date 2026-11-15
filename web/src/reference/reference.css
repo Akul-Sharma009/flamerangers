@@ -1,0 +1,13 @@
+/* Story 8.4: the reference period control, a ruled line of the ledger page under the card. */
+.refperiod { margin: 6px 0 14px; padding-top: 10px; border-top: 1px solid var(--rule); font-size: 13px; }
+.refperiod fieldset { border: 0; margin: 0; padding: 0; min-width: 0; }
+.refperiod legend { padding: 0; font-size: 12px; color: var(--muted); letter-spacing: .05em; text-transform: uppercase; margin-bottom: 6px; }
+.refperiod-row { display: flex; flex-wrap: wrap; align-items: center; gap: 6px 8px; }
+.refperiod select { font-family: var(--num); font-variant-numeric: tabular-nums; font-size: 13px; min-height: 32px; padding: 2px 4px; border: 1px solid var(--rule); background: var(--paper); color: var(--ink); }
+.refperiod button { font: inherit; font-size: 13px; min-height: 32px; padding: 2px 10px; border: 1px solid var(--ink); background: transparent; color: var(--ink); cursor: pointer; }
+.refperiod button.primary { background: var(--ink); color: var(--paper); }
+.refperiod button:disabled { border-color: var(--rule); background: transparent; color: var(--muted); cursor: default; }
+.refperiod p { margin: 6px 0 0; line-height: 1.45; color: var(--muted); font-size: 12px; }
+.refperiod p.refperiod-limits.bad { color: var(--ink); }
+.refperiod p.refperiod-flags { color: var(--ink); }
+.refperiod .vh { position: absolute; width: 1px; height: 1px; overflow: hidden; clip: rect(0 0 0 0); white-space: nowrap; }

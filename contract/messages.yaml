@@ -6,7 +6,7 @@
 # Results and figures (for example how the conversion did in a region) are NOT
 # here. They come from evidence/claims.yaml and evidence.json, so that no result
 # is typed twice. Hotspots are never called "fires".
-version: 0.4.0
+version: 0.5.0
 
 problems:
   invalid_aoi: "This area can't be used. Check that the coordinates are in range, in order and form a closed shape."
@@ -15,6 +15,7 @@ problems:
   too_large_for_sync: "This download is large. You can download it one year at a time."
   version_superseded: "The record has been updated since this page loaded. Reloading with the new version."
   rate_limited: "Too many requests. Please wait a moment and try again."
+  invalid_reference_period: "These comparison years can't be used. Choose at least five whole years, all inside the record's complete years."
 
 cautions:
   scale_below_1deg: "This area is smaller than a 1° box. The conversion was tested on 1° cells and whole regions, so treat counts for an area this small with care."
@@ -77,6 +78,8 @@ notes:
   year_incomplete: "Incomplete year: the total covers only the months the record holds so far."
   monthly_validation_only: "The conversion was validated on whole months only, not on part of a month."
   no_typical_activity: "No typical activity in this month."
+  season_definition: "Typical year: the median of each calendar month over the reference years, with the lowest and highest month as the range. The peak is the month with the most hotspots. The season is every month with at least 10% of the year's hotspots."
+  season_year_partial: "Months this year has not reached, or that the record does not hold, are left blank, not shown as zero."
   strong_tier: "The strong tier is a display tier. It was checked on selection years only and is not part of the scored flag rule."
   flag_scale: "Flags are set on whole 1° cells, never on an area's total."
   reference_year: "Reference years: this month is one of the years that set the flag thresholds."
@@ -89,7 +92,14 @@ notes:
   rank_tie: "An equals sign after a rank means the rank is shared: those values are equal."
   no_complete_month: "No complete month falls in these dates, so none is ranked."
   no_complete_year: "No complete year falls in these dates, so none is ranked."
+  raw_splice_toggle: "Raw splice: Aqua MODIS counts through December 2011, then Suomi NPP counts as they are, with no conversion. Harmonized record: real Aqua through December 2021, then Suomi NPP converted to Aqua-equivalent by method C1 from January 2022."
+  raw_splice_jump: "The step at January 2012 is where the raw series changes sensor, so counts on either side of it are not on one scale. The colour scale is the same for both views."
+  early_viirs_bad_scans: "Early Suomi NPP data, in 2012 and 2013, had bad scans. Treat these raw months with care."
   missing_days_to_date: "Some days of input data are missing so far this month, so the count to date may be low."
+  # Story 8.10: the globe of unusual burning
+  globe_cells: "Each square is a whole 1° cell of the harmonized record, not an individual hotspot."
+  globe_uncovered: "Hatched land is not loaded yet. No cell is shown there, which is not the same as no hotspots."
+  globe_select: "Select a cell to open its calendar for that 1° box. You can redraw the area there."
 
 
 # The six limits that apply to every count, whatever the area or month. The
@@ -118,6 +128,26 @@ sentences:
   anomaly_scale: "Anomaly as a percentage of the {reference_start}–{reference_end} mean for the calendar month. Each class starts at the value shown."
   cells_heading: "Flag state of each one-degree cell in {month}."
   rankings_range: "Only complete months and years from {range_start} to {range_end} are ranked."
+  # Story 8.5/8.6: the trend test on annual totals. The service sends the numbers; these are the words.
+  trend_heading: "Trend in the annual totals"
+  trend_test_name: "Mann-Kendall test of a monotonic trend, with the Sen slope as its size"
+  trend_result_increasing: "{start}–{end}, {count} complete years: the annual totals trend upward (S = {s}, z = {z}, p = {p_value}). Sen slope: {slope} hotspots per year."
+  trend_result_decreasing: "{start}–{end}, {count} complete years: the annual totals trend downward (S = {s}, z = {z}, p = {p_value}). Sen slope: {slope} hotspots per year."
+  trend_result_none: "{start}–{end}, {count} complete years: no monotonic trend is detected (S = {s}, z = {z}, p = {p_value}). Sen slope: {slope} hotspots per year."
+  trend_level: "A trend is reported when p is below {alpha}."
+  trend_too_few: "The test needs at least {min_years} complete years. These dates hold {count}, so no trend is tested."
+  trend_left_out: "Left out: {years}. The record starts in July 2002, and a year with months still to come or missing days is not complete."
+  trend_switch_marked: "The record switch falls inside these years: Aqua MODIS counts through December 2021, converted VIIRS counts from January 2022."
+  trend_switch_caution: "A step at the record switch can look like a trend. The test cannot tell a real change in burning from a change of sensor, so read a trend across 2021 and 2022 with care."
+  season_to_date_title: "Running total of hotspots in {year}, against past years"
+  season_to_date_usual: "Usual range: the median of the running totals of {past_count} complete years ({reference_start}–{reference_end}), with a band from the {lower_percentile}th to the {upper_percentile}th percentile of those years."
+  season_to_date_note: "{month_name} {year} is to date: data through {data_through}. The median and the band are for the whole month."
+  season_to_date_start: "Each curve starts at 0 on 1 January and is read at the end of each month."
+  # Story 8.4: the reference period control.
+  reference_period_label: "Comparison years for the median, mean and anomalies"
+  reference_period_flags: "The flags still use {flag_start}–{flag_end}. Changing the comparison years does not change them, or the rankings."
+  reference_period_limits: "Whole years from {first} to {last}, at least {min_years} years."
+  reference_period_reset: "Back to {reference_start}–{reference_end}"
 
 # States the web finds itself, before or instead of a service answer. The
 # service never sends these; they are here so the web types no words (0.3.0; date sentences 0.4.0).
@@ -130,4 +160,23 @@ client:
   date_unreadable: "Enter each date as a day, month and year."
   date_before_record: "The record starts in July 2002. Choose a later first date."
   date_after_data_through: "The record runs only to the data-through date. Choose an earlier last date."
+  admin_too_wide: "This country or region spans more than half the world from west to east, so it cannot be used as one area. Choose a smaller region, or draw the part you want."
   dates_out_of_order: "The first date must be on or before the last date."
+
+# Story 7.7: the hotspot map for a month. {limit} is the most points drawn at once.
+hotspot_map:
+  heading: "Where the hotspots were in {month}"
+  intro: "Each dot is one hotspot from the satellite that feeds the record, inside the area. Flagged one-degree cells are outlined: a solid heavy line for strong, a dashed line for marginal."
+  show_excluded: "Show excluded hotspots"
+  excluded_note: "Excluded hotspots are offshore or at a fixed heat source. They are not in the count. They are drawn as open circles."
+  key_counted: "Hotspot in the count"
+  key_excluded: "Excluded hotspot (not counted)"
+  key_strong: "Strong flagged cell"
+  key_marginal: "Marginal flagged cell"
+  after_switch: "From January 2022 each converted VIIRS hotspot counts as part of a hotspot, so the dots shown differ in number from the month's count."
+  none_in_month: "No hotspots in this month inside the area."
+  capped: "Too many hotspots to draw at once. The first {limit} are shown; hotspots in the count are drawn first."
+  too_large: "This month has too many hotspots to show on a map. The CSV download gives them one year at a time."
+  loading: "Loading hotspots…"
+  unavailable: "The hotspots for this month could not be loaded."
+  map_label: "Map of the hotspots in {month} inside the chosen area"

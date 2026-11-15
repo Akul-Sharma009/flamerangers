@@ -1,0 +1,14 @@
+/* Story 7.7: the hotspot map for a month. Marks differ by shape and line, not colour alone. */
+.hotspotmap { margin-top: 16px; padding-top: 10px; border-top: 1px solid var(--rule); font-size: 12px; color: var(--muted); }
+.hotspotmap[aria-busy="true"] { opacity: 0.7; }
+.hotspotmap h3 { font-family: var(--serif); font-size: 15px; font-weight: 600; color: var(--ink); margin: 0 0 4px; }
+.hm-note { margin: 0 0 4px; line-height: 1.4; }
+.hm-toggle { display: inline-flex; align-items: center; gap: 6px; margin: 4px 0; color: var(--ink); cursor: pointer; }
+.hm-toggle input:focus-visible { outline: 2px solid var(--ink); outline-offset: 2px; }
+.hotspotmap-canvas { width: 100%; height: 360px; margin: 6px 0; border: 1px solid var(--rule); }
+.hm-key { list-style: none; margin: 4px 0 0; padding: 0; display: flex; flex-wrap: wrap; gap: 3px 16px; font-size: 11.5px; }
+.hm-key li { display: flex; align-items: center; gap: 6px; }
+.hm-dot { width: 9px; height: 9px; border-radius: 50%; background: var(--c3); border: 1px solid var(--ink); box-sizing: border-box; }
+.hm-dot.open { background: transparent; border-color: var(--muted); }
+.hm-line { width: 18px; height: 0; border-top: 3px solid var(--ink); }
+.hm-line.marginal { border-top: 2px dashed var(--ink); }

@@ -40,11 +40,14 @@ def class_index(value, breaks):
 
 def reference(series: dict, complete, years) -> dict:
     """Per calendar month: (median, mean) over the complete months of the reference years, or (None, None)."""
-    out = {}
-    for m in range(1, 13):
-        vals = [series[(y, m)] for y in range(years[0], years[1] + 1) if (y, m) in complete and (y, m) in series]
-        out[m] = (statistics.median(vals), statistics.fmean(vals)) if vals else (None, None)
-    return out
+    return {m: (statistics.median(v), statistics.fmean(v)) if v else (None, None)
+            for m, v in reference_values(series, complete, years).items()}
+
+
+def reference_values(series: dict, complete, years) -> dict:
+    """Per calendar month: the counts of its complete months in the reference years (the inputs of `reference`)."""
+    return {m: [series[(y, m)] for y in range(years[0], years[1] + 1) if (y, m) in complete and (y, m) in series]
+            for m in range(1, 13)}
 
 
 def compare(value, median, mean) -> dict:
@@ -110,3 +113,52 @@ def same_days(to_date: float, by_year) -> dict:
             "ratio": None if not med else to_date / med,
             "difference": None if med is None else to_date - med,
             "no_typical_activity": med == 0}
+
+
+# Story 7.5: season to date. The band is the middle 80% of complete past years' running totals: with about 20
+# past years it spans roughly 16 of them, so one extreme year does not stretch it as a min-max band would.
+SEASON_BAND = (10, 90)
+
+
+def percentile(values, p: float):
+    """The p-th percentile (0 to 100), linear between the two nearest values; None when there are none."""
+    v = sorted(values)
+    if not v:
+        return None
+    pos = (len(v) - 1) * p / 100.0
+    lo = math.floor(pos)
+    hi = min(lo + 1, len(v) - 1)
+    return v[lo] + (v[hi] - v[lo]) * (pos - lo)
+
+
+def running_total(series: dict, year: int) -> list:
+    """The running total at the end of each month of `year`. A month's entry is None unless every month from
+    January to it is in the record (missing is not zero), so a year that starts mid-year has no curve."""
+    out, total = [], 0.0
+    for m in range(1, 13):
+        if total is not None and (year, m) in series:
+            total += series[(year, m)]
+        else:
+            total = None
+        out.append(total)
+    return out
+
+
+def season_to_date(series: dict, complete, year: int, *, reference_years, band=SEASON_BAND) -> dict:
+    """Year `year`'s running total against the median and band of the running totals of the complete past years.
+
+    A past year counts only when all 12 of its months are complete, so 2002 (starts in July) and the current
+    year (ends at data_through) never do. Resolution is monthly: the value at month m is the total through the
+    end of month m. The curve starts at 0 before January.
+    """
+    complete = set(complete)
+    past = [y for y in range(reference_years[0], reference_years[1] + 1)
+            if all((y, m) in complete and (y, m) in series for m in range(1, 13))]
+    curves = [running_total(series, y) for y in past]
+    mine = running_total(series, year)
+    months = []
+    for i in range(12):
+        col = [c[i] for c in curves]
+        months.append({"month": i + 1, "cumulative": mine[i], "median": percentile(col, 50),
+                       "band_low": percentile(col, band[0]), "band_high": percentile(col, band[1])})
+    return {"past_years": past, "band": band, "start": 0.0, "months": months}

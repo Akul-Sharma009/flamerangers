@@ -56,11 +56,32 @@ def month_state(year: int, month: int, *, data_through: date) -> tuple[str, str 
     return "complete", None
 
 
+REFERENCE_FIRST_YEAR = 2003  # the first complete calendar year of the record (it starts in July 2002)
+REFERENCE_MIN_YEARS = 5      # Story 8.3: a median of at least five years, so no single year can set it
+
+
 def meta_dates(data_through: date) -> dict:
     """AD-16: the current month, the day d and the reference period, all from data_through."""
     return {"current_month": f"{data_through.year:04d}-{data_through.month:02d}",
             "data_through_day": data_through.day,
-            "reference_period": {"start_year": 2003, "end_year": data_through.year - 1}}
+            "reference_period": {"start_year": REFERENCE_FIRST_YEAR, "end_year": data_through.year - 1}}
+
+
+def reference_period_problem(start_year: int, end_year: int, *, data_through: date) -> str | None:
+    """Story 8.3: why a requested reference period can't be used, or None when it can.
+
+    Whole calendar years, both ends included, inside the default period (the complete years from 2003
+    that end before data_through's year), and at least REFERENCE_MIN_YEARS long.
+    "order" end before start; "outside" a year outside the complete years; "too_short" fewer years than the minimum.
+    """
+    last = meta_dates(data_through)["reference_period"]["end_year"]
+    if end_year < start_year:
+        return "order"
+    if start_year < REFERENCE_FIRST_YEAR or end_year > last:
+        return "outside"
+    if end_year - start_year + 1 < REFERENCE_MIN_YEARS:
+        return "too_short"
+    return None
 
 
 def partial_reasons(year: int, month: int, *, data_through: date, missing_days: bool, start: date, end: date) -> list[str]:

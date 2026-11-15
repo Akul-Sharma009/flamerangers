@@ -1,4 +1,4 @@
-"""The service (contract 0.4.0).
+"""The service (contract 0.5.0).
 
 With a published store (BURNCAL_STORE_ROOT, default store/published, holding CURRENT.json), /meta,
 /calendar, /cells and both CSVs answer from the record (Stories 2.6, 2.7, 4.1). Without one, every endpoint answers from the
@@ -23,7 +23,8 @@ import shapely
 from shapely.geometry import shape
 from pydantic import BaseModel, ConfigDict, Field, StrictBool, StrictInt, field_validator
 
-from burncal.service import answers
+from burncal.service import answers, reference
+from burncal.service import season as season_answer
 from burncal.service.store import Store
 
 ROOT = Path(__file__).resolve().parents[2]
@@ -70,9 +71,36 @@ class Range(Strict):
         return v
 
 
+class YearSpan(Strict):  # Story 8.3
+    start_year: StrictInt
+    end_year: StrictInt
+
+
+class CalendarRange(Range):
+    """/calendar and /analytics.csv: the range and, optionally, the reference period (Story 8.3)."""
+    reference_period: YearSpan | None = None
+
+
+# --- Story 8.9: one month's cells worldwide ---
+class WorldCellsRequest(Strict):
+    record_version: str = Field(pattern=VERSION)
+    month: str = Field(pattern=r"^\d{4}-(0[1-9]|1[0-2])$")
+# --- end Story 8.9 ---
+
+
 class HotspotsRequest(Range):
     all_satellites: StrictBool = False
     year: StrictInt | None = None
+
+
+class SeasonRequest(Strict):  # Story 7.3
+    record_version: str = Field(pattern=VERSION)
+    aoi: Aoi
+
+
+class CompareRange(CalendarRange):
+    """Story 8.7: a calendar request that may name a second area; both then get one set of colour classes."""
+    shared_scale_with: Aoi | None = None
 
 
 class CellsRequest(Strict):
@@ -135,6 +163,12 @@ def _hotspot_cells(rows):
     return list(zip(*(cols[c] for c in HOTSPOT_COLUMNS)))
 
 
+class SeasonToDateRequest(Strict):
+    record_version: str = Field(pattern=VERSION)
+    aoi: Aoi
+    year: StrictInt = Field(ge=2002, le=2100)
+
+
 def create_app(store_root=None, fetch=None, points_location=None) -> FastAPI:
     """fetch: set when the store was synced from a URL (burncal.service.remote), to get record files on use.
     points_location: version -> where its points.parquet is read (a URL, read by range requests; Story 2.8)."""
@@ -143,12 +177,15 @@ def create_app(store_root=None, fetch=None, points_location=None) -> FastAPI:
     # The fixture answers are only needed without a store (they are not shipped to the host).
     meta, calendar, cells, hotspot_rows = (None, None, None, None) if store else (
         load("meta.json"), load("calendar.json"), load("cells.json"), load("hotspot_rows.json")["rows"])
+    season_to_date = None if store else load("season_to_date.json")
+    world_cells = None if store else load("world_cells.json")  # Story 8.9
     superseded, invalid = load("problems/version_superseded.json"), load("problems/invalid_aoi.json")
     text = (CONTRACT / "messages.yaml").read_text(encoding="utf-8")
     notes = dict(re.findall(r'^  (\w+): "(.*)"$', text, re.M))
     limits = [("counting_limits", line) for line in yaml.safe_load(text)["counting_limits"]]  # the six, in order (0.4.0)
 
     outside, too_large = load("problems/outside_coverage.json"), load("problems/too_large_for_sync.json")
+    bad_period = load("problems/invalid_reference_period.json")  # Story 8.3
     app = FastAPI(title="burncal service")
     # Comma-separated exact origins; not a secret.
     origins = [o.strip() for o in environ.get("CORS_ORIGINS", DEFAULT_ORIGINS).split(",") if o.strip()]
@@ -158,7 +195,8 @@ def create_app(store_root=None, fetch=None, points_location=None) -> FastAPI:
     @app.exception_handler(RequestValidationError)
     def bad_request(request: Request, exc: RequestValidationError):
         loc = ".".join(str(p) for p in exc.errors()[0]["loc"] if p != "body") or "body"
-        body = {**invalid, "status": 400, "detail": f"{loc}: {exc.errors()[0]['msg']}"}
+        base = bad_period if loc.startswith("reference_period") else invalid  # Story 8.3
+        body = {**base, "status": 400, "detail": f"{loc}: {exc.errors()[0]['msg']}"}
         return JSONResponse(body, status_code=400, media_type=PROBLEM)
 
     def stale(req):
@@ -210,13 +248,62 @@ def create_app(store_root=None, fetch=None, points_location=None) -> FastAPI:
     def get_meta():
         return answers.meta(store.latest(), regions) if store else meta
 
+    def period(req, v=None):
+        """Story 8.3: (the requested reference period or None, None) or (None, problem response)."""
+        if req.reference_period is None:
+            return None, None
+        span = req.reference_period.model_dump()
+        dt = v.data_through if v else date.fromisoformat(meta["data_through"])
+        detail = reference.problem_detail(span, dt)
+        if detail is None:
+            return span, None
+        if v:
+            return None, problem(bad_period, 400, v, detail=detail)
+        body = {**bad_period, "status": 400, "record_version": meta["record_version"],
+                "data_through": meta["data_through"], "detail": detail}
+        return None, JSONResponse(body, status_code=400, media_type=PROBLEM)
+
+    def fixture_calendar(req):
+        """Fixture mode: the fixture, restated over a requested reference period (Story 8.3)."""
+        if (bad := stale(req)):
+            return None, bad
+        span, bad = period(req)
+        return (reference.restate(calendar, span) if span else calendar), bad
+
     @app.post("/calendar")
-    def post_calendar(req: Range):
+    def post_calendar(req: CompareRange):
         if not store:
-            return stale(req) or calendar
+            cal, bad = fixture_calendar(req)
+            return bad or cal
         v, geom, bad = version_and_area(req)
-        return bad or answers.calendar(v, geom, req.aoi.name, date.fromisoformat(req.start),
-                                       date.fromisoformat(req.end), regions)
+        span, bad = (None, bad) if bad else period(req, v)
+        if bad:
+            return bad
+        start, end = date.fromisoformat(req.start), date.fromisoformat(req.end)
+        breaks = None
+        if req.shared_scale_with is not None:  # Story 8.7: the classes come from both areas' months pooled
+            other = req.model_copy(update={"aoi": req.shared_scale_with})
+            _, other_geom, bad = version_and_area(other)
+            if bad:
+                return bad
+            breaks = answers.shared_breaks(v, [geom, other_geom], start, end)
+        return answers.calendar(v, geom, req.aoi.name, start, end, regions, colour_breaks=breaks,
+                                reference_period=span)
+
+    @app.post("/raw_splice")  # Story 7.1
+    def post_raw_splice(req: Range):
+        if not store:
+            return stale(req) or answers.raw_splice(calendar)
+        v, geom, bad = version_and_area(req)
+        return bad or answers.raw_splice(answers.calendar(v, geom, req.aoi.name, date.fromisoformat(req.start),
+                                                          date.fromisoformat(req.end), regions))
+
+    @app.post("/season")  # Story 7.3
+    def post_season(req: SeasonRequest):
+        if not store:
+            return stale(req) or season_answer.from_calendar(calendar)
+        v, geom, bad = version_and_area(req)
+        return bad or season_answer.season(v, geom, req.aoi.name, regions)
 
     @app.post("/cells")
     def post_cells(req: CellsRequest):
@@ -225,18 +312,39 @@ def create_app(store_root=None, fetch=None, points_location=None) -> FastAPI:
         v, geom, bad = version_and_area(req)
         return bad or answers.cells(v, geom, int(req.month[:4]), int(req.month[5:]))
 
+    @app.post("/season_to_date")
+    def post_season_to_date(req: SeasonToDateRequest):
+        if not store:
+            return stale(req) or season_to_date  # fixture: Sumatra, year 2026, for every request
+        v, geom, bad = version_and_area(req)
+        return bad or answers.season_to_date(v, geom, req.aoi.name, req.year, regions)
+
+    # --- Story 8.9: one month's cells worldwide (the store's coverage only) ---
+    @app.post("/world_cells")
+    def post_world_cells(req: WorldCellsRequest):
+        if not store:
+            return stale(req) or world_cells
+        v = store.get(req.record_version)
+        if v is None:
+            cur = store.latest()
+            return problem(superseded, 410, cur, current_record_version=cur.record_version)
+        return answers.world_cells(v, int(req.month[:4]), int(req.month[5:]), regions)
+    # --- end Story 8.9 ---
+
     @app.post("/analytics.csv")
-    def analytics(req: Range):
+    def analytics(req: CalendarRange):
         if store:
             v, geom, bad = version_and_area(req)
+            span, bad = (None, bad) if bad else period(req, v)
             if bad:
                 return bad
             cal = answers.calendar(v, geom, req.aoi.name, date.fromisoformat(req.start),
-                                   date.fromisoformat(req.end), regions)
+                                   date.fromisoformat(req.end), regions, reference_period=span)
         else:
-            if (bad := stale(req)):
+            cal, bad = fixture_calendar(req)
+            if bad:
                 return bad
-            v, geom, cal = None, None, calendar
+            v, geom = None, None
         rows = []
         for m in cal["months"]:
             year, month = m["month"].split("-")

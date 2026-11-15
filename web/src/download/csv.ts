@@ -1,5 +1,6 @@
 // Story 4.4: asking the service for a CSV and saving it. The service writes the
 // file; the browser only saves the text it is given (AD-8).
+import { withReference, type YearRange } from "../reference/period";
 import { ProblemError, rangeRequest, type DateRange, type Meta, type Problem, type ServiceClient } from "../api/client";
 import { messages } from "../api/messages";
 import type { AoiInput } from "../area/featured";
@@ -32,12 +33,14 @@ export function csvFilename(area: string, ask: CsvAsk): string {
 export async function downloadCsv(
   service: ServiceClient, meta: Meta, aoi: AoiInput, range: DateRange | null, area: string, ask: CsvAsk,
   save: (blob: Blob, filename: string) => void = saveBlob,
+  /** Story 8.4: the analytics CSV follows the reference period on screen; the hotspot list has none. */
+  reference: YearRange | null = null,
 ): Promise<CsvOutcome> {
   try {
     const base = rangeRequest(meta, aoi, range);
     const text =
       ask.kind === "analytics"
-        ? await service.postAnalyticsCsv(base)
+        ? await service.postAnalyticsCsv(withReference(base, reference, meta))
         : await service.postHotspotsCsv({
             ...base,
             all_satellites: ask.allSatellites ?? false,
