@@ -710,3 +710,16 @@ def test_7_5_season_to_date_refuses_what_calendar_refuses(client, versions):
     assert r.status_code == 404
     r = client.post("/season_to_date", json={"record_version": versions[2], "aoi": {"geometry": SUMATRA}, "year": 2020})
     assert r.status_code == 410
+
+
+# --- 15 Nov: a 400 problem names the version being served, not the fixture's ---
+def test_review_a_400_problem_names_the_served_version(client, versions):
+    v = versions[0]
+    bad_geometry = {**_body(v, AMAZON, name=None), "aoi": {"name": "x", "geometry": {"type": "Point", "coordinates": [0, 0]}}}
+    malformed = {"record_version": v}  # no aoi, start or end: a validation error
+    served = client.get("/meta").json()
+    for body in (bad_geometry, malformed):
+        r = client.post("/calendar", json=body)
+        assert r.status_code == 400, r.text
+        p = r.json()
+        assert p["record_version"] == served["record_version"] and p["data_through"] == served["data_through"], p

@@ -54,9 +54,9 @@
 .h2h .legend .mark:first-child { margin-left: 0; }
 
 .h2h-blocks { display: flex; flex-wrap: wrap; gap: 4px 22px; margin: 0; font-size: 13px; }
-.h2h-blocks > div { display: flex; gap: 6px; }
+.h2h-blocks > div { display: flex; gap: 6px; min-width: 0; max-width: 100%; }
 .h2h-blocks dt { color: var(--muted); }
-.h2h-blocks dd { margin: 0; font-family: var(--num); font-variant-numeric: tabular-nums; }
+.h2h-blocks dd { margin: 0; min-width: 0; overflow-wrap: anywhere; font-family: var(--num); font-variant-numeric: tabular-nums; }
 
 .h2h-rule { margin-top: 18px; padding-top: 4px; border-top: 1px solid var(--rule); }
 .h2h-rule .h2h-table.tests { width: auto; margin: 6px 0 10px; }
