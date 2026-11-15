@@ -1210,3 +1210,10 @@ Each entry has: a status (**ASSUMED** or **TESTED**), its evidence, and a "revis
 - **Decision:** At the user's request, Indonesian Borneo is added as an extra covered area, `kalimantan`, extent 110–120°E, 5°S–5°N, so a drawn area or a province picked by name there gets a calendar. It is not a featured region and not in `contract/regions.geojson` (no contract change): its cells are "not evaluated" and the area carries the untuned-region caution. It starts at 110°E because Sumatra's extent already holds 90–110°E and extents may not overlap; an area crossing 110°E is outside coverage. The daily refresh knows it, and leaves it out of a version until its build state exists. Its data is downloaded, built and published after the 21:00 build stop (data only, no code).
 - **Evidence:** `test_2_8_kalimantan_is_a_covered_area_east_of_sumatra`, `test_2_8_refresh_leaves_out_an_area_not_built_yet`; full suite passes.
 - **Revisit if:** Kalimantan should be featured (a contract change with the lead), or Sumatra's extent is reworked so all of Borneo fits one area.
+
+## Story 6.4: the web app's host and the service's allowed origin (15 Nov 2026)
+
+- **Status:** TESTED (browser, three regions, no console errors).
+- **Decision:** The web app is a static build on its own Vercel Hobby project `burncal-web`, public at `https://burncal-web-eight.vercel.app`, built from master with `VITE_SERVICE_BASE_URL` naming the production service. The service allows that one origin through `CORS_ORIGINS` (Production only). Built and deployed by the data owner at the data owner's request; no web code changed.
+- **Evidence:** `/meta` and the `/calendar` preflight return `access-control-allow-origin` for the web origin; Sumatra, Southern African savanna and Siberia load from `20261113-19dfbcc8` in the browser.
+- **Revisit if:** the web app moves to a custom domain or another host (add its origin to `CORS_ORIGINS`, comma-separated, and redeploy the service), or `web/` changes after `596416b` (rebuild and redeploy).

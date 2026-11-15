@@ -787,6 +787,14 @@ The points where the plan left room are listed in `DECISIONS.md` ("Contract 0.2.
 - **Local cleanup:** old versions deleted locally (all on the dataset). Rollback is by promoting a previous Vercel deployment; see `DECISIONS.md`.
 - **Vercel and GitHub:** not linked, by decision. A web change on master shows only after a manual build and deploy.
 
+### 6.4: the web app is public (15 Nov, 15:00 SGT)
+
+- **Web:** `https://burncal-web-eight.vercel.app` (Vercel project `burncal-web`; the plain `burncal-web.vercel.app` name belongs to someone else). A static build of master `596416b` with `VITE_SERVICE_BASE_URL=https://burncal-stub.vercel.app` and `VITE_REPO_URL` set to the repository. The build is made outside the repo; to redeploy, build `web/` with those two variables and deploy its `dist/` to the project.
+- **Service:** `CORS_ORIGINS=https://burncal-web-eight.vercel.app` (Production), redeployed; `/meta` and the `/calendar` preflight answer with that origin.
+- **Checked in a browser:** Sumatra (default), Southern African savanna (picked in the panel) and Siberia (shared link opened in a new tab) load live counts from `20261113-19dfbcc8` with their cautions; no console errors.
+- **Seen, not fixed (web, the lead's area):** editing only the address's `#/?area=` in an open tab does not switch the area; opening the same link fresh does.
+- **Not done:** a custom domain; a phone-width pass on the hosted site.
+
 ## Next
 
 **As of 15 Nov 20:45 SGT (build stops 21:00):**
