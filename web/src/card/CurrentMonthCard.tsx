@@ -1,6 +1,4 @@
 import { useEffect, useMemo, useRef, useState, type CSSProperties } from "react";
-import { rulerPicture } from "../download/content";
-import { PictureDownload } from "../download/PictureDownload";
 import type { AoiInput } from "../area/featured";
 import { buildCard, type Calendar, type Figure, type Meta, type RulerData } from "./model";
 import { layoutRuler } from "./ruler";
@@ -13,16 +11,13 @@ import "./card.css";
  * month on record. `sentences` and `rulerWidth` let tests render fixed states.
  */
 export function CurrentMonthCard({
-  calendar, meta, sentences, rulerWidth, geometry,
+  calendar, meta, sentences, rulerWidth,
 }: {
-  /** The selected area's shape, for a picture of an unnamed area (Story 4.3). */
-  geometry?: AoiInput["geometry"];
   calendar: Calendar;
   meta: Meta;
   sentences?: Sentences;
   rulerWidth?: number;
 }) {
-  const sectionRef = useRef<HTMLElement>(null);
   const card = useMemo(() => buildCard(calendar, meta, sentences), [calendar, meta, sentences]);
 
   if (card.kind === "not_loaded") {
@@ -35,7 +30,7 @@ export function CurrentMonthCard({
   }
 
   return (
-    <section className="reading" aria-label="This month so far" ref={sectionRef}>
+    <section className="reading" aria-label="This month so far">
       <p className="kicker">{card.monthLabel}, to date</p>
       {card.headline !== null ? (
         <h1 className="sentence">{card.headline}</h1>
@@ -64,13 +59,6 @@ export function CurrentMonthCard({
       </ul>
       {card.rulerCaption ? <p className="rulercap">{card.rulerCaption}</p> : null}
       <Ruler data={card.ruler} width={rulerWidth} />
-      {card.ruler.past.length > 0 ? (
-        <PictureDownload
-          label="ruler"
-          find={() => sectionRef.current?.querySelector<SVGSVGElement>(".ruler svg") ?? null}
-          {...rulerPicture(calendar, meta, card.rulerCaption ?? `${card.monthLabel}, to date: the same days in each year`, geometry)}
-        />
-      ) : null}
       {card.recordHigh ? (
         <div className="second">
           {card.recordHigh.sentence !== null ? <p>{card.recordHigh.sentence}</p> : <Figures figures={card.recordHigh.figures} />}

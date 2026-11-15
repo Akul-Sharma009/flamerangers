@@ -31,6 +31,7 @@ Updated: Sat 14 Nov 2026, late evening SGT (PRs 3 to 11 merged; the lead's revie
 | 3.8 Anomaly view and flags | Done | Merged 15 Nov. The lead approved flags per tier out of M, marks on both tiers, and six sentences now in the contract 0.4.0 draft; labels show until 0.4.0 merges. The 1° cell panel is not yet checked against a live service. See below. |
 | 3.9 Most active months and years | Done | Merged 15 Nov. The lead approved the left-column placement (a recorded change from UI-CONCEPT.md), the "=" tie mark and the phone scroll; its four sentences are in the 0.4.0 draft. See below. |
 | 4.3 Picture downloads | Done | Merged 15 Nov. The calendar and the current-month ruler download as PNG or SVG with their provenance. The lead approved the web's own source line, title and two error lines, marked for a later contract. See below. |
+| 4.4 Download controls | Done | Merged 15 Nov. One Downloads block (analytics CSV, hotspot CSV with all-satellites and the 413 one-year fallback, both pictures). Its web-worded lines are approved by the lead (see `DECISIONS.md`, Story 4.4). A real CSV download and a live 413 are not yet tried against a service. See below. |
 | 2.3 Ingest and cleaning | Done | PR 3, merged 14 Nov |
 | 2.4 Weights and the record | Done | PR 4, merged 14 Nov, with the weaker-class tie rule (225 / 570 / 6 / 38); full C1 parity PASS |
 | 2.5 Grids, thresholds, flags | In progress | PR 5, merged 14 Nov. Open: AC2 results for Australia and Amazon not recorded; static-input check (Next) |
@@ -641,4 +642,11 @@ Checks on the merged master: `uv run pytest` 310 passed, 1 skipped (Sumatra reco
 - Pictures: the calendar (follows the Counts / Anomalies switch, so the legend matches) and the current-month ruler. The rankings panel is HTML lists, not a chart, so it has no picture. In the table view the grid is not drawn, so the calendar button says to show the grid.
 - Checks: `npm run test` (276 passed, 11 of them Story 4.3), `npm run build`, `evidence/wording.py` passed. In the browser at 1280 px the calendar SVG (300 cells, served counts, styled) and the ruler SVG and PNG downloaded with the right names; the calendar picture was viewed and is correct. The calendar PNG path shares the ruler's code and was not separately downloaded.
 - Waiting for the contract: the source line, the calendar title and two error lines (see `DECISIONS.md`, "Story 4.3"). Story 4.4 moves the controls.
+
+## Story 4.4: download controls
+
+- New: `web/src/download/csv.ts` (asks `postAnalyticsCsv` / `postHotspotsCsv` with the searched area and dates, saves the served text, maps problems to contract sentences) and `DownloadControls.tsx` (the block). `CalendarPage.tsx` renders it in the left column and builds the two picture specs; the per-chart picture controls in the calendar section and `CurrentMonthCard.tsx` are gone (the card lost its `geometry` prop).
+- Fixture mode: `CalendarView` gets `csvService` (null without a real service); the CSV buttons are then disabled with a one-line reason.
+- Checks: `npm run test` (288 passed, 10 of them Story 4.4), `npm run build`, `evidence/wording.py` passed. Browser at 1280 px and 375 px (fixture mode): block present, CSV buttons disabled with the note, pictures enabled, no horizontal overflow. Not checked against a live service: a real CSV download, the busy state and a real 413 (covered only by unit tests with a fake service).
+
 

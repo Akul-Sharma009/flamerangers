@@ -1,13 +1,16 @@
-import { useEffect, useRef, useState } from "react";
-import { client, type DateRange, type ServiceClient } from "../api/client";
+import { useEffect, useRef, useState, type RefObject } from "react";
+import { client, type Calendar, type DateRange, type Meta, type ServiceClient } from "../api/client";
 import { messages } from "../api/messages";
 import { AreaLocator } from "../area/AreaLocator";
 import { defaultArea, type AoiInput } from "../area/featured";
 import { loadArea, type AreaResult } from "../area/load";
 import { areaProblemText } from "../area/words";
 import { CurrentMonthCard } from "../card/CurrentMonthCard";
-import { calendarPicture } from "../download/content";
-import { PictureDownload } from "../download/PictureDownload";
+import { calendarPicture, rulerPicture } from "../download/content";
+import { DownloadControls } from "../download/DownloadControls";
+import { areaLabel } from "../download/words";
+import { buildCard } from "../card/model";
+import { SERVICE_BASE_URL } from "../config";
 import { formatYearMonth } from "../format";
 import type { Measure } from "../grid/anomaly";
 import { CalendarGrid } from "../grid/CalendarGrid";
@@ -52,15 +55,17 @@ export function CalendarPage({ service = client }: { service?: ServiceClient }) 
   }, []);
 
   return (
-    <CalendarView view={view} onSelect={(aoi) => show(aoi, view.range)} onSelectRange={(r) => show(view.selected, r)} />
+    <CalendarView view={view} csvService={service !== client || SERVICE_BASE_URL !== null ? service : null} onSelect={(aoi) => show(aoi, view.range)} onSelectRange={(r) => show(view.selected, r)} />
   );
 }
 
 /** The page for one state of the view. Exported so tests can render each state. */
 export function CalendarView({
-  view, onSelect, onSelectRange, initialOpen, initialMeasure = "count", loadFlagCells, initialHighlight = null, rankWords,
+  view, onSelect, onSelectRange, initialOpen, initialMeasure = "count", loadFlagCells, initialHighlight = null, rankWords, csvService = null,
 }: {
   view: View;
+  /** Story 4.4: the service the CSV downloads ask; null (fixture mode) offers none. */
+  csvService?: ServiceClient | null;
   onSelect: (aoi: AoiInput) => void;
   onSelectRange?: (range: DateRange | null) => void;
   initialOpen?: boolean;
@@ -105,13 +110,25 @@ export function CalendarView({
         {/* The region caveat sits beside the map, not only on the evidence page (Story 3.6). */}
         {ready ? <RegionCaveat calendar={ready.calendar} meta={ready.meta} aoi={selected} /> : null}
         {/* The headline sentence and ruler sit under the locator (UI-CONCEPT.md, left column). */}
-        {ready ? <CurrentMonthCard calendar={ready.calendar} meta={ready.meta} geometry={selected.geometry} /> : null}
+        {ready ? <CurrentMonthCard calendar={ready.calendar} meta={ready.meta} /> : null}
         {calendar ? (
           <ol className="notes">
             <li>{messages.notes.hotspot_definition}</li>
             <li>{messages.notes.record_switch}</li>
             <li>{messages.notes.satellite_switch}</li>
           </ol>
+        ) : null}
+        {ready ? (
+          <DownloadControls
+            // A new area or range starts the block afresh, so a 413's year buttons never ask for another area.
+            key={`${JSON.stringify(selected.geometry)}|${range?.start ?? ""}|${range?.end ?? ""}`}
+            service={csvService}
+            meta={ready.meta}
+            aoi={selected}
+            range={range}
+            area={areaLabel(ready.calendar.aoi.name, selected.geometry)}
+            pictures={pictureSpecs(ready.calendar, ready.meta, measure, selected, calRef)}
+          />
         ) : null}
       </div>
       {/* A refused area draws no calendar at all: never a grid of zeros. */}
@@ -127,11 +144,6 @@ export function CalendarView({
           <CaveatLine calendar={ready.calendar} />
           <CalendarGrid calendar={ready.calendar} meta={ready.meta} measure={measure} onMeasureChange={setMeasure} onPick={setPicked} highlight={highlight} />
           <GridLegend calendar={ready.calendar} measure={measure} />
-          <PictureDownload
-            label="calendar"
-            find={() => calRef.current?.querySelector<SVGSVGElement>('svg[role="grid"]') ?? null}
-            {...calendarPicture(ready.calendar, ready.meta, measure, selected.geometry)}
-          />
           {/* The anomaly view shows each 1° cell's flag state for the picked month, else the current month. */}
           {measure === "anomaly" ? (
             <FlagCellsPanel
@@ -154,4 +166,24 @@ export function CalendarView({
       ) : null}
     </main>
   );
+}
+
+/** The pictures the download block offers: the calendar always, the ruler when the card drew one. */
+function pictureSpecs(calendar: Calendar, meta: Meta, measure: Measure, selected: AoiInput, calRef: RefObject<HTMLElement | null>) {
+  const specs = [
+    {
+      label: "calendar",
+      find: () => calRef.current?.querySelector<SVGSVGElement>('svg[role="grid"]') ?? null,
+      ...calendarPicture(calendar, meta, measure, selected.geometry),
+    },
+  ];
+  const card = buildCard(calendar, meta);
+  if (card.kind !== "not_loaded" && card.ruler.past.length > 0) {
+    specs.push({
+      label: "ruler",
+      find: () => document.querySelector<SVGSVGElement>(".reading .ruler svg"),
+      ...rulerPicture(calendar, meta, card.rulerCaption ?? `${card.monthLabel}, to date: the same days in each year`, selected.geometry),
+    });
+  }
+  return specs;
 }
