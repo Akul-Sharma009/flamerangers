@@ -37,12 +37,12 @@ jobs:
         run: |
           uv python install 3.14
           uv sync --frozen --no-dev
-          uv tool install "huggingface_hub[cli]==1.6.0"
+          uv tool install "huggingface_hub==1.6.0" --with "click==8.5.1"  # the hf CLI imports click but does not declare it
       - name: Fetch the last build's state and the current pointer
         env:
           HF_TOKEN: ${{ secrets.HF_TOKEN }}
         run: |
-          hf download "$HF_DATASET" --repo-type dataset --include "state/*" "store/CURRENT.json" --local-dir hf
+          hf download "$HF_DATASET" --repo-type dataset --include "state/*" --include "store/CURRENT.json" --local-dir hf
           mkdir -p store/published store/static
           cp hf/store/CURRENT.json store/published/CURRENT.json
           cp hf/state/static/ne_10m_land_v5.1.1.geojson store/static/
