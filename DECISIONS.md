@@ -1203,3 +1203,10 @@ Each entry has: a status (**ASSUMED** or **TESTED**), its evidence, and a "revis
   - Smaller: trend strip year labels and dashed left-out bars; seasonal table header alignment; caution marks use the double rule everywhere; region-caveat cell map in lighter lines; About page margin is sticky; compare-mode lines in the sans.
 - **Contract:** two wording keys added after 0.5.0 was agreed: `sentences.ruler_scale` and `sentences.cells_flagged_none` (both optional; the web falls back without them); and `notes.globe_uncovered` reworded (it said "Hatched land", which the globe no longer draws). The data owner has to agree before they are deployed.
 - **Revisit if:** the live service shows a fix behaving differently from the fixture (reference period, globe month, raw splice, caveat cell map are fixture-limited), or the data owner rejects the two new keys.
+
+## Kalimantan added as a covered area, not a featured region (15 Nov 2026)
+
+- **Status:** ASSUMED until its data is published and checked live.
+- **Decision:** At the user's request, Indonesian Borneo is added as an extra covered area, `kalimantan`, extent 110–120°E, 5°S–5°N, so a drawn area or a province picked by name there gets a calendar. It is not a featured region and not in `contract/regions.geojson` (no contract change): its cells are "not evaluated" and the area carries the untuned-region caution. It starts at 110°E because Sumatra's extent already holds 90–110°E and extents may not overlap; an area crossing 110°E is outside coverage. The daily refresh knows it, and leaves it out of a version until its build state exists. Its data is downloaded, built and published after the 21:00 build stop (data only, no code).
+- **Evidence:** `test_2_8_kalimantan_is_a_covered_area_east_of_sumatra`, `test_2_8_refresh_leaves_out_an_area_not_built_yet`; full suite passes.
+- **Revisit if:** Kalimantan should be featured (a contract change with the lead), or Sumatra's extent is reworked so all of Borneo fits one area.

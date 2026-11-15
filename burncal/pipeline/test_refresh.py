@@ -95,3 +95,25 @@ def test_2_9_link_years_links_every_unchanged_year_only(tmp_path):
         (prev / n).write_bytes(b"x")
     refresh._link_years(prev, new, {2026})
     assert sorted(p.name for p in new.iterdir()) == ["AQUA_2025.parquet"]
+
+
+def test_2_8_kalimantan_is_a_covered_area_east_of_sumatra():
+    k = download.region_extent("kalimantan")
+    assert k == (110.0, -5.0, 120.0, 5.0)
+    s = download.region_extent("sumatra")
+    assert s[2] <= k[0]  # the extents do not overlap
+    assert "kalimantan" in refresh.REGION_IDS
+
+
+def test_2_8_refresh_leaves_out_an_area_not_built_yet(tmp_path, monkeypatch):
+    raw = tmp_path / "raw"
+    (raw / "sumatra").mkdir(parents=True)
+    (raw / "sumatra" / "coverage.json").write_text("{}")
+    done, published = [], []
+    monkeypatch.setattr(refresh.download, "availability", lambda text: {"sp_end": SP, "nrt_end": date(2026, 11, 15)})
+    monkeypatch.setattr(refresh.firms, "data_availability", lambda: "")
+    monkeypatch.setattr(refresh.publish, "clean_code_revision", lambda: "rev")
+    monkeypatch.setattr(refresh, "refresh_region", lambda r, *a, **k: done.append(r) or {"years_rebuilt": []})
+    monkeypatch.setattr(refresh.publish, "publish_many", lambda builds, *a, **k: published.extend(b[2].name for b in builds) or "v")
+    refresh.main([str(tmp_path / "store"), str(raw), str(tmp_path / "build"), str(tmp_path / "out")])
+    assert done == ["sumatra"] and published == ["sumatra"]

@@ -18,7 +18,7 @@ from pathlib import Path
 
 from burncal.pipeline import aggregate, build_extent, convert, download, firms, publish
 
-REGION_IDS = ("sumatra", "australia_grassland", "amazon_forest", "southern_africa", "siberia", "punjab")
+REGION_IDS = ("sumatra", "australia_grassland", "amazon_forest", "southern_africa", "siberia", "punjab", "kalimantan")
 LAND = Path(__file__).resolve().parents[2] / "store" / "static" / "ne_10m_land_v5.1.1.geojson"
 
 
@@ -95,10 +95,13 @@ def main(argv) -> str:
     data_through = date.fromisoformat(opt["data-through"]) if "data-through" in opt else avail["nrt_end"] - timedelta(days=1)
     rev = publish.clean_code_revision()
     out_root = Path(out_root)
-    for r in REGION_IDS:
+    regions_ = [r for r in REGION_IDS if (Path(prev_raw) / r / "coverage.json").exists()]  # an area not built yet waits
+    for r in sorted(set(REGION_IDS) - set(regions_)):
+        print(r, "not built yet; left out of this version", flush=True)
+    for r in regions_:
         print(r, json.dumps(refresh_region(r, prev_raw, prev_build, out_root, data_through=data_through,
                                            sp_end=avail["sp_end"])["years_rebuilt"]), flush=True)
-    builds = [(out_root / "record" / r, out_root / "grids" / r, out_root / "raw" / r) for r in REGION_IDS]
+    builds = [(out_root / "record" / r, out_root / "grids" / r, out_root / "raw" / r) for r in regions_]
     return publish.publish_many(builds, store_root, data_through=data_through, code_revision=rev,
                                 noaa20_check=opt.get("noaa20-check"))
 

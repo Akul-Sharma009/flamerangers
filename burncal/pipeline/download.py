@@ -26,7 +26,14 @@ SNPP_LAST = date(2026, 11, 2)
 WINDOW_DAYS, WORKERS, ATTEMPTS = 5, 4, 5
 
 
+# Covered areas that are not featured regions (no contract change; their cells are not evaluated).
+# Kalimantan starts at 110 E because Sumatra's extent already holds 90 to 110 E (15 Nov).
+EXTRA_EXTENTS = {"kalimantan": (110.0, -5.0, 120.0, 5.0)}
+
+
 def region_extent(region_id: str) -> tuple:
+    if region_id in EXTRA_EXTENTS:
+        return EXTRA_EXTENTS[region_id]
     gj = json.loads(REGIONS.read_text(encoding="utf-8"))
     f = next(f for f in gj["features"] if f["properties"]["region_id"] == region_id)
     return regions.tile_extent(shape(f["geometry"]).bounds)
