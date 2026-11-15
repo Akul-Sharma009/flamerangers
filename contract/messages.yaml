@@ -98,7 +98,7 @@ notes:
   missing_days_to_date: "Some days of input data are missing so far this month, so the count to date may be low."
   # Story 8.10: the globe of unusual burning
   globe_cells: "Each square is a whole 1° cell of the harmonized record, not an individual hotspot."
-  globe_uncovered: "Hatched land is not loaded yet. No cell is shown there, which is not the same as no hotspots."
+  globe_uncovered: "Plain land, with no tint, is not loaded yet. No cell is shown there, which is not the same as no hotspots."
   globe_select: "Select a cell to open its calendar for that 1° box. You can redraw the area there."
 
 
@@ -119,7 +119,9 @@ sentences:
   current_month_count: "So far this month: {count} hotspots."
   current_month_usual: "Usual = the {reference_start}–{reference_end} median for days 1 to {day} of {month_name}: {median} hotspots. This month differs by {difference}. Data through {data_through}."
   cells_flagged: "{strong} of {total} one-degree cells are flagged strong and {marginal} marginal, a caution and not an alarm."
+  cells_flagged_none: "None of the {total} one-degree cells is flagged."
   ruler_caption: "Days 1 to {day} of {month_name} in each year from {reference_start} to {reference_end}."
+  ruler_scale: "Log scale: equal distances on the line are equal ratios, not equal differences."
   record_high: "The highest month on record here is {month}, with {count} hotspots."
   noaa20_compared: "From {period_start} to {period_end}, converted NOAA-20 counts differed from converted Suomi NPP counts by {bias_pct}% overall, with a mean absolute difference of {mean_abs_difference} per one-degree cell-month."
   anomaly: "Difference from the {reference_start}–{reference_end} mean for {month_name}: {anomaly_count} hotspots ({anomaly_pct}%)."

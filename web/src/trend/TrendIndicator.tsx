@@ -3,7 +3,7 @@ import { TREND_CITATIONS } from "../about/citations";
 import { buildTrend } from "./model";
 import "./trend.css";
 
-const W = 300, H = 56, GAP = 2;
+const W = 300, H = 56, GAP = 2, TOP = 14, LABEL = 14;
 
 /**
  * Story 8.6: the trend test on the annual totals, with its name, result and p-value, the record
@@ -27,17 +27,24 @@ export function TrendIndicator({ calendar }: { calendar: Calendar }) {
       <p className="trendtest">{v.testName}</p>
       <p className="trendresult" data-testid="trend-result">{v.result}</p>
       {years.length > 1 && !v.refused ? (
-        <svg viewBox={`0 0 ${W} ${H + 14}`} role="img" aria-label={`${v.heading}: ${years[0].year} to ${years[years.length - 1].year}`} className="trendstrip">
+        <svg viewBox={`0 0 ${W} ${TOP + H + LABEL}`} role="img" aria-label={`${v.heading}: ${years[0].year} to ${years[years.length - 1].year}`} className="trendstrip">
+          <g transform={`translate(0,${TOP})`}>
           {years.map((y, i) => (
             <rect key={y.year} x={x(i)} y={H - H * (y.share_of_max ?? 0)} width={w} height={H * (y.share_of_max ?? 0)}
               className={left.has(y.year) ? "bar out" : "bar"}><title>{y.year}</title></rect>
           ))}
+          {years.map((y, i) => (i === 0 || i === years.length - 1 || left.has(y.year) ? (
+            <text key={`l${y.year}`} className="yearlabel" x={x(i) + w / 2} y={H + 12}
+              textAnchor={i === 0 ? "start" : i === years.length - 1 ? "end" : "middle"}
+              {...(i === 0 ? { x: x(i) } : i === years.length - 1 ? { x: x(i) + w } : {})}>{y.year}</text>
+          ) : null))}
           {t.record_switch_inside && sw > 0 ? (
             <g className="switch" data-testid="trend-switch">
               <line x1={x(sw) - GAP / 2} x2={x(sw) - GAP / 2} y1={0} y2={H + 4} />
-              <text x={x(sw) - GAP / 2} y={H + 13} textAnchor="middle">record switch</text>
+              <text x={x(sw) - GAP / 2} y={-4} textAnchor="middle">record switch</text>
             </g>
           ) : null}
+          </g>
         </svg>
       ) : null}
       {v.switchMarked ? <p className="trendnote">{v.switchMarked}</p> : null}

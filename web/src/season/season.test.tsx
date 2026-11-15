@@ -51,7 +51,7 @@ describe("7.4 table equivalent", () => {
     const sep = rows[8]!;
     const m = season.typical.months[8]!;
     expect([sep.month, sep.median, sep.low, sep.high, sep.flags]).toEqual(
-      ["September", formatCount(m.median!), formatCount(m.low!), formatCount(m.high!), "Peak, In season"]);
+      ["September", formatCount(m.median!), formatCount(m.low!), formatCount(m.high!), "Peak, in season"]);
     expect(rows[0]!.flags).toBe("");
   });
   it("shows the selected year's counts and a dash, not zero, for a month the record lacks", () => {

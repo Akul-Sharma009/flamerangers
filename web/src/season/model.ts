@@ -46,7 +46,8 @@ export function tableRows(season: Season, year: number | null): TableRow[] {
     median: cell(m.median), low: cell(m.low), high: cell(m.high),
     year: sel ? cell(sel.counts[m.calendar_month - 1] ?? null) : null,
     flags: [season.typical.peak_month === m.calendar_month ? "Peak" : "",
-      season.typical.season_months.includes(m.calendar_month) ? "In season" : ""].filter(Boolean).join(", "),
+      season.typical.season_months.includes(m.calendar_month)
+        ? (season.typical.peak_month === m.calendar_month ? "in season" : "In season") : ""].filter(Boolean).join(", "),
   }));
 }
 

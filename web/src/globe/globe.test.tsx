@@ -30,7 +30,8 @@ describe("8.10 AC1: opens on the current month; strong and marginal told apart w
     await createWorldCellsLoader("http://svc", fetchImpl as unknown as typeof fetch)(meta, meta.current_month);
     const body = JSON.parse((fetchImpl.mock.calls[0] as unknown as [string, RequestInit])[1].body as string);
     expect(body).toEqual({ record_version: meta.record_version, month: meta.current_month });
-    expect(view()).toContain(`value="${meta.current_month}"`);
+    expect(view()).toContain(`<option value="${Number(meta.current_month.slice(5, 7))}" selected="">`);
+    expect(view()).toContain(`<option value="${meta.current_month.slice(0, 4)}" selected="">`);
   });
   it("marks strong with a filled dot and marginal with a ring, on the map, the key and the picture", () => {
     const marks = markFeatures(world).features;
@@ -38,10 +39,10 @@ describe("8.10 AC1: opens on the current month; strong and marginal told apart w
     const html = view();
     expect(html).toContain('class="gk-dot"');
     expect(html).toContain('class="gk-ring"');
-    const pic = worldMapMarkup(world, "", { strong: "#a", marginal: "#b", none: "#c", not_flaggable: "#d", outside_record: "#e", ink: "#000", land: "#f", rule: "#9", paper: "#8" });
+    const pic = worldMapMarkup(world, "", { strong: "#a", marginal: "#b", none: "#c", not_flaggable: "#d", outside_record: "#e", ink: "#000", land: "#f", rule: "#9", paper: "#8", tint: "#7", tintOpacity: 0.18 });
     expect(pic.markup).toContain('fill="none" stroke="#000"'); // a ring
   });
-  it("shows uncovered land as hatched, unlike an unflagged cell, and says so", () => {
+  it("shows uncovered land as plain land, unlike an unflagged cell, and says so", () => {
     const html = view();
     expect(html).toContain("gk-uncovered");
     expect(text(html)).toContain(messages.notes.globe_uncovered);

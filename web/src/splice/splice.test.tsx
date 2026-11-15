@@ -33,7 +33,7 @@ describe("Story 7.2 raw splice view", () => {
     const b = bars(cal, sp, "raw");
     expect(b.find((x) => x.month === "2013-12")!.earlyBadScan).toBe(true);
     expect(b.find((x) => x.month === "2014-01")!.earlyBadScan).toBe(false);
-    expect(axisTop(cal, sp)).toBeGreaterThan(0);
+    expect(axisTop(cal, sp, "raw")).toBeGreaterThan(0);
   });
 
   it("toggle's caption explains the step and the record's two sources", () => {

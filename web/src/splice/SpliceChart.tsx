@@ -1,4 +1,5 @@
 import { useRef } from "react";
+import { scaleLinear } from "d3";
 import type { Calendar, Meta, RawSplice } from "../api/client";
 import { messages } from "../api/messages";
 import { PictureDownload } from "../download/PictureDownload";
@@ -20,9 +21,12 @@ export function SpliceChart({ calendar, meta, splice, series, geometry }: {
 }) {
   const ref = useRef<SVGSVGElement>(null);
   const data = bars(calendar, splice, series);
-  const top = axisTop(calendar, splice);
+  // Same axis approach as the seasonal profile (Story 7.4): a rounded linear axis from 0 to the
+  // tallest bar of the shown series, with evenly spaced ticks. Layout only.
+  const yScale = scaleLinear().domain([0, axisTop(calendar, splice, series)]).nice();
+  const top = yScale.domain()[1];
   const bw = (W - L - R) / data.length;
-  const ticks = calendar.statistics.colour_breaks.slice(2);
+  const ticks = yScale.ticks(5).filter((t) => t > 0);
   const area = areaLabel(calendar.aoi.name, geometry);
   const early = series === "raw" && data.some((b) => b.earlyBadScan);
   const title = chartTitle(series, calendar.range);

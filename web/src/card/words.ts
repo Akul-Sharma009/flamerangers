@@ -13,6 +13,8 @@ export const SENTENCE_KEYS = [
   "current_month_usual",
   "cells_flagged",
   "ruler_caption",
+  "ruler_scale",
+  "cells_flagged_none",
   "record_high",
   "noaa20_compared",
 ] as const;

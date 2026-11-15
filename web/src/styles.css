@@ -100,11 +100,24 @@ main.evidence { display: grid; grid-template-columns: minmax(0, 7fr) minmax(0, 5
 
 /* Story 8.7: two areas side by side. Stacked on a phone. */
 .comparesection { grid-column: 1 / -1; min-width: 0; }
+/* F12: in compare mode the two grids come first, full width; the first area's details follow. */
+main.ledger.comparing .comparesection { grid-row: 1; }
+/* The left column describes the first area only; in compare mode it is hidden. Stop comparing to change the first area. */
+main.ledger.comparing .leftcol { display: none; }
 .comparegrids { display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 1fr); gap: 24px; }
 .compareside { min-width: 0; }
 .compareside h3 { font-family: var(--serif); font-size: 15px; margin: 0 0 2px; font-weight: 600; }
 .compareside .sidelabel { font: 11px var(--sans); color: var(--muted); text-transform: uppercase; letter-spacing: .04em; margin-right: 6px; }
-.compareside .sideinfo, .comparenote { font-size: 11.5px; color: var(--muted); font-family: var(--num); margin: 0 0 6px; }
+.compareside .sideinfo, .comparenote { font-size: 11.5px; color: var(--muted); font-family: var(--sans); font-variant-numeric: tabular-nums; margin: 0 0 6px; }
 .comparebtn { font: 12px var(--sans); background: var(--paper); color: var(--ink); border: 1px solid var(--ink); padding: 3px 12px; min-height: 32px; cursor: pointer; }
 .comparebtn:focus-visible { outline: 2px solid var(--ink); outline-offset: 2px; }
 @media (max-width: 760px) { .comparegrids { grid-template-columns: minmax(0, 1fr); gap: 16px; } }
+
+/* Analysis tab block (F8): one block of charts after the grid legend. */
+.analysis { border-top: 3px double var(--ink); padding-top: 8px; margin-top: 18px; }
+.analysis-tabs { display: flex; flex-wrap: wrap; gap: 0 16px; border-bottom: 1px solid var(--rule); margin-bottom: 10px; }
+.analysis-tabs button {
+  border: none; border-bottom: 2px solid transparent; padding: 4px 0 6px; min-height: 32px; background: transparent;
+}
+.analysis-tabs button[aria-selected="true"] { border-bottom-color: var(--ink); font-weight: 600; }
+.analysis-tabs button:hover { background: transparent; }

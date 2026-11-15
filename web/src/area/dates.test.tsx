@@ -72,8 +72,9 @@ function datesTab(extra: Partial<Parameters<typeof AreaPicker>[0]> = {}): string
 }
 
 function input(html: string, name: string): string {
-  const m = new RegExp(`<input[^>]*name="${name}"[^>]*>`).exec(html);
-  if (!m) throw new Error(`no ${name} input`);
+  // Story 3.4 + UI fix F17: each date is a group of Day / Month / Year selects carrying its value and bounds.
+  const m = new RegExp(`<span class="date-selects"[^>]*data-name="${name}"[^>]*>[\\s\\S]*?</span>`).exec(html);
+  if (!m) throw new Error(`no ${name} date`);
   return m[0];
 }
 
@@ -88,10 +89,10 @@ describe("Story 3.4 AC1: first load is July 2002 to the served data-through date
 
   it("the dates tab opens on the whole record, with the served bounds as min and max", () => {
     const html = datesTab();
-    expect(input(html, "start")).toContain(`value="${bounds.start}"`);
-    expect(input(html, "start")).toContain(`min="${bounds.start}"`);
-    expect(input(html, "end")).toContain(`value="${meta.data_through}"`);
-    expect(input(html, "end")).toContain(`max="${meta.data_through}"`);
+    expect(input(html, "start")).toContain(`data-value="${bounds.start}"`);
+    expect(input(html, "start")).toContain(`data-min="${bounds.start}"`);
+    expect(input(html, "end")).toContain(`data-value="${meta.data_through}"`);
+    expect(input(html, "end")).toContain(`data-max="${meta.data_through}"`);
     expect(text(html)).toContain("1 July 2002 to 13 November 2026");
   });
 
@@ -234,8 +235,8 @@ describe("Story 3.4: refused ranges", () => {
     expect(html).toContain('data-problem="out_of_order"');
     expect(input(html, "start")).toContain('aria-invalid="true"');
     expect(input(html, "end")).toContain('aria-invalid="true"');
-    expect(input(html, "start")).toContain('max="2010-03-15"');
-    expect(input(html, "end")).toContain('min="2012-06-10"');
+    expect(input(html, "start")).toContain('data-max="2010-03-15"');
+    expect(input(html, "end")).toContain('data-min="2012-06-10"');
     // 0.4.0: the refusal is stated in the contract's sentence; the range note is always shown.
     expect(html).toContain(messages.client.dates_out_of_order);
     const early = datesTab({ initialRangeRefusal: { start: "2002-06-30", end: "2012-06-10" } });

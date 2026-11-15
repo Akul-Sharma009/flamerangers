@@ -57,7 +57,7 @@ export function SeasonChart({ season, year, label }: { season: Season; year: num
       {peak !== null && months[peak - 1]?.median != null ? (
         <g className="peak">
           <circle cx={cx(peak - 1)} cy={y(months[peak - 1]!.median!)} r={7} fill="none" stroke="var(--ink)" strokeWidth={1.5} />
-          <text x={cx(peak - 1)} y={y(months[peak - 1]!.median!) - 11} textAnchor="middle" fontSize={11} fontWeight={600} fill="var(--ink)">
+          <text x={cx(peak - 1)} y={y(months[peak - 1]!.median!) - 11} textAnchor="middle" fontSize={11} fontWeight={600} fill="var(--ink)" stroke="var(--paper)" strokeWidth={3} paintOrder="stroke">
             Peak: {MONTH_NAMES[peak - 1]}
           </text>
         </g>

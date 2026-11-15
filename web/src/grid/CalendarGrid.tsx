@@ -22,7 +22,7 @@ const same = (a: Pos | null, b: Pos) => a !== null && a.r === b.r && a.c === b.c
  */
 export function CalendarGrid({
   calendar, meta, width: fixedWidth, initialView = "grid", initialMeasure = "count", initialActive = null,
-  measure: heldMeasure, onMeasureChange, view: heldView, onViewChange, onPick, sentences, highlight = null,
+  measure: heldMeasure, onMeasureChange, view: heldView, onViewChange, onPick, sentences, highlight = null, raw = false, linked, onShownChange,
 }: {
   calendar: Calendar;
   meta: Meta;
@@ -40,6 +40,12 @@ export function CalendarGrid({
   sentences?: GridSentences;
   /** Story 3.9: the ranked item selected in the rankings, or null. */
   highlight?: Highlight | null;
+  /** The raw splice view: counts only, with no year totals, ranks or medians row. */
+  raw?: boolean;
+  /** Compare mode: a place shown by the other grid, as "2015-09", "total:2015" or "median:9". */
+  linked?: string | null;
+  /** Compare mode: called when this grid's own hover or pin moves to another place. */
+  onShownChange?: (key: string | null) => void;
 }) {
   const wrapRef = useRef<HTMLDivElement>(null);
   const [measured, setMeasured] = useState(0);
@@ -83,18 +89,18 @@ export function CalendarGrid({
       {view === "grid" ? (
         <div className="calgrid" ref={wrapRef} data-measure={measure}>
           {width > 0 ? (
-            <GridSvg model={model} layout={layoutGrid(model, width)} measure={measure} initialActive={initialActive} onPick={onPick} highlight={highlight} />
+            <GridSvg model={model} layout={layoutGrid(model, width, raw)} measure={measure} initialActive={initialActive} onPick={onPick} highlight={highlight} raw={raw} linked={linked} onShownChange={onShownChange} />
           ) : null}
         </div>
       ) : (
-        <CalendarTable model={model} measure={measure} highlight={highlight} />
+        <CalendarTable model={model} measure={measure} highlight={highlight} raw={raw} />
       )}
     </div>
   );
 }
 
 function GridSvg({
-  model, layout: L, measure, initialActive, onPick, highlight,
+  model, layout: L, measure, initialActive, onPick, highlight, raw, linked, onShownChange,
 }: {
   model: GridModel;
   layout: Layout;
@@ -102,6 +108,9 @@ function GridSvg({
   initialActive: Pos | null;
   onPick?: (month: string) => void;
   highlight: Highlight | null;
+  raw: boolean;
+  linked?: string | null;
+  onShownChange?: (key: string | null) => void;
 }) {
   // pinned: set by focus or tap; hover: the pointer, shown over pinned while it lasts.
   const [pinned, setPinnedState] = useState<Pos | null>(initialActive);
@@ -113,9 +122,42 @@ function GridSvg({
   };
   const [hover, setHover] = useState<Pos | null>(null);
   const refs = useRef(new Map<string, SVGGElement>());
-  const shown = hover ?? pinned;
-  const tabStop: Pos = pinned ?? { r: 0, c: 0 };
+  const own = hover ?? pinned;
   const nRows = model.rows.length;
+  // Places are keyed by year and month, never by row index, so two areas can differ in years.
+  const keyOfPos = (p: Pos | null): string | null => {
+    if (!p) return null;
+    if (p.r === nRows) return raw ? null : `median:${p.c + 1}`;
+    const row = model.rows[p.r];
+    if (!row) return null;
+    if (p.c === 12) return raw ? null : `total:${row.year}`;
+    return row.cells[p.c]?.month ?? null;
+  };
+  const posOfKey = (k: string | null | undefined): Pos | null => {
+    if (!k) return null;
+    if (k.startsWith("median:")) {
+      const c = Number(k.slice(7)) - 1;
+      return !raw && c >= 0 && c < 12 ? { r: nRows, c } : null;
+    }
+    if (k.startsWith("total:")) {
+      const r = model.rows.findIndex((x) => String(x.year) === k.slice(6));
+      return !raw && r >= 0 ? { r, c: 12 } : null;
+    }
+    for (let r = 0; r < nRows; r++) {
+      const c = model.rows[r].cells.findIndex((x) => x.month === k);
+      if (c >= 0) return { r, c };
+    }
+    return null;
+  };
+  const ownKey = keyOfPos(own);
+  const lastKey = useRef<string | null>(null);
+  useEffect(() => {
+    if (lastKey.current === ownKey) return;
+    lastKey.current = ownKey;
+    onShownChange?.(ownKey);
+  });
+  const shown = own ?? posOfKey(linked);
+  const tabStop: Pos = pinned ?? { r: 0, c: 0 };
 
   const onKey = (e: KeyboardEvent) => {
     if (e.key === "Escape") {
@@ -127,7 +169,7 @@ function GridSvg({
     // focus has re-rendered still moves from the right cell.
     const at = (e.target as Element).closest?.("[data-pos]")?.getAttribute("data-pos");
     const from = at ? { r: Number(at.split("-")[0]), c: Number(at.split("-")[1]) } : (pinned ?? tabStop);
-    const next = move(from, e.key, nRows);
+    const next = move(from, e.key, nRows, raw);
     if (!next) return;
     e.preventDefault();
     setHover(null);
@@ -189,7 +231,7 @@ function GridSvg({
           {MONTH_INITIALS.map((m, i) => (
             <text key={i} className="colhead" x={cellX(i) + L.cellW / 2} y={12}>{m}</text>
           ))}
-          <text className="colhead" x={L.totalX} y={12} style={{ textAnchor: "start" }}>{L.narrow ? "Total" : "Year total"}</text>
+          {raw ? null : <text className="colhead" x={L.totalX} y={12} style={{ textAnchor: "start" }}>{L.narrow ? "Total" : "Year total"}</text>}
         </g>
 
         {model.rows.map((row, ri) => {
@@ -215,7 +257,7 @@ function GridSvg({
                   {same(shown, { r: ri, c: ci }) ? <rect className="ring" x={-1.5} y={-1.5} width={w + 3} height={h + 3} /> : null}
                 </g>
               ))}
-              {row.total ? (
+              {row.total && !raw ? (
                 <g
                   className={`total${row.total.complete ? "" : " incomplete"}`}
                   transform={`translate(${L.totalX},${ry})`}
@@ -261,8 +303,8 @@ function GridSvg({
           </g>
         ) : null}
 
-        <line className="foot-rule" x1={L.yearW} x2={L.width} y1={L.footY} y2={L.footY} />
-        <g role="row" className="medians">
+        {raw ? null : <line className="foot-rule" x1={L.yearW} x2={L.width} y1={L.footY} y2={L.footY} />}
+        {raw ? null : <g role="row" className="medians">
           <text className="colhead foot-label" role="rowheader" x={L.yearW - 6} y={L.footY + 15} style={{ textAnchor: "end" }}>
             {anomaly ? "mean" : L.narrow ? "med." : "median"}
           </text>
@@ -283,7 +325,7 @@ function GridSvg({
               </g>
             );
           })}
-        </g>
+        </g>}
 
         {hl && highlight ? (
           <g className="highlight" aria-hidden="true" data-highlight={highlight.kind}>

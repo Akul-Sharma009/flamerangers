@@ -36,15 +36,15 @@ export const CLASS_FILL: Record<EvidenceClass, string> = {
 function Patterns({ prefix }: { prefix: string }) {
   return (
     <defs>
-      <pattern id={`${prefix}tested_unseen`} width="4" height="4" patternUnits="userSpaceOnUse">
-        <line className="ev-line" x1="0" y1="2" x2="4" y2="2" />
+      <pattern id={`${prefix}tested_unseen`} width="6" height="6" patternUnits="userSpaceOnUse">
+        <line className="ev-line" x1="0" y1="3" x2="6" y2="3" />
       </pattern>
-      <pattern id={`${prefix}reported_only`} width="4" height="4" patternUnits="userSpaceOnUse">
-        <line className="ev-line" x1="2" y1="0" x2="2" y2="4" />
+      <pattern id={`${prefix}reported_only`} width="6" height="6" patternUnits="userSpaceOnUse">
+        <line className="ev-line" x1="3" y1="0" x2="3" y2="6" />
       </pattern>
-      <pattern id={`${prefix}not_evaluated`} width="4" height="4" patternUnits="userSpaceOnUse">
-        <line className="ev-line" x1="0" y1="2" x2="4" y2="2" />
-        <line className="ev-line" x1="2" y1="0" x2="2" y2="4" />
+      <pattern id={`${prefix}not_evaluated`} width="6" height="6" patternUnits="userSpaceOnUse">
+        <line className="ev-line" x1="0" y1="3" x2="6" y2="3" />
+        <line className="ev-line" x1="3" y1="0" x2="3" y2="6" />
       </pattern>
     </defs>
   );

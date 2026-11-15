@@ -5,7 +5,7 @@
 import { lazy, Suspense, useEffect, useMemo, useState } from "react";
 import { messages } from "../api/messages";
 import type { components } from "../api/schema";
-import { formatCount, formatYearMonth } from "../format";
+import { MONTH_NAMES, formatCount, formatYearMonth } from "../format";
 import { composeFigure } from "../download/figure";
 import { cssVar } from "../download/capture";
 import { downloadFigure, type PictureFormat } from "../download/save";
@@ -26,13 +26,19 @@ const SAVANNA = "Southern African savanna";
 const KEY_STATES: FlagState[] = ["strong", "marginal", "none", "not_flaggable", "outside_record"];
 const defaultLoadEvidence = () => import("../evidence/evidence.json").then((m) => m.default as unknown as Evidence);
 
+/** The tint laid over land, as one flat colour for the picture's key swatches. */
+function mixHex(top: string, under: string, a: number): string {
+  const ch = (h: string, i: number) => parseInt(h.replace("#", "").slice(i * 2, i * 2 + 2), 16);
+  if (!/^#[0-9a-f]{6}$/i.test(top) || !/^#[0-9a-f]{6}$/i.test(under)) return top;
+  return "#" + [0, 1, 2].map((i) => Math.round(ch(top, i) * a + ch(under, i) * (1 - a)).toString(16).padStart(2, "0")).join("");
+}
+
 function KeyMark({ state }: { state: FlagState | "uncovered" }) {
   return (
     <svg width="14" height="14" aria-hidden="true" className={`gk gk-${state}`}>
       <rect x="0.5" y="0.5" width="13" height="13" />
       {state === "strong" ? <circle cx="7" cy="7" r="3.2" className="gk-dot" /> : null}
       {state === "marginal" ? <circle cx="7" cy="7" r="3.2" className="gk-ring" /> : null}
-      {state === "uncovered" ? <path d="M0,4 L4,0 M0,9 L9,0 M0,14 L14,0 M5,14 L14,5 M10,14 L14,10" className="gk-hatch" /> : null}
     </svg>
   );
 }
@@ -85,10 +91,14 @@ export function GlobeView({ meta, loadCells = defaultLoader, loadEvidence = defa
     const [topo, land] = await Promise.all([import("topojson-client"), import("world-atlas/land-110m.json")]);
     const atlas = land.default as unknown as Parameters<typeof topo.feature>[0];
     const lf = topo.feature(atlas, atlas.objects.land!) as unknown as { features: { geometry: { type: string; coordinates: unknown } }[] };
+    const tint = cssVar("--c3", "#b88a4f");
+    const tintOpacity = 0.18;
+    const landFill = cssVar("--paper", "#f6f0e4");
+    const covered = mixHex(tint, landFill, tintOpacity);
     const palette = {
-      strong: cssVar("--c4", "#9a5f2e"), marginal: cssVar("--c2", "#d3a866"), none: cssVar("--paper", "#f6f0e4"),
-      not_flaggable: cssVar("--paper", "#f6f0e4"), outside_record: cssVar("--faint", "#e9e0cf"),
-      ink: cssVar("--ink", "#1d1a16"), land: cssVar("--faint", "#e9e0cf"), rule: cssVar("--rule", "#c9bfae"), paper: cssVar("--faint", "#e9e0cf"),
+      strong: tint, marginal: tint, none: tint, not_flaggable: tint, outside_record: landFill,
+      ink: cssVar("--ink", "#1d1a16"), land: landFill, rule: cssVar("--rule", "#c9bfae"), paper: cssVar("--faint", "#e9e0cf"),
+      tint, tintOpacity,
     };
     const chart = worldMapMarkup(cells, landPath(lf.features), palette);
     const fig = composeFigure({
@@ -96,7 +106,7 @@ export function GlobeView({ meta, loadCells = defaultLoader, loadEvidence = defa
       details: words,
       chart,
       legendHeading: "Each 1° cell, by flag state. Strong cells carry a filled dot, marginal cells a ring.",
-      legend: KEY_STATES.map((s) => ({ color: palette[s], label: messages.labels.flag_state[s] })),
+      legend: KEY_STATES.map((s) => ({ color: s === "outside_record" ? landFill : covered, label: messages.labels.flag_state[s] })),
       notes: [messages.notes.globe_cells, messages.notes.globe_uncovered, messages.notes.flag_scale, messages.notes.strong_tier,
         ...claims.map((c) => (c.id === "caveat-southern-africa" ? `${SAVANNA}: ${c.text}` : c.text))],
       footer: [`Data through ${cells.data_through}. Record version ${cells.record_version}.`, messages.notes.record_switch],
@@ -117,8 +127,22 @@ export function GlobeView({ meta, loadCells = defaultLoader, loadEvidence = defa
         </button>
         <label>
           Month{" "}
-          <input type="month" value={month} min={first} max={last}
-            onChange={(e) => { if (/^\d{4}-\d{2}$/.test(e.target.value)) setMonth(stepMonth(e.target.value, 0, first, last)); }} />
+          <select aria-label="Month" value={String(Number(month.slice(5, 7)))}
+            onChange={(e) => setMonth(stepMonth(`${month.slice(0, 4)}-${String(e.target.value).padStart(2, "0")}`, 0, first, last))}>
+            {MONTH_NAMES.map((name, i) => {
+              const ym = `${month.slice(0, 4)}-${String(i + 1).padStart(2, "0")}`;
+              return <option key={name} value={i + 1} disabled={ym < first || ym > last ? true : undefined}>{name}</option>;
+            })}
+          </select>
+        </label>
+        <label>
+          Year{" "}
+          <select aria-label="Year" value={month.slice(0, 4)}
+            onChange={(e) => setMonth(stepMonth(`${e.target.value}-${month.slice(5, 7)}`, 0, first, last))}>
+            {Array.from({ length: Number(last.slice(0, 4)) - Number(first.slice(0, 4)) + 1 }, (_, i) => Number(first.slice(0, 4)) + i).map((yr) => (
+              <option key={yr} value={String(yr)}>{yr}</option>
+            ))}
+          </select>
         </label>
         <button type="button" onClick={() => setMonth(stepMonth(month, 1, first, last))} disabled={month >= last}>
           Next month

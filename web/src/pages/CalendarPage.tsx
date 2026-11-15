@@ -30,6 +30,7 @@ import { SpliceChart } from "../splice/SpliceChart";
 import { withSplice, type Series } from "../splice/model";
 import { SeasonPanel } from "../season/SeasonPanel";
 import { TrendIndicator } from "../trend/TrendIndicator";
+import { AnalysisTabs, type AnalysisTab } from "./AnalysisTabs";
 import { CompareSection } from "../compare/CompareSection";
 import { otherThan } from "../compare/model";
 import { COMPARE_WORDS } from "../compare/words";
@@ -209,11 +210,19 @@ export function CalendarView({
   const [marked, setMarked] = useState<Marked>({ of: undefined, item: initialHighlight });
   const highlight = currentHighlight(marked, calendar);
   const setHighlight = (item: Highlight | null) => setMarked({ of: calendar, item });
+  // The analysis charts share one tab block: seasonal profile (default), running total, trend, record chart.
+  const analysisTabs: AnalysisTab[] = [];
+  if (ready) {
+    if (seasonService) analysisTabs.push({ id: "season", label: "Seasonal profile", panel: <SeasonPanel service={seasonService} meta={ready.meta} aoi={selected} /> });
+    analysisTabs.push({ id: "todate", label: "Running total", panel: <SeasonToDateSection meta={ready.meta} aoi={selected} areaName={ready.calendar.aoi.name} /> });
+    if (ready.calendar.trend) analysisTabs.push({ id: "trend", label: "Trend", panel: <TrendIndicator calendar={ready.calendar} /> });
+    if (offerSplice && splice.status === "ready") analysisTabs.push({ id: "record", label: "Record chart", panel: <SpliceChart calendar={ready.calendar} meta={ready.meta} splice={splice.splice} series={series} geometry={selected.geometry} /> });
+  }
   const problemText =
     result?.status === "problem" ? areaProblemText(result.code) : result?.status === "failed" ? UNREACHABLE : null;
 
   return (
-    <main className={`page ledger${ready ? " has-ranks" : ""}`}>
+    <main className={`page ledger${ready ? " has-ranks" : ""}${ready && compare && comparing ? " comparing" : ""}`}>
       <div className="leftcol">
         {linkNotes.map((t) => (
           <p key={t} className="linknote" role="status">{t}</p>
@@ -244,8 +253,6 @@ export function CalendarView({
             <li>{messages.notes.satellite_switch}</li>
           </ol>
         ) : null}
-        {/* Story 8.6: the trend test on the annual totals. */}
-        {ready ? <TrendIndicator calendar={ready.calendar} /> : null}
         {ready ? (
           <DownloadControls
             // A new area or range starts the block afresh, so a 413's year buttons never ask for another area.
@@ -281,13 +288,11 @@ export function CalendarView({
           <CaveatLine calendar={ready.calendar} />
           {compare ? <CompareStart onStart={() => compare.onSecond(otherThan(selected))} /> : null}
           {offerSplice ? <SpliceToggle series={series} onChange={setSeries} loading={series === "raw" && splice.status === "loading"} failed={series === "raw" && splice.status === "failed"} /> : null}
-          <CalendarGrid calendar={gridCalendar ?? ready.calendar} meta={ready.meta} measure={rawOn ? "count" : measure} onMeasureChange={(m) => { if (m === "anomaly") setSeries("record"); setMeasure(m); }} view={grid} onViewChange={setGrid} onPick={setPicked} highlight={highlight} />
+          <CalendarGrid calendar={gridCalendar ?? ready.calendar} meta={ready.meta} measure={rawOn ? "count" : measure} onMeasureChange={(m) => { if (m === "anomaly") setSeries("record"); setMeasure(m); }} view={grid} onViewChange={setGrid} onPick={setPicked} highlight={highlight} raw={!!rawOn} />
           <GridLegend calendar={ready.calendar} measure={rawOn ? "count" : measure} />
-          {offerSplice && splice.status === "ready" ? (
-            <SpliceChart calendar={ready.calendar} meta={ready.meta} splice={splice.splice} series={series} geometry={selected.geometry} />
-          ) : null}
+          <AnalysisTabs tabs={analysisTabs} />
           {/* Story 7.7: the picked month's hotspots on a map. */}
-          {picked ? <HotspotMonthPanel meta={ready.meta} aoi={selected} month={picked} loadCells={loadFlagCells} /> : null}
+          {picked ? <HotspotMonthPanel meta={ready.meta} aoi={selected} month={picked} nullMonth={(() => { const pm = ready.calendar.months.find((x) => x.month === picked); return pm && pm.count === null ? { null_reason: pm.null_reason } : undefined; })()} loadCells={loadFlagCells} /> : null}
           {/* The anomaly view shows each 1° cell's flag state for the picked month, else the current month. */}
           {measure === "anomaly" ? (
             <FlagCellsPanel
@@ -298,8 +303,6 @@ export function CalendarView({
               loadCells={loadFlagCells}
             />
           ) : null}
-          {/* Story 7.4: the seasonal profile of the area (reference period, not the chosen dates). */}
-          {seasonService ? <SeasonPanel service={seasonService} meta={ready.meta} aoi={selected} /> : null}
           {/* Story 8.10: the globe is a secondary view reached from here. */}
           <p className="globe-link"><a href="#/globe">Where on Earth is this month unusual? Open the globe of 1° cells.</a></p>
         </section>
@@ -308,8 +311,6 @@ export function CalendarView({
           <p className="loading">Loading…</p>
         </section>
       ) : null}
-      {/* Story 7.6: season to date, under the calendar. */}
-      {ready ? <SeasonToDateSection meta={ready.meta} aoi={selected} areaName={ready.calendar.aoi.name} /> : null}
       {/* Story 3.9: below the hero's left side, beside the grid; after the grid on a phone. */}
       {ready && !comparing ? (
         <RankingsPanel calendar={ready.calendar} highlight={highlight} onHighlight={setHighlight} words={rankWords} />

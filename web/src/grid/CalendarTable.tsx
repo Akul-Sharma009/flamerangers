@@ -24,7 +24,7 @@ function MonthCell({ c, anomaly, lit }: { c: CellModel; anomaly: boolean; lit: b
 }
 
 /** The calendar as a plain table: the same served values and marks as the grid. */
-export function CalendarTable({ model, measure = "count", highlight = null }: { model: GridModel; measure?: Measure; highlight?: Highlight | null }) {
+export function CalendarTable({ model, measure = "count", highlight = null, raw = false }: { model: GridModel; measure?: Measure; highlight?: Highlight | null; raw?: boolean }) {
   const switchAfter = model.rows.findIndex((r) => r.year === model.switchYear);
   const anomaly = measure === "anomaly";
   return (
@@ -41,15 +41,15 @@ export function CalendarTable({ model, measure = "count", highlight = null }: { 
             {MONTH_NAMES.map((m) => (
               <th scope="col" key={m} abbr={m}>{m.slice(0, 3)}</th>
             ))}
-            <th scope="col">Year total</th>
+            {raw ? null : <th scope="col">Year total</th>}
           </tr>
         </thead>
         <tbody>
           {model.rows.map((row, ri) => (
-            <RowGroup key={row.year} row={row} anomaly={anomaly} highlight={highlight} switchBelow={ri === switchAfter && ri < model.rows.length - 1} />
+            <RowGroup key={row.year} row={row} anomaly={anomaly} highlight={highlight} raw={raw} switchBelow={ri === switchAfter && ri < model.rows.length - 1} />
           ))}
         </tbody>
-        <tfoot>
+        {raw ? null : <tfoot>
           <tr>
             <th scope="row">{anomaly ? "Reference mean" : "Median"} {model.referenceLabel}</th>
             {model.medians.map((m) => (
@@ -57,15 +57,15 @@ export function CalendarTable({ model, measure = "count", highlight = null }: { 
             ))}
             <td />
           </tr>
-        </tfoot>
+        </tfoot>}
       </table>
     </div>
   );
 }
 
 function RowGroup({
-  row, switchBelow, anomaly, highlight,
-}: { row: GridModel["rows"][number]; switchBelow: boolean; anomaly: boolean; highlight: Highlight | null }) {
+  row, switchBelow, anomaly, highlight, raw,
+}: { row: GridModel["rows"][number]; switchBelow: boolean; anomaly: boolean; highlight: Highlight | null; raw: boolean }) {
   const t = row.total;
   // Story 3.9: a highlighted year marks its whole row, total included.
   const yearLit = coversYearTotal(highlight, row.year);
@@ -74,14 +74,14 @@ function RowGroup({
       <tr className={[switchBelow ? "before-switch" : "", yearLit ? "hl-row" : ""].filter(Boolean).join(" ") || undefined}>
         <th scope="row">{row.year}</th>
         {row.cells.map((c) => <MonthCell key={c.month} c={c} anomaly={anomaly} lit={coversMonth(highlight, c.month)} />)}
-        <td className={`total${t && !t.complete ? " incomplete" : ""}${yearLit ? " hl" : ""}`} title={t ? t.detail.join("\n") : undefined} aria-label={t ? asSentence(t.detail) : undefined}>
+        {raw ? null : <td className={`total${t && !t.complete ? " incomplete" : ""}${yearLit ? " hl" : ""}`} title={t ? t.detail.join("\n") : undefined} aria-label={t ? asSentence(t.detail) : undefined}>
           {t ? t.label : "–"}
           {t && t.topRank !== null ? <span className="rank">{t.topRank}</span> : null}
-        </td>
+        </td>}
       </tr>
       {switchBelow ? (
         <tr className="switch">
-          <td colSpan={14}>{messages.notes.record_switch}</td>
+          <td colSpan={raw ? 13 : 14}>{messages.notes.record_switch}</td>
         </tr>
       ) : null}
     </>

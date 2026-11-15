@@ -5,6 +5,7 @@ import { useState, type FormEvent } from "react";
 import type { DateRange, Meta } from "../api/client";
 import { messages } from "../api/messages";
 import { formatDay } from "../format";
+import { DateSelects } from "./DateSelects";
 import { checkRange, earlierDay, laterDay, type DateField, type RangeProblem, type RangeResult } from "./dates";
 
 /** The contract's sentence for each refused range (messages.yaml client, 0.4.0). */
@@ -77,16 +78,15 @@ export function DatesPanel({ dates, onSelectRange, initialRefusal }: Props) {
         {fields.map(({ field, label, value, set, min, max }) => (
           <label key={field} className={badField(field) ? "bad" : undefined}>
             <span>{label}</span>
-            <input
-              type="date"
+            <DateSelects
               name={field}
-              required
+              value={value}
               min={min}
               max={max}
-              value={value}
-              aria-invalid={badField(field)}
-              onChange={(ev) => {
-                set(ev.target.value);
+              bounds={bounds}
+              invalid={badField(field)}
+              onChange={(v) => {
+                set(v);
                 setRefusal(null);
               }}
             />

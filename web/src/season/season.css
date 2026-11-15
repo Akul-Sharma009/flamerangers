@@ -1,5 +1,5 @@
 /* Story 7.4: the seasonal profile. Same ledger page: serif headings, ruled table, no cards. */
-.seasonpanel { border-top: 3px double var(--ink); padding-top: 8px; margin-top: 18px; }
+.seasonpanel { margin-top: 0; }
 .seasonpanel h2 { font-family: var(--serif); font-size: 18px; font-weight: 600; margin: 0 0 2px; }
 .seasonpanel .kicker { font-size: 12px; color: var(--muted); letter-spacing: .05em; text-transform: uppercase; margin: 0 0 6px; }
 .seasonsentence { font: 600 14px var(--serif); margin: 0 0 8px; }
@@ -14,3 +14,5 @@
 .seasontable td, .seasontable tbody th { padding: 0 4px; border-bottom: 1px solid var(--faint); text-align: left; font-weight: 400; }
 .seasontable td { text-align: right; }
 .seasontable td:last-child { text-align: left; font-family: var(--sans); }
+.seasontable thead th:not(:first-child):not(:last-child) { text-align: right; }
+.seasontable tbody th { font-family: var(--sans); }

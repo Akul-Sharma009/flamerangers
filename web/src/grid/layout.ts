@@ -40,11 +40,11 @@ export function wrap(text: string, maxChars: number): string[] {
   return lines;
 }
 
-export function layoutGrid(model: GridModel, width: number): Layout {
+export function layoutGrid(model: GridModel, width: number, raw = false): Layout {
   const narrow = width < NARROW;
   const yearW = narrow ? 34 : 40;
   const rowH = narrow ? 18 : 22;
-  const totalW = narrow ? 66 : 140;
+  const totalW = raw ? 0 : narrow ? 66 : 140;
   const cellW = (width - yearW - totalW) / 12;
   const showNums = !narrow && cellW >= MIN_NUM_CELL_W;
   const headH = 18;
@@ -64,8 +64,9 @@ export function layoutGrid(model: GridModel, width: number): Layout {
       y += noteH;
     }
   });
-  const footY = y + 4;
-  const footH = narrow ? 46 : 22;
+  // The raw view has no medians row: no foot space.
+  const footY = raw ? y : y + 4;
+  const footH = raw ? 0 : narrow ? 46 : 22;
   return {
     width,
     height: footY + footH,
@@ -87,9 +88,9 @@ export function layoutGrid(model: GridModel, width: number): Layout {
 
 
 /** Arrow keys, Home and End move between months, totals and medians. */
-export function move(pos: Pos, key: string, nRows: number): Pos | null {
-  const lastRow = nRows; // the medians row
-  const maxC = (r: number) => (r === lastRow ? 11 : 12);
+export function move(pos: Pos, key: string, nRows: number, raw = false): Pos | null {
+  const lastRow = raw ? nRows - 1 : nRows; // the medians row, none in the raw view
+  const maxC = (r: number) => (raw ? 11 : r === lastRow ? 11 : 12);
   let { r, c } = pos;
   switch (key) {
     case "ArrowLeft": c = Math.max(0, c - 1); break;
