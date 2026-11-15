@@ -56,8 +56,9 @@ def test_2_4_ac3_six_regions_give_the_leads_counts():
     from pathlib import Path
     from shapely.geometry import shape
     gj = json.loads((Path(__file__).resolve().parents[2] / "contract" / "regions.geojson").read_text())
-    geoms = {f["properties"]["region_id"]: shape(f["geometry"]) for f in gj["features"]}
-    classes = {f["properties"]["region_id"]: f["properties"]["evidence_class"] for f in gj["features"]}
+    feats = [f for f in gj["features"] if f["properties"]["evidence_class"] != "not_evaluated"]  # the six evaluated
+    geoms = {f["properties"]["region_id"]: shape(f["geometry"]) for f in feats}
+    classes = {f["properties"]["region_id"]: f["properties"]["evidence_class"] for f in feats}
     cells = set()
     for g in geoms.values():
         x0, y0, x1, y1 = g.bounds

@@ -1218,3 +1218,10 @@ Each entry has: a status (**ASSUMED** or **TESTED**), its evidence, and a "revis
 - **Decision:** The web app is a static build on its own Vercel Hobby project `burncal-web`, public at `https://burncal-web-eight.vercel.app`, built from master with `VITE_SERVICE_BASE_URL` naming the production service. The service allows that one origin through `CORS_ORIGINS` (Production only). Built and deployed by the data owner at the data owner's request; no web code changed.
 - **Evidence:** `/meta` and the `/calendar` preflight return `access-control-allow-origin` for the web origin; Sumatra, Southern African savanna and Siberia load from `20261113-19dfbcc8` in the browser.
 - **Revisit if:** the web app moves to a custom domain or another host (add its origin to `CORS_ORIGINS`, comma-separated, and redeploy the service), or `web/` changes after `596416b` (rebuild and redeploy).
+
+## Kalimantan shown as a featured area (15 Nov 2026)
+
+- **Status:** TESTED.
+- **Decision:** At the user's request, Kalimantan is listed in `contract/regions.geojson` as a seventh featured area, so it appears in the featured list, `/meta`'s coverage and the globe's loaded list. Its class is `not_evaluated`: the conversion was never tested there, and the card says so with the contract's existing sentence. The outline is Indonesian Borneo east of 110°E (the Natural Earth Kalimantan provinces, clipped to its extent and simplified to 82 points so its share link stays under 2,000 characters). The pipeline ignores featured areas that are not evaluated (`convert.load_regions`), so it sets no season region and no evidence class and no count changes. Contract data change only; the contract version is unchanged.
+- **Evidence:** `test_2_8_a_featured_area_not_evaluated_never_steers_the_conversion`; contract tests (seven regions, every fixture's coverage lists it); the evaluated-region tests count the six; web 397 tests (seven cards, seven buttons, the globe's loaded list), typecheck and build; wording and evidence checks.
+- **Revisit if:** Kalimantan is ever evaluated (then it gets a real class, and its cells' classes change through the pipeline).

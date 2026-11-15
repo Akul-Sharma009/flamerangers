@@ -378,7 +378,8 @@ def main():
                ("amazon_forest", "Amazon forest", "not_loaded", "tuned"),
                ("southern_africa", "Southern African savanna", "not_loaded", "tested_unseen"),
                ("siberia", "Siberian boreal forest", "not_loaded", "tested_unseen"),
-               ("punjab", "Punjab cropland", "not_loaded", "reported_only")]
+               ("punjab", "Punjab cropland", "not_loaded", "reported_only"),
+               ("kalimantan", "Kalimantan", "not_loaded", "not_evaluated")]
     meta = {
         "contract_version": "0.4.0", "record_version": RECORD_VERSION, "data_through": DATA_THROUGH,
         "placeholder": True, "unit_label": UNIT, "record_start": "2002-07",

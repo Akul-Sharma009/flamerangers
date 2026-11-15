@@ -26,11 +26,11 @@ function buttons(node: ReactNode, out: ReactElement<{ onClick?: () => void; chil
 }
 
 describe("Story 8.8 featured gallery", () => {
-  it("offers the six regions, in the contract's order, one card each", () => {
-    const names = ["Sumatra", "Australian grassland", "Amazon forest", "Southern African savanna", "Siberian boreal forest", "Punjab cropland"];
+  it("offers the seven featured areas, in the contract's order, one card each", () => {
+    const names = ["Sumatra", "Australian grassland", "Amazon forest", "Southern African savanna", "Siberian boreal forest", "Punjab cropland", "Kalimantan"];
     expect(areas.map((a) => a.name)).toEqual(names);
     const html = gallery();
-    expect((html.match(/class="card"/g) ?? []).length).toBe(6);
+    expect((html.match(/class="card"/g) ?? []).length).toBe(7);
     for (const n of names) expect(plain(html)).toContain(n);
   });
 
@@ -48,7 +48,7 @@ describe("Story 8.8 featured gallery", () => {
     const picked: AoiInput[] = [];
     const tree = FeaturedGallery({ areas, currentName: null, onSelect: (a) => picked.push(a) });
     const btns = buttons(tree);
-    expect(btns).toHaveLength(6);
+    expect(btns).toHaveLength(7);
     btns.forEach((b) => b.props.onClick!());
     for (const f of regions.features) {
       const got = picked.find((p) => p.name === f.properties.name)!;

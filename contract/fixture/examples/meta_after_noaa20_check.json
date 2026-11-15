@@ -31,7 +31,8 @@
       {"region_id": "amazon_forest", "name": "Amazon forest", "status": "not_loaded", "evidence_class": "tuned"},
       {"region_id": "southern_africa", "name": "Southern African savanna", "status": "not_loaded", "evidence_class": "tested_unseen"},
       {"region_id": "siberia", "name": "Siberian boreal forest", "status": "not_loaded", "evidence_class": "tested_unseen"},
-      {"region_id": "punjab", "name": "Punjab cropland", "status": "not_loaded", "evidence_class": "reported_only"}
+      {"region_id": "punjab", "name": "Punjab cropland", "status": "not_loaded", "evidence_class": "reported_only"},
+      {"region_id": "kalimantan", "name": "Kalimantan", "status": "not_loaded", "evidence_class": "not_evaluated"}
     ]
   },
   "noaa20_check": {
