@@ -136,6 +136,10 @@ def test_2_6_ac3_calendar_counts_raw_and_provenance(client, versions):
     assert months["2002-06"]["count"] is None and months["2002-06"]["null_reason"] == "outside_record"
     assert months["2002-07"]["partial_reasons"] == ["record_start"] and not months["2002-07"]["complete"]
     assert months["2026-12"]["count"] is None
+    # 0.4.0: flag counts are null outside the record (missing is not zero), integers inside it
+    for k in ("cells_flagged_strong", "cells_flagged_marginal"):
+        assert months["2002-06"][k] is None and months["2026-12"][k] is None and isinstance(months["2015-01"][k], int)
+    assert c["current_month"]["missing_days_to_date"] is False  # the test store's November has no missing days
     assert months["2015-01"]["source"] == "aqua_real" and months["2023-01"]["source"] == "viirs_converted"
     assert months["2024-02"]["partial_reasons"] == ["missing_days"]
     nov = months["2026-11"]
@@ -379,7 +383,7 @@ def test_4_2_ac3_header_explains_the_row_count_and_limits(client, versions):
     assert keys == HOTSPOT_KEYS
     assert head["record_version"] == versions[0] and head["data_through"] == "2026-11-13"
     assert "weight" in head["row_count_note"] and "December 2021" in head["row_count_note"]
-    assert text.count("\n# counting_limits: ") == 3 and head["row_filter"] == "rows that feed the record"
+    assert text.count("\n# counting_limits: ") == 6 and head["row_filter"] == "rows that feed the record"
 
 
 # --- Story 4.1: analytics CSV -----------------------------------------------------
@@ -624,3 +628,17 @@ def test_2_8_sync_without_points_reads_them_from_the_store_url(store_root, versi
         body = _body(v, AMAZON, name=None)
         assert app.post("/calendar", json=body).json() == direct.post("/calendar", json=body).json()
     assert not list((local / "versions").glob("*/points.parquet"))
+
+
+def test_3_2_missing_days_to_date_reads_the_area_extent(store_root, versions, tmp_path):
+    """Contract 0.4.0's card flag, on a multi-extent store: the current month's missing days are read per extent."""
+    import shutil
+    root = tmp_path / "copy"
+    shutil.copytree(store_root, root)
+    path = root / "versions" / versions[0] / "missing_days.parquet"
+    miss = pd.read_parquet(path)
+    extent = miss["extent"].iloc[0] if "extent" in miss and len(miss) else ""
+    row = {"year": 2026, "month": 11, "uncovered": False, "extent": extent}
+    pd.concat([miss, pd.DataFrame([row])], ignore_index=True).to_parquet(path, index=False)
+    c = TestClient(create_app(root)).post("/calendar", json=_body(versions[0])).json()
+    assert c["current_month"]["missing_days_to_date"] is True

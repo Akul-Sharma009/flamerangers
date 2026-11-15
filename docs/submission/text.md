@@ -7,7 +7,7 @@ How to use it:
 - Each form field is one section below. The text to paste sits between the `field` comments.
 - Every sentence about how C1 scored is quoted from `evidence/claims.yaml`, word for word, with its id in bold brackets. When pasting, drop the `**[id]**` label and keep the sentence unchanged. Shorten by leaving a claim out, never by rewording it. `docs/submission/test_text.py` checks the quotes, the banned words and the word counts.
 - `[pending: ...]` marks text that waits for something not on `master` yet. Fill it, or cut the sentence, before submitting. Nothing marked pending is described as if it existed.
-- It says "hotspots" throughout. Product names that contain the other word are left to Story 6.1 (see "Needs the lead").
+- It says "hotspots" throughout. Official product names and citations are used exactly as published, even where they contain the other word (decided by the lead, 15 Nov); Story 6.1 supplies them.
 
 **Limits.** Story 6.5 gives no word or character limit, and neither does the brief's list of fields (the Singapore organisers' email of 13 Nov names Project Summary, Project Demo, Final Project Link and Project Details; the judging guide adds References and the Members tab). Each section states its word count, counted as pasted (labels dropped, pending markers counted as they stand). Check the live form for limits before pasting.
 
@@ -146,9 +146,9 @@ Not text, but on the submission checklist (Story 6.5, AC3; the judging guide):
 
 ## Needs the lead
 
-1. **Two claims in the summary.** The summary quotes `count-error-vs-b` and `flag-precision-vs-b` only, so the failed test sits right beside the result. The details field quotes ten of the thirteen claims; the three reported-only ones are left for questions, as in the storyline.
-2. **"The impact is one public link …"** (summary, last paragraph): typed wording, adapted from the storyline's Influence line. Needs your OK.
-3. **Product names.** The FIRMS products' official names contain the word this project does not use. Story 6.1 will name them as published. Your call whether proper names are exempt from the "hotspots" rule.
+1. **Decided 15 Nov: approved.** **Two claims in the summary.** The summary quotes `count-error-vs-b` and `flag-precision-vs-b` only, so the failed test sits right beside the result. The details field quotes ten of the thirteen claims; the three reported-only ones are left for questions, as in the storyline.
+2. **Decided 15 Nov: approved.** **"The impact is one public link …"** (summary, last paragraph): typed wording, adapted from the storyline's Influence line.
+3. **Decided 15 Nov: exempt.** **Product names.** Official dataset names and citations are used as published; everything the project writes itself says "hotspots".
 4. **Use of AI.** The brief's field list does not mention one, but if the live form has a field on the use of AI tools, it needs your wording. This draft has none.
-5. **Project name** (field 1): kept as the repository's title.
+5. **Decided 15 Nov: approved.** **Project name** (field 1): kept as the repository's title.
 6. **Wording that depends on unfinished work.** "Any land area" is not used: today the published record covers Sumatra. If Story 2.8 publishes the evaluated regions before submission, the summary's last sentence changes.

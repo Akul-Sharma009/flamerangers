@@ -827,6 +827,151 @@ Each entry has: a status (**ASSUMED** or **TESTED**), its evidence, and a "revis
 - **Evidence:** `evidence/test_limits.py` `test_5_6_noaa20_*` (no file now; a listed file is read; a file without the label fails the build); `limits.test.tsx` "AC4" (both states).
 - **Revisit if:** Story 2.10 names its file differently or gives its figures a shape worth a proper table (then replace the field-by-field list).
 
+## Story 3.9: the rankings' sentences wait for the contract (15 Nov 2026)
+
+- **Status:** TESTED. The lead approved the four sentences as worded on 15 Nov ("Approve all", relayed by the lead's session); they are added to the contract 0.4.0 draft (`lead/contract-0.4.0`, not yet merged).
+- **Decision:** The rankings type no sentence. `web/src/ranks/words.ts` reads five optional keys; each switches on when a contract bump adds it, with no web change (`TODO(label)` until then). Suggested wording:
+  - `sentences.rankings_range`: "Only complete months and years from {range_start} to {range_end} are ranked." ({range_start} and {range_end} are the served `range` days, formatted, e.g. "1 July 2002".)
+  - `notes.rank_tie`: "An equals sign after a rank means the rank is shared: those values are equal." (shown only when a list has a tie)
+  - `notes.no_complete_month`: "No complete month falls in these dates, so none is ranked."
+  - `notes.no_complete_year`: "No complete year falls in these dates, so none is ranked."
+  - `notes.range_and_reference` is already in the 0.4.0 draft ("Rankings cover the dates you chose. Medians and anomalies always use the reference period.") and shows under the lists once 0.4.0 merges.
+  Until then the panel shows the served range as a label ("1 July 2002 to 13 November 2026"), a list with nothing served shows "–" (never a 0), and a tie shows its "=" mark with no key sentence.
+- **Evidence:** `ranks.test.tsx` "types no sentence of its own" and "uses the contract's sentences once they exist" (the suggested templates filled from served values).
+- **Revisit if:** the lead rewords any of them, or prefers them in one sentence.
+- **Update, 15 Nov:** approved by the lead as worded. The four keys are in the 0.4.0 draft's `contract/messages.yaml` under the same names and sections the web reads (`sentences.rankings_range`; `notes.rank_tie`, `notes.no_complete_month`, `notes.no_complete_year`), checked against the draft's text; merging 0.4.0 switches them on with no web change.
+
+## Story 3.9: ties are read off the served ranks and marked "=" (15 Nov 2026)
+
+- **Status:** TESTED. Approved by the lead on 15 Nov ("Approve all", relayed by the lead's session).
+- **Decision:** A tie is two entries of one served list with the same served `rank`; the web never compares values (AD-8). The rank shows as "7=" (the printed-table convention), and screen readers hear "7, tied" (one typed word, a label, not a sentence). Lists show every served entry, so a tie at the cut shows more than five, as the contract allows.
+- **Evidence:** `ranks.test.tsx` AC1 "shows ties as ties" (savanna example: six calendar months at rank 7), "more than five entries", "never re-ranks" (equal values with different served ranks are not a tie).
+- **Revisit if:** the lead prefers "T7", "joint 7th" or a contract word for "tied".
+- **Update, 15 Nov:** approved by the lead: the "=" mark stays, with "tied" as a short screen-reader label for now. In a later contract version, "tied" is to be replaced by a contract word.
+
+## Story 3.9: where the rankings sit and how a selection is marked (15 Nov 2026)
+
+- **Status:** TESTED. Approved by the lead on 15 Nov ("Approve all", relayed by the lead's session). Checked in the built-in browser at 1280 and 375 px.
+- **Decision:** At laptop width the rankings sit in the left column under the footnotes, beside the grid (UI-CONCEPT.md puts them "below the hero"; this keeps a selected item and its mark in view together). Under 800 px they follow the grid. Each entry is a toggle button: selecting it frames the item on the grid (one month's cell, a year's whole row with its total, or a calendar month's column down through its median) with a 2.5 px ink frame on a paper halo, outside the cells, so it differs from the 2 px hover ring and the dashed month to date and reads on every class; the table view marks the same cells. Selecting it again or pressing Escape clears it; a new area or range clears it. The frame is scrolled into view (nearest edge) when the selection changes; on a phone this moves the page up from the rankings to the grid. Busiest calendar months shows all twelve served entries, not five (the criterion asks for "the busiest calendar months on average"; the service serves twelve).
+- **Grid change:** `web/src/grid/` gained `highlight.ts` and a `highlight` prop on `CalendarGrid` and `CalendarTable` (drawing only; the grid model is unchanged).
+- **Evidence:** `ranks.test.tsx` AC2 block; browser check (see `docs/handoff.md`, Story 3.9).
+- **Revisit if:** the scroll on a phone feels like a jump (option: no scroll, or a "shown on the calendar" link), or the lead wants the top months to open the cell's card as well.
+- **Update, 15 Nov:** approved by the lead. **Recorded change from UI-CONCEPT.md:** the concept puts the rankings "below the hero"; at laptop width they sit in the left column instead, kept deliberately so that the selected entry and its frame on the grid are on screen together. Under 800 px they still follow the grid. Scrolling the frame into view on phones is approved as built.
+
+## Story 5.7: the about page's explanations are typed page copy (15 Nov 2026)
+
+- **Status:** TESTED. The lead approved all of Story 5.7's copy and choices on 15 Nov ("Approve all", relayed by the lead's session).
+- **Decision:** Everything on `#/about` that is neither a contract sentence nor a fixed claim is typed in one file, `web/src/about/copy.ts`: what a hotspot is and why it is not a fire, each satellite's part, why the switch sits after December 2021 (beyond the claim), the cleaning rules and where they differ from the validation's, standard against NRT, what the validation does not cover, and cloud and smoke. Dates, the unit, the record version and satellite names are placeholders filled from `/meta` and `labels.satellite`. The only digits typed are fixed rules and facts no response serves (1 km, 375 m, 50 days, the tuning years 2014, 2016, 2017 and 2020, and 2012–2013); a test fails on any other. Contract sentences used as they are: `notes.hotspot_definition`, `record_switch`, `satellite_switch`, `validated_satellite_false`, `monthly_validation_only`, `labels.source.*`, `labels.quality.*`, `labels.excluded_reason.offshore` and `.static`.
+- **Where each fact comes from (planning record unless said):** VIIRS 375 m, NRT replaced after 2–3 months, NRT geolocation after manoeuvres, NRT day/night by orbit direction, NRT lacking `type`, location files with no cloud information, heavy smoke hiding burning (FIRMS, GWIS, Giglio 2016; INPE disagrees), Terra and Aqua drift and end dates, MODIS missing low-intensity burns VIIRS sees: `research/domain-research.md`. The validation's static mask built in tuning regions only, standard data only, no confidence filter: test plan section 4. The static rule: this repo's "Static mask: the scored rule". Sumatra's exact match: `docs/cleaning-differences.md`. NOAA-20 converted with C1 and Terra and NOAA-21 never feeding: `burncal/core/record.py`. Punjab and 2012–2013 reported only: claim `reported-only-vs-b`. **MODIS's 1 km pixel is general knowledge, not checked against a source in the planning record `[unverified]`.** "Offshore hotspots, such as those from oil and gas platforms" is an example, not a checked fact.
+- **Evidence:** `web/src/about/about.test.tsx` (18 tests).
+- **Revisit if:** the lead or the data owner changes any wording, or wants these explanations in the contract.
+
+## Story 5.7: the six counting limits are page copy, not contract sentences (15 Nov 2026)
+
+- **Status:** TESTED. The lead approved all of Story 5.7's copy and choices on 15 Nov ("Approve all", relayed by the lead's session).
+- **Decision:** The six counting limits of PRD FR-20 are listed on the page in the PRD's words, lightly plainer ("small crop fires" became "small crop burns"; limit 6 now says Punjab was scored as reported only, since the PRD's "no cropland region was scored" predates that run). The contract has no sentence for them, so the web types them. FR-17 and FR-18 say the CSV headers list the same limits, but `burncal/service/app.py` writes three other notes as `counting_limits` (`hotspot_definition`, `monthly_validation_only`, `flag_scale`). Suggested for the next contract bump (both owners): a `counting_limits:` list in `messages.yaml` read by the service's CSV headers and by this page, so the six are written once.
+- **Evidence:** `about.test.tsx` "lists all six counting limits from the PRD, numbered".
+- **Revisit if:** the contract gains the limits (then the page reads them and `copy.ts` drops its list).
+- **Update, 15 Nov:** the lead approved the plan and put the six in contract 0.4.0's draft as a top-level `counting_limits:` list, written by both CSV headers too; limit 4 there says "after December 2021" in place of the page's placeholder, as `notes.record_switch` does. The page now reads `messages.counting_limits` when it is a non-empty list of strings (cast, as `card/words.ts` reads `sentences`) and falls back to `copy.ts` otherwise, so merging 0.4.0 switches it with no web change. Checked against the draft's list: with the fixture's dates it equals the fallback word for word. The intro now says "These limits apply…" instead of "Six limits apply…", so it stays true if the list changes length. Evidence: `about.test.tsx`, "the counting limits come from the contract once it has them" (3 tests).
+
+## Story 5.7: datasets and citations wait for Story 6.1 (15 Nov 2026)
+
+- **Status:** TESTED. The lead approved all of Story 5.7's copy and choices on 15 Nov ("Approve all", relayed by the lead's session).
+- **Decision:** The margin lists four data sources by plain name (FIRMS MODIS, FIRMS VIIRS 375 m, the VIIRS swath product used to fit C1, Natural Earth land), each with which satellites it covers and a visible `[pending: Story 6.1]` where its link and citation go. No product code, link or citation is typed, because none is checked yet. Story 6.1 must replace each mark before submission; the marks name a story number in public text, which the "no story numbers in public sentences" rule (Story 5.1) otherwise avoids.
+- **Evidence:** `about.test.tsx` "lists every data source, each with a visible citation mark".
+- **Revisit if:** Story 6.1 lists a dataset this page does not, or names one differently.
+- **Before submission:** every `[pending: Story 6.1]` mark (`PENDING_CITATION` in `web/src/about/copy.ts`, shown once per source in `COPY.margin.sources`) must be replaced by the checked name, link and citation from Story 6.1. The page must not go out with the marks.
+
+## Story 5.7: the page quotes two claims and shares the evidence chunk (15 Nov 2026)
+
+- **Status:** TESTED. The lead approved all of Story 5.7's copy and choices on 15 Nov ("Approve all", relayed by the lead's session).
+- **Decision:** The page states two results, both fixed claims quoted whole by id: `aqua-through-2021` (why real Aqua runs through 2021) and `noaa20-untested`. How C1 scored is left to the evidence page, linked three times. The claims come from `evidence.json` through the same lazy import as the evidence view, so the page shares that chunk (about 158 kB gzipped) and the calendar's bundle does not grow. If `evidence.json` lacks a claim, `client.evidence_unavailable` shows in its place.
+- **Evidence:** `about.test.tsx` "quotes only the two fixed claims", "a claim missing from evidence.json…"; `npm run build` shows one evidence chunk.
+- **Revisit if:** the page should load faster on phones (then the evidence build could write a small claims-only file).
+
+## Contract 0.4.0 drafted by the lead (14 Nov 2026)
+
+- **Status:** ASSUMED; agreed by the data owner and merged into master on 15 Nov. At the merge, three web tests' clean-up steps deleted contract keys (`notes.month_complete`, `sentences`) instead of restoring them, which only showed once 0.4.0 held those keys; they now restore the contract's value, and the tests that asserted the sentences were missing now check the contract's sentences.
+- **Decision:** Contract 0.4.0, on branch `lead/contract-0.4.0`, makes five changes.
+  1. `messages.yaml` gains a `sentences:` section with the seven card templates from "Story 3.7: the card's sentences wait for contract 0.4.0", unchanged.
+  2. `client` gains the four refused-date sentences from Story 3.4: `date_unreadable`, `date_before_record`, `date_after_data_through`, `dates_out_of_order`.
+  3. `notes` gains `range_and_reference` (Story 3.4), `month_complete` ("Complete month: every day of input data is in.", Story 3.6, approved by the lead 15 Nov) and `missing_days_to_date` ("Some days of input data are missing so far this month, so the count to date may be low."), new wording by the lead.
+  3b. For Story 3.8 (approved by the lead 15 Nov): `notes.partly_inside` and five `sentences:` templates, `anomaly`, `reference_mean`, `flag_reference`, `anomaly_scale` and `cells_heading`. The anomaly sentence was reworded from 3.8's draft so a negative difference reads naturally.
+  3c. For Story 3.9 (approved by the lead 15 Nov): `sentences.rankings_range`, `notes.rank_tie`, `notes.no_complete_month` and `notes.no_complete_year`. For Story 5.7 (approved 15 Nov): a top-level `counting_limits:` list of the six limits from the PRD, worded as on the about-the-data page (limit 6 says Punjab was scored as reported only). Both CSV headers now write these six as their `counting_limits` lines, replacing the three standing notes written there before, so the page and the downloads use one copy (`CSV_SPEC.md` updated).
+  4. `Month.cells_flagged_strong` and `Month.cells_flagged_marginal` may be null, and are null exactly when the month is outside the record; inside it a month with no flagged cell is 0. `CurrentMonth`'s stay integers, since the current month is always inside the record.
+  5. `CurrentMonth.missing_days_to_date` (boolean, required) is true when the current month has missing input days. The service serves `(year, month) in v.missing`: the month holds only days 1 to d, so this is exactly "days 1 to d have missing days".
+  The web shows the card sentences (it already read an optional `sentences:` section), adds `missing_days_to_date` to the card's notes when served true, states each refused range in its sentence, and shows `range_and_reference` under the dates tab's bounds. The version is 0.4.0 in `openapi.yaml`, `messages.yaml`, the README, `CONTRACT_VERSION` and the fixtures (rebuilt with `tools/build_fixture.py`); web types regenerated.
+- **Evidence:** 139 web tests (new: all seven sentences served, the headline is the contract's sentence, figures without a sentence, missing-days note only when served, refusal sentences and the range note in the dates tab); 302 Python tests passed, 10 skipped (new: null flag counts outside the record, integers inside, `missing_days_to_date` false for the test store); imports, evidence, wording and gitleaks checks pass. The analytics CSV writes the null flag counts as empty cells, which `CSV_SPEC.md` already defines as null. Not tested: `missing_days_to_date` true against a store whose current month has missing days (the test store has none).
+- **Revisit if:** the data owner wants the missing-days signal per satellite or as a list of days, or wants different wording for `missing_days_to_date`; the teammate's 2.8 branch also edits `burncal/service/answers.py`, so expect a merge conflict in `calendar()` and `_card()`.
+
+## Story 4.3: picture wording waits for the contract (15 Nov 2026)
+
+- **Status:** ASSUMED.
+- **Decision:** The picture's source line and error lines have no sentence in `messages.yaml` 0.3.0. `web/src/download/words.ts` reads optional `sentences.picture_source` and falls back to: "Source: NASA FIRMS active-fire detections (Aqua MODIS through December 2021, VIIRS converted to Aqua MODIS units from January 2022)." (`TODO(picture_source)`). The calendar title repeats the page heading's words (`TODO(picture_title)`). Two states are typed in `PictureDownload.tsx` (`TODO(picture_errors)`): "The picture could not be made. Please try again." and "Show the grid view to download the calendar picture." Everything else is a contract sentence (`notes.hotspot_definition`, `notes.record_switch`, `notes.placeholder` when `meta.placeholder`) or a served value.
+- **Evidence:** `download.test.tsx`; picture checked in the browser.
+- **Revisit if:** the contract adds these sentences, or the data owner words the source differently.
+
+## Story 4.3: pictures are a styled copy of the live chart, no new dependency (15 Nov 2026)
+
+- **Status:** ASSUMED.
+- **Decision:** The file embeds a copy of the on-screen SVG with each element's computed paint and type written onto it, so the numbers are the screen's. PNG is that SVG drawn on a canvas at 2×. No library (html2canvas, dom-to-image). Which charts: the calendar and the ruler, the only SVG charts; the rankings panel is lists. The PNG relies on system fonts named in the page's font stacks, so type may differ slightly from the screen on a machine without them.
+- **Revisit if:** a judge's machine renders the fonts badly, or a Tier 1 chart is added that is not SVG.
+
+## Story 4.4: one Downloads block in the left column; three words of its own (15 Nov 2026)
+
+- **Status:** ASSUMED. Wording approved by the lead on 15 Nov. At review the lead's session keyed the block on the area and dates, so a 413's year buttons never ask for a different area.
+- **Decision:** All downloads sit in one "Downloads" block under the footnotes in the left column (UI-CONCEPT.md: "the downloads as plain links"): analytics CSV, hotspot CSV with an "All satellites" checkbox, then the calendar and ruler pictures (4.3's control, moved from under each chart). The CSV text is saved as the service sends it. A 413 shows `problems.too_large_for_sync` and one button per year in the problem's `years`; each sends the same request with `year`. Other problems show their contract sentence; a network failure shows `client.service_unreachable`. In fixture mode (no service) the two CSV buttons are disabled and a line says why, so no broken download is offered.
+- **Wording with no contract sentence (TODO labels), for the lead to approve:**
+  - `TODO(csv_fixture)`: "The CSV files come from the data service, which this copy of the page is not connected to."
+  - `TODO(csv_busy)`: "Preparing the file…"
+  - Button names "Download analytics CSV", "Download hotspot CSV", "All satellites", and the year buttons (the bare year, named "Download hotspot CSV for 2020" for screen readers). Suggested for the contract `client:` section as `csv_unavailable` and `csv_busy`.
+- **Not done:** the 413's estimated size is not shown (no contract sentence for it). No "saved" message: the browser's own download bar is the success signal.
+- **Revisit if:** the service's 413 offers something other than years, or the lead wants the size shown.
+
+## Story 3.10: accessibility and phone-width pass (15 Nov 2026)
+
+- **Status:** TESTED (script checks plus a browser look at 375 px and the default pane width; no screen reader run).
+- **Blocker found:** the anomaly ramp's cool and warm sides share lightness (L* 32/30, 58/56, 80/77), so below and above the mean look alike in greyscale. Contrast of tile text is fine (at least 4.7:1).
+- **Fix:** hues unchanged. A short bar marks every below-mean (cool) class, in the grid cells and the legend swatches. The table view needs none: each cell already prints the served, signed `anomaly_pct` (a table minus sign added at first doubled it; the lead's review removed it). Display only; the served class is the source (AD-8). The count ramp already passed all four simulations (minimum dE 7.6 in greyscale).
+- **Polish:** header links, view switches, "Change area or dates", rankings buttons and the Downloads block (buttons, format select, checkbox) now have at least 32 px height; picker tabs take Left/Right arrows with roving tabindex; Escape closes the picker; a skip control; evidence tables carry the names of their regions.
+- **Wording (TODO(skip_link)), approved by the lead on 15 Nov:** "Skip to the page content". No contract sentence exists. It is a button because the hash is the router.
+- **Not fixed:** grid cells stay 18 px wide at 375 px (the table view is the phone alternative); MapLibre's own animation under reduced motion was not traced.
+- **Revisit if:** a screen-reader pass finds the below-mark bar noisy, or the contract adds a skip sentence.
+
+## Story 7.8: all-candidates table (15 Nov 2026)
+
+- **Status:** TESTED for the numbers (the evidence check covers every cell; vitest checks each reason against its noise mark). The reason wording was approved by the lead on 15 Nov, after the lead's review checked each reason against the scores and corrected four: 1A (within noise of 4A on each measure, not behind it), M5 (the Aqua-only precision failure applies to every method, so it was dropped), 3B and M4 (plainer size words), and C1 ("The pick.").
+- **What:** a collapsed table on the evidence page (expand button, scrolls inside its own region) with one row each for the 13 single approaches and C1, C2, C3 on the selection set: count error against (b) with its 95% interval and noise mark, pooled 1° flag precision and recall. All read by `evidence/build.py` into the `selection.candidates` table; no browser arithmetic.
+- **Evidence:** the singles are in `selection_20261113T145716Z.json`, the combinations in `selection_20261113T151303Z.json`. The build now lists the first as a second source of the selection set (placed before the second, which stays the one the final run names). The reasons are plain words with no numbers, kept in `web/src/evidence/candidates.ts` because the frozen schema has no field for text on a row.
+- **Not done:** (a), (b) and the comparator are not rows (not candidates); no by-region view of the candidates.
+- **Revisit if:** the lead changes a reason, or the schema gains a row note field (the reasons could then come from the build).
+## Story 8.1: shareable link (15 Nov 2026)
+
+- **Status:** TESTED (unit tests for each round trip, the fields held and bad links; browser look at 375 px and the default pane width in fixture mode). Tier 3. Link format approved by the lead on 15 Nov, with no length limit: the part after `#` never reaches a server and browsers accept far longer, so the only risk is a chat app shortening a pasted link.
+- **Decision:** the address is `#/?area=<featured id>` or `#/?shape=<geometry>`, plus `from`, `to`, `view=table` and `measure=anomaly` only when they differ from the default. The picked cell and the highlighted ranking are not in the link (the criteria name only area, dates and view). The address is rewritten with `replaceState` as the state changes, so no history entries.
+- **Geometry:** `P`/`M`, polygons joined by `/`, rings by `~`, vertices by `;`, `lon,lat` in each. Coordinates are written exactly as held; the app rounds none, and rounding would change the area shared. Measured: the longest featured area is 163 characters; the corners form (5 vertices) is about 60; 100 vertices at full precision made a 3,770-character link (above 2,000).
+- **Bad links:** unreadable area or unknown id shows `invalid_aoi`; a coordinate outside WGS84 shows the out-of-range sentence; unreadable or out-of-order dates, and dates outside the served record (checked once /meta loads), show the existing date sentences and load the whole record. An unknown view or measure falls back silently (no contract sentence).
+- **Revisit if:** drawn or vertex-typed areas can exceed about 40 vertices (the 2,000-character mark at full precision): then cap the link (leave the area out and say so) or round to 5 decimals (about 1 m). The lead chooses; no limit is set here. Also if the lead wants a Copy link button (not built).
+
+## Story 8.8: featured-area gallery (15 Nov 2026)
+
+- **Status:** TESTED (unit tests for the six cards, labels, exact boundaries, the savanna caveat before opening and the link after opening; browser look at 375 px and a narrow desktop pane in fixture mode). Tier 3. Approved by the lead on 15 Nov, keeping the contract's wording rather than the word "locked".
+- **Decision:** the gallery is the Featured tab of the area picker: each of the six regions is a card with a small outline, its name as the button, the contract's evidence-class sentence, and, for the southern African savanna only, the contract's `region_caveat.southern_africa` sentence (the one Story 3.6 shows), so the caveat is in view before the area is opened. Opening a card selects the area through the existing path and keeps the dates; the link then reads `area=<region_id>` (Story 8.1).
+- **Boundary:** the geometry is the one in `contract/regions.geojson`, passed through unchanged (a test compares each card's opened area with the file). The outline is a display-only drawing of it (equirectangular, fitted to a 64 by 48 box).
+- **Labels:** the contract's `evidence_class` sentences are used as they are, so there is no typed fallback. The plan's word "locked" is not shown: the contract's sentence for `tested_unseen` says "tested on but not tuned on". The planning record uses "locked" for those two regions, and the evidence page already says "locked regions", but no contract label does.
+- **Caveat mapping:** the card caveat is tied to the region id `southern_africa`; Siberia is also `tested_unseen` but the contract has no caveat sentence for it, so it carries none.
+- **Not done:** the cards show no tuning claim beyond the contract sentence; no gallery outside the picker; no check against a live store (only Sumatra has data there; other regions then show whatever the service answers, unchanged).
+- **Revisit if:** the lead wants the word "locked" on the cards (needs a contract label), or a region gains its own caveat sentence.
+
+## The lead's decisions for Stories 6.2, 6.3 and 6.5 (15 Nov 2026)
+
+- **Status:** ASSUMED (the lead's choices; no test decides them).
+- **6.3, planning files made public:** `GUARDRAILS.md` and `research/test-plan.md` are copied unchanged into `docs/planning/`. `DECISIONS.md` is copied with two sentences shortened so no line remarks on a person (listed in `docs/planning/README.md`). The lead's name stays: it is already public as the commit author and the repository owner. The pre-screen found no secret, key, local path or email in any of the three. The wording check flags three lines in them ("beats the baselines" as a section heading, and two rules that forbid the claim); these are the planning record's own words and are left as they are, and the check's default paths do not include `docs/planning/`.
+- **6.2, README:** says plainly that the parity check's input case is not public, so a fresh clone serves Aqua counts through December 2021 but cannot publish converted counts. Added to the shared "Frozen inputs" section, not to the data owner's publish step on `teammate/2.8-coverage`, to avoid a merge conflict.
+- **6.5, submission text:** the summary's two claims, the "impact is one public link" sentence and the project name are approved as drafted. Official dataset names and citations are used as published, even where they contain the word this project does not use; everything the project writes itself says "hotspots".
+- **Still open for 6.3:** `/security-review`, a gitleaks scan of the full history, and the Codex review before the repo goes public, all run by the lead.
+- **Revisit if:** a reviewer finds anything in `docs/planning/` that should not be public, or the live form limits the summary's length.
+
 ## Story 2.8 AC2: plan global history on the area API, not the country files (15 Nov)
 
 - **Status:** ASSUMED (estimates from measured samples; the weight of a world request is not measured)

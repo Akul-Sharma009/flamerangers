@@ -1,6 +1,6 @@
 # Contract
 
-The only interface between the data side and the web. Version 0.3.0, **frozen on 14 Nov 2026** (0.3.0 added sentences to `messages.yaml` only). A change needs both owners and a version bump.
+The only interface between the data side and the web. Version 0.4.0, **agreed by both owners and frozen on 15 Nov 2026** (0.4.0 adds card and refused-date sentences to `messages.yaml`, `CurrentMonth.missing_days_to_date`, and makes `Month.cells_flagged_*` null outside the record; 0.3.0 added sentences to `messages.yaml` only). A change needs both owners and a version bump.
 
 | File | What it is |
 | --- | --- |

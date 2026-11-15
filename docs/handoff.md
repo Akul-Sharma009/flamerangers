@@ -16,18 +16,23 @@ Updated: Sat 14 Nov 2026, late evening SGT (PRs 3 to 11 merged; the lead's revie
 | 2.2 C1 in core | Done | Full parity PASS on the lead's machine (worst miss 2.1e-9). Merged (PR 2) |
 | 1.5 Web shell | Review | Draws Sumatra from the fixture; committed. See below. |
 | 5.1 Scoring files and claims | Done | `evidence/claims.yaml` written and checked; the lead approved the wording. See below. |
+| 6.2 README and fresh-clone run | In progress | Lead's sections (web against the fixture, evidence rebuild) on `lead/6-2-readme`; the data owner's (run the service, rebuild one region) on `teammate/2.8-coverage` (6384b21). See below. |
 | 6.6 Pitch storyline | Done | Drafted in `docs/pitch/storyline.md` as a 7-slide deck. See below. |
 | 5.2 Evidence build and checks | Done | Merged to `master`. See below. |
 | 5.3 The outcome in plain words | Done | Merged to `master`. See below. |
 | 5.4 Head-to-head table | Done | Reviewed by the lead and merged to master. See below. |
 | 5.5 Aqua only and the incumbent | Done | Merged 15 Nov. The claim `aqua-only-every-method-failed-precision` was approved and added; the section's copy was approved with it. See below. |
 | 5.6 What the scores can't show | Done | Merged 15 Nov. The lead approved the copy and the tiers claim `tiers-not-checked-everywhere`. NOAA-20 says "not yet run" until Story 2.10 writes its file. See below. |
+| 5.7 About-the-data page | Done | Merged 15 Nov. The lead approved the copy. The counting limits switch to the contract's `counting_limits` list once 0.4.0 merges (the CSV headers too). The four `[pending: Story 6.1]` citation marks show on the public page and must be replaced before submission. See below. |
 | 3.3 Select an area | Done | Reviewed by the lead and merged to master. See below. |
 | 3.5 The burning activity calendar | Done | Merged 14 Nov. See below. |
-| 3.4 Select a date range | Done | Merged 14 Nov. Sentences for refused ranges and the reference-period note wait for contract 0.4.0 (see below). |
-| 3.7 Current-month card | Done | Merged 14 Nov. Sentences wait for contract 0.4.0; the NOAA-20 comparison waits for Story 2.10 (see below). |
+| 3.4 Select a date range | Done | Merged 14 Nov. Its refused-range sentences and the reference-period note arrived with contract 0.4.0 (merged 15 Nov). |
+| 3.7 Current-month card | Done | Merged 14 Nov. Its sentences and the missing-days note arrived with contract 0.4.0 (merged 15 Nov); the NOAA-20 comparison waits for Story 2.10 (see below). |
 | 3.6 Provenance and evidence caveats | Done | Merged 15 Nov. The caveat claims are approved and in use; `notes.month_complete` is approved and in the contract 0.4.0 draft, so complete months show no sentence until 0.4.0 merges. The caveat on an untuned area was checked in the browser before the claims were reworded, not after. See below. |
 | 3.8 Anomaly view and flags | Done | Merged 15 Nov. The lead approved flags per tier out of M, marks on both tiers, and six sentences now in the contract 0.4.0 draft; labels show until 0.4.0 merges. The 1° cell panel is not yet checked against a live service. See below. |
+| 3.9 Most active months and years | Done | Merged 15 Nov. The lead approved the left-column placement (a recorded change from UI-CONCEPT.md), the "=" tie mark and the phone scroll; its four sentences are in the 0.4.0 draft. See below. |
+| 4.3 Picture downloads | Done | Merged 15 Nov. The calendar and the current-month ruler download as PNG or SVG with their provenance. The lead approved the web's own source line, title and two error lines, marked for a later contract. See below. |
+| 4.4 Download controls | Done | Merged 15 Nov. One Downloads block (analytics CSV, hotspot CSV with all-satellites and the 413 one-year fallback, both pictures). Its web-worded lines are approved by the lead (see `DECISIONS.md`, Story 4.4). A real CSV download and a live 413 are not yet tried against a service. See below. |
 | 2.3 Ingest and cleaning | Done | PR 3, merged 14 Nov |
 | 2.4 Weights and the record | Done | PR 4, merged 14 Nov, with the weaker-class tie rule (225 / 570 / 6 / 38); full C1 parity PASS |
 | 2.5 Grids, thresholds, flags | In progress | PR 5, merged 14 Nov. Open: AC2 results for Australia and Amazon not recorded; static-input check (Next) |
@@ -484,6 +489,33 @@ One year (2024) of FIRMS standard data, MODIS_SP (Aqua and Terra rows) and VIIRS
 | AC3 reported-only run labelled "not used for the pick"; 4A alone passed (b), C1 did not; southern Africa and Punjab | "AC3: the reported-only run is labelled not used for the pick…", "AC3: 4A alone passed the (b) test…", "AC3: the southern Africa and Punjab results are shown…", "AC3: an unknown region or scale falls back…"; `test_5_6_reported_only_*`; browser check |
 | AC4 NOAA-20: labelled once its file exists; "not yet run" until then, for that comparison only | "AC4: until Story 2.10's file exists…", "AC4: once the file exists…" (made-up file); `test_5_6_noaa20_*`. **Real figures wait for Story 2.10.** |
 
+## Story 5.7: about the data (branch `claude/5-7-about-the-data-b91a8f`)
+
+- `#/about` is built (`web/src/pages/AboutPage.tsx` loads `/meta` and the evidence chunk; `web/src/about/` holds the view, its copy, its view model, its CSS and its tests). It has the evidence view's page form: a reading column and a margin.
+- **Reading column:** the contract's hotspot sentence as the lead; what a hotspot is (and is not), the count unit from `/meta`; where the data come from, with each satellite's part by served dates; the sensor change (`notes.record_switch`, the claim `aqua-through-2021`, orbit drift, `notes.satellite_switch`); cleaning rules and where they differ from the validation's; standard against NRT (the contract's quality sentences); what the validation does not cover (the claim `noaa20-untested`, NOAA-21, `notes.validated_satellite_false`, `notes.monthly_validation_only`); what a satellite can't see (cloud, smoke, small burns); the six counting limits, numbered.
+- **Margin:** the record's facts from `/meta` (record version, record start, switch dates, satellite switch dates, data through, unit); four data sources with `[pending: Story 6.1]` where each citation goes; a link to the evidence view.
+- No change to the contract, `evidence/`, other pages or shared CSS. The page's CSS is its own file.
+- **Approved by the lead on 15 Nov:** all of the copy in `web/src/about/copy.ts` and the `counting_limits` plan (`DECISIONS.md`, "Story 5.7"). The page reads the contract's `counting_limits` list when present and shows `copy.ts`'s six otherwise; master's contract has none, so the fallback shows until contract 0.4.0 merges. The draft's list was checked against the page: same six, same words.
+- **Waiting:** Story 6.1 for dataset names, links and citations. **The `[pending: Story 6.1]` marks must be replaced before submission.**
+- Checks (after the counting-limits change): `npm run test` 241 passed (21 of them Story 5.7); `npm run build`; wording check on the fresh build; import check. Nothing in `evidence/` changed, so its checks were not rerun. Looked at in the built-in browser at 1280 × 900 and 375 × 812 (fixture mode): no horizontal page scroll, no console errors. One fix from that look: the "Not counted" labels got a lead-in line.
+
+| Criterion | Test or evidence |
+| --- | --- |
+| AC1 linked from every view | `about.test.tsx` "every view's masthead links to the page" |
+| AC1 sources | "explains the sources: FIRMS, MODIS and VIIRS, and each satellite's part by the served dates" |
+| AC1 record switch and why at end of 2021 | "explains the record switch and why it sits at the end of 2021, quoting the fixed claim" |
+| AC1 count unit; a hotspot is not a fire | "explains the count unit and that a hotspot is not a fire" |
+| AC1 cleaning rules and differences from the validation's | "states the cleaning rules and where they differ from the validation's" |
+| AC1 standard against NRT | "explains standard against near-real-time data…" |
+| AC1 NOAA-20 and NOAA-21 not covered | "says NOAA-20 and NOAA-21 are not covered by the validation" |
+| AC1 cloud and smoke | "explains detection limits under cloud and smoke" |
+| AC2 all six counting limits | "lists all six counting limits from the PRD, numbered" |
+| AC2 record version | "states the record version served by /meta" |
+| AC2 every data source and its citation | "lists every data source, each with a visible citation mark…". **Citations wait for Story 6.1.** |
+| AC2 link to the evidence view | "links to the evidence view" |
+| Counting limits from the contract's list when present, the page's six otherwise | "with a list in the contract, the page shows exactly those items, in order", "without one, the page shows its own six, filled from /meta", "by default the page reads the contract it was built with" |
+| Numbers from `/meta`, no other digits typed; "hotspots" not "fires"; only fixed claims | "every date, version and unit on the page comes from /meta", "the copy types no digit beyond the fixed rules it names", "says "hotspots", never "fires"", "quotes only the two fixed claims about results, word for word" |
+
 ## Story 3.3: select an area
 
 - The calendar page's left column opens with a small locator: the area on a still map (Natural Earth 1:110m), its served name and km², and "Change area". That opens a picker with three tabs: featured areas from `contract/regions.geojson`, drawing (rectangle or polygon, MapLibre + terra-draw on a 1:50m map), and typed coordinates (box corners or polygon vertices). Sumatra is selected on first load.
@@ -598,6 +630,21 @@ One year (2024) of FIRMS standard data, MODIS_SP (Aqua and Terra rows) and VIIRS
 | AC4 a large anomaly with no flag, or a flag with a small anomaly, shows both the reference period and the flag reference years | AC4 block (both edited months state the reference mean with its period, the flag reference years and the flag counts; the cell panel states the flag reference years) |
 | Every number is served (AD-8) | "Every number in the anomaly view is served" block (grid at both widths, table, open card, legend, and the cell panel for two `/cells` answers) |
 
+## Story 3.9: most active months and years (branch `claude/3-9-most-active-ccbf1a`)
+
+- **Rankings** (`web/src/ranks/`, new): `model.ts` builds three lists from the served `statistics.top_months`, `top_years` and `busiest_calendar_months`, in served order with served ranks and values (formatted only); `RankingsPanel.tsx` draws them as ruled tables; `words.ts` reads the contract's optional words; `ranks.css`. At laptop width the panel sits in the left column under the footnotes, beside the grid; under 800 px it follows the grid.
+- **Ties:** read off the served ranks only (two entries with the same served rank), shown as "7=" with "tied" for screen readers. A tie at the cut shows more than five entries. Nothing is re-ranked or re-ordered.
+- **Highlight:** each entry is a toggle button (`aria-pressed`). Selecting it frames the item on the grid (a month's cell, a year's row with its total, a calendar month's column through its median) and marks the same cells in the table view; again, or Escape, clears it; a new area or range clears it. **Grid change:** `web/src/grid/highlight.ts` (new) and a `highlight` prop on `CalendarGrid` and `CalendarTable`; `grid.css` gained the frame's two rules. The grid model is unchanged.
+- **Page:** `web/src/pages/CalendarPage.tsx` holds the selection (`currentHighlight` ties it to the calendar it came from), adds `has-ranks` and `calsection` classes, and places the panel.
+- **Words** (approved by the lead, 15 Nov, and in the contract 0.4.0 draft under the same keys): no rankings sentence is in contract 0.3.0, so the panel types none: the served range shows as a label, an empty list shows "–", a tie has no key sentence. Five keys switch on with a contract bump (`sentences.rankings_range`, `notes.rank_tie`, `notes.no_complete_month`, `notes.no_complete_year`, and 0.4.0's `notes.range_and_reference`); suggested wording in `DECISIONS.md`, "Story 3.9: the rankings' sentences wait for the contract".
+- Checks: `npm run typecheck`, `npm run test` (244 passed; 24 in `ranks/ranks.test.tsx`), `npm run build`, `uv run python evidence/wording.py` and `uv run python tools/check_imports.py` passed.
+- Browser check (built-in browser, `vite preview` of the production build, fixture mode, 15 Nov): 1280 px, panel in the left column (397 px), no row wraps, page width 1280; pointer: September 2015 framed (frame 55 × 28 around the 49 × 22 cell); keyboard: focus on 2015, Enter frames the 2015 row with the pressed entry in view beside it, Tab then Space moves the mark to 2006, Escape clears it. 375 px: panel after the grid, page width 375, no table overflows; tapping September frames the column through its median and scrolls it into view; tapping October 2006 frames that cell. No console errors.
+
+| Criterion | Test or evidence |
+| --- | --- |
+| AC1 top 5 months and top 5 years with values and ranks, ties shown as ties, and the busiest calendar months on average, for the range | `ranks.test.tsx` AC1 block (each list equals the served list, order, rank and value; all twelve calendar months with served means; unit and served range shown; ties from served ranks as "7=" and "tied"; more than five on a tie at the cut; no re-ranking; empty lists show "–", never 0; the incomplete year is not listed; a range-limited answer lists its own rankings; contract words off on 0.3.0 and filled once added; every number is served; placement on the page); browser check at both widths |
+| AC2 selecting a ranked item highlights it on the calendar | `ranks.test.tsx` AC2 block (toggle logic; one pressed entry; frame boxes for a month, a year and a calendar month at both widths and in both measures; no frame without a selection or for an item off the grid; table view marks the same cells; the page passes the selection to the grid and the panel; a new calendar clears it; frame is ink on paper, not colour alone); pointer, keyboard and tap in the browser |
+
 ## Story 6.5 (text draft) (branch `claude/6-5-submission-text-43275c`)
 
 - `docs/submission/text.md`: one section per form field (project name, challenge, Project Summary, Project Demo, Final Project Link, Project Details, NASA data, References), the Members-tab checklist, and what needs the lead. Each field states its word count; no limit is known (see `DECISIONS.md`).
@@ -606,6 +653,11 @@ One year (2024) of FIRMS standard data, MODIS_SP (Aqua and Terra rows) and VIIRS
 - Pending in the text: the web address and repository address; Story 6.1 (NASA data, References, the haze source, product documentation, links for FIRMS, Worldview, GWIS and INPE); Stories 2.8 and 2.9 (regions, daily current month); 3.6, 3.8, 3.9, 3.10, 4.3, 4.4, 5.5 to 5.7 (listed as still to come).
 - Checks: `uv run python evidence/wording.py docs/submission` passed; `uv run pytest` 307 passed, 10 skipped.
 - For the lead: the list under "Needs the lead" in `docs/submission/text.md`, and the two Story 6.5 entries in `DECISIONS.md`.
+## Story 6.2: README, the lead's sections (branch `lead/6-2-readme`)
+
+- README gains "Run the web against the fixture" (no service; or the service with no store, at `VITE_SERVICE_BASE_URL=http://localhost:8000`) and "Rebuild the evidence" (`evidence/build.py`, `--check`, `pytest evidence`, then the web build and `evidence/wording.py`). Both sit just above "Status", away from the data owner's sections (above "Layout" on `teammate/2.8-coverage`), so the two should merge without a README conflict.
+- **Checked on the lead's machine (15 Nov, on master plus this branch):** evidence check passed, 109 evidence tests passed, web build passed, wording check passed. Web with no service: calendar, `#/evidence` and the placeholder banner render, no console errors. Web against the service with no store: `/meta` and `/calendar` answered 200 (CORS preflight 200), the same page and banner, no console errors.
+- **Still open for 6.2:** the data owner's fresh-clone check ran on `teammate/2.8-coverage`, which starts before Stories 3.4, 3.5 and 3.7 (71 web tests; master has 139). Rerun the fresh clone on master once 2.8 and this branch are merged. A fresh clone cannot publish converted counts (from January 2022) without the parity case from the planning record; the README says the case is needed but not that it is not public. The lead decides whether the README says so plainly or the case is published.
 
 ## Contract 0.3.0
 
@@ -642,9 +694,14 @@ Checks on the merged master: `uv run pytest` 310 passed, 1 skipped (Sumatra reco
    - **Memory.** DONE (15 Nov): points are read from disk with DuckDB, not held in memory. Hosted Sumatra: RSS 250 MB at start-up. Six regions publish locally at 4.0 GB peak but are not deployed: their start-up files are 901 MB, over the 120 MB gate (Story 2.8). Was: `Store.refresh()` builds a `Version` for the current and the previous version at start-up, each holding all of `points.parquet` and the 0.25° grid. Loading the previous one lazily (above) roughly halves cold-start memory on Vercel's 2 GB. Measure peak memory with Sumatra, then with six regions, before 2.8 publishes.
    - **Sep 2006, 105E 6S.** Open. The harness history has 39 Aqua rows for that cell-month, from the FIRMS Indonesia country archive file, none dropped by its cleaning (all day, type 0). Diff the product's 41 against them and record the cause in `docs/cleaning-differences.md` (country archive versus area API is the likeliest).
 2. Data owner: deploy the real service to Vercel. DONE (15 Nov): see "Story 2.6 AC6 and hosting" above (Sumatra, p95 1.07 s). Six regions wait on the lead's choice among the options in `DECISIONS.md` (Story 2.8).
-3. Contract 0.4.0 is drafted on `lead/contract-0.4.0` and waits for the data owner (see `DECISIONS.md`, "Contract 0.4.0 drafted by the lead"). **Merging it needs web test updates:** with its `messages.yaml`, 6 web tests fail. Five are expected because they assert the sentences are missing (four in `grid/anomaly.test.tsx`, one in `card/card.test.tsx`, which the 0.4.0 branch already updates). The sixth, `grid/provenance.test.tsx` "keeps the region caveat off the calendar cells", is unexplained: find its cause before merging (15 Nov).
+3. Contract 0.4.0 merged into master on 15 Nov, with the data owner's agreement (`DECISIONS.md`, "Contract 0.4.0 drafted by the lead"). It touches `burncal/service/answers.py` and `app.py`, which `teammate/2.8-coverage` also edits: expect conflicts there when 2.8 merges.
 4. Low items from the reviews: DONE 15 Nov except the card's missing-days caution, which needs a contract field (see `DECISIONS.md`). Were: `share_of_max` can use a part-year as the 100% bar; the current-month card gives no caution when days 1 to *d* have missing days; a null `frp` would be written as `nan`; `validated_satellite` is true for months outside the record; `anomaly_count` can be `-0.0`; with `year` set, `/hotspots.csv` has no row limit; `/cells` serves threshold 0.0 after `data_through`; `compare_tuning` prints "fire days".
 5. Lead: Story 3.4 (the dates tab) is at review on `claude/3-4-dates-ac58f0`, with sentences to add in a contract bump; Stories 5.5 and 5.6 go below the head-to-head table on the evidence page.
+6. **Lead: final reviews for Story 6.3 (planned 15 Nov).** Gitleaks over the whole history ran on 15 Nov at 12:28 SGT: 85 commits on every branch, including `teammate/2.8-coverage`, no leaks. Only `.env.example` and `web/.env.example` were ever committed, and `.env` is git-ignored. Still to run, once each, by the lead:
+   - `/security-review` and the Codex review (`/codex:review`) on master.
+   - **When:** after `teammate/2.8-coverage` is merged and the deploy settings (host config, `CORS_ORIGINS`, environment variables) are in master, since those are the riskiest parts for security and neither review would see them earlier.
+   - **Latest:** about 18:30 SGT, to leave time to fix findings before the 21:00 build stop. If 2.8 or the deploy is not in by then, run both on master as it stands and review the 2.8 changes on their own when they land.
+   - Rerun gitleaks after 2.8 merges if the branch gains new commits.
 
 ## Checkpoints (flags, not deadlines; times in SGT)
 
@@ -657,7 +714,7 @@ Checks on the merged master: `uv run pytest` 310 passed, 1 skipped (Sumatra reco
 | Sun 09:00 | The six evaluated regions are published (Story 2.8) | Data owner |
 | Before any global run | One global year is measured for size, download time and quota | Lead |
 | Sun 15:00 | Stories 6.5 and 6.1 are started | Lead, data owner |
-| Sun 15:00 | The planning documents the evidence view links to are copied into `docs/planning/`, after the lead has read each | Lead |
+| Sun 15:00 | The planning documents the evidence view links to are copied into `docs/planning/`, after the lead has read each | Lead. Copied 15 Nov: the lead's session pre-screened the three files and the lead approved the copy with two sentences shortened (`docs/planning/README.md`). Gitleaks over the history: no leaks (12:28). The security review and Codex review are planned in "Next", item 6. |
 
 ## Things to keep in mind
 
@@ -666,3 +723,35 @@ Checks on the merged master: `uv run pytest` 310 passed, 1 skipped (Sumatra reco
 - Product tests sit beside the code. The scoring harness stays in the planning record and nothing here imports it.
 - The service holds each version it serves in memory (current and previous). A global store will not fit that way; it needs reads by tile.
 - Starlette warns that `httpx` in its test client is deprecated in favour of `httpx2`. Not acted on.
+
+## Story 4.3: picture downloads
+
+- New code is in `web/src/download/`: `capture.ts` (writes each element's resolved paint onto a copy of the live chart, drops focus rings), `figure.ts` (adds title, area, dates, unit, legend, notes, data-through, record version and source line), `save.ts` (SVG, or PNG at 2×), `content.ts` (what each picture says), `PictureDownload.tsx` (format choice and button). Existing files only gained a small hook each: `CalendarPage.tsx` (a ref and the control under the legend) and `CurrentMonthCard.tsx` (a ref, a `geometry` prop and the control under the ruler).
+- The chart in the file is a copy of the one on screen, so its numbers are the screen's served values; the browser computes none. An unnamed area is shown by its box coordinates.
+- Pictures: the calendar (follows the Counts / Anomalies switch, so the legend matches) and the current-month ruler. The rankings panel is HTML lists, not a chart, so it has no picture. In the table view the grid is not drawn, so the calendar button says to show the grid.
+- Checks: `npm run test` (276 passed, 11 of them Story 4.3), `npm run build`, `evidence/wording.py` passed. In the browser at 1280 px the calendar SVG (300 cells, served counts, styled) and the ruler SVG and PNG downloaded with the right names; the calendar picture was viewed and is correct. The calendar PNG path shares the ruler's code and was not separately downloaded.
+- Waiting for the contract: the source line, the calendar title and two error lines (see `DECISIONS.md`, "Story 4.3"). Story 4.4 moves the controls.
+
+## Story 4.4: download controls
+
+- New: `web/src/download/csv.ts` (asks `postAnalyticsCsv` / `postHotspotsCsv` with the searched area and dates, saves the served text, maps problems to contract sentences) and `DownloadControls.tsx` (the block). `CalendarPage.tsx` renders it in the left column and builds the two picture specs; the per-chart picture controls in the calendar section and `CurrentMonthCard.tsx` are gone (the card lost its `geometry` prop).
+- Fixture mode: `CalendarView` gets `csvService` (null without a real service); the CSV buttons are then disabled with a one-line reason.
+- Checks: `npm run test` (288 passed, 10 of them Story 4.4), `npm run build`, `evidence/wording.py` passed. Browser at 1280 px and 375 px (fixture mode): block present, CSV buttons disabled with the note, pictures enabled, no horizontal overflow. Not checked against a live service: a real CSV download, the busy state and a real 413 (covered only by unit tests with a fake service).
+
+
+
+## Story 3.10: accessibility and phone-width pass
+
+- Merged 15 Nov. Anomaly view: a bar marks below-mean classes (grid and legend; the table already prints the signed value) so the sides differ in greyscale. 32 px targets, picker arrow keys and Escape, a skip control, evidence table names. Checks: tsc, vitest (288), build, wording.py passed. The skip wording is approved. Details: DECISIONS.md.
+
+## Story 7.8: all-candidates table
+
+- Merged 15 Nov. Collapsed table on the evidence page: 16 rows (13 singles, C1 to C3), figures from `evidence.json` table `selection.candidates`, reasons in `web/src/evidence/candidates.ts`, approved by the lead after four were corrected against the scores. Checks: pytest, `evidence/build.py --check`, tsc, vitest (294), build, wording.py passed. Details: DECISIONS.md.
+
+## Story 8.1: shareable link
+
+- Merged 15 Nov. `web/src/share.ts` encodes and reads the area, dates and view in the hash (`#/?area=sumatra&from=2015-01-01&to=2020-12-31&view=table&measure=anomaly`); `CalendarPage` reads it on first load and rewrites it with `replaceState`. No new wording; no Copy link button; no link length limit (approved). Details and the length measurements: DECISIONS.md.
+
+## Story 8.8: featured-area gallery
+
+- Merged 15 Nov. The Featured tab of the area picker is now six cards (`web/src/area/FeaturedGallery.tsx`): outline from `contract/regions.geojson`, the contract's evidence-class sentence, and the southern African savanna caveat sentence on its card before opening. Opening keeps the dates and the link shows `area=<id>`. No new wording; no service change. Details: DECISIONS.md.

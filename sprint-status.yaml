@@ -29,7 +29,7 @@
 # - Dev moves story to 'review', then runs code-review (fresh context, different LLM recommended)
 # - Retrospective appends its action items to action_items; the status view surfaces open ones
 generated: 11-14-2026 02:21
-last_updated: 11-15-2026 (Stories 3.8 and 5.6 merged)
+last_updated: 11-15-2026 (contract 0.4.0 and Story 4.3 merged)
 project: SpaceApps
 project_key: NOKEY
 tracking_system: file-system
@@ -65,31 +65,31 @@ development_status:
   3-6-provenance-and-evidence-caveats-on-every-cell-a: done
   3-7-current-month-card-a: done
   3-8-anomaly-view-and-flags-a: done
-  3-9-most-active-months-and-years-a: backlog
-  3-10-accessibility-and-phone-width-pass-a: backlog
+  3-9-most-active-months-and-years-a: done
+  3-10-accessibility-and-phone-width-pass-a: done
   epic-3-retrospective: optional
 
   epic-4: in-progress
   4-1-analytics-csv-t: done
   4-2-hotspot-csv-t: done
-  4-3-picture-downloads-a: backlog
-  4-4-download-controls-a: backlog
+  4-3-picture-downloads-a: done
+  4-4-download-controls-a: done
   4-5-numbers-agree-check-t: done
   epic-4-retrospective: optional
 
-  epic-5: in-progress
+  epic-5: done
   5-1-commit-the-scoring-outputs-and-the-fixed-claims-a: done
   5-2-evidence-build-and-its-checks-a: done
   5-3-the-outcome-in-plain-words-a: done
   5-4-head-to-head-table-a: done
   5-5-aqua-only-and-the-incumbent-a: done
   5-6-what-the-scores-can-t-show-a: done
-  5-7-about-the-data-page-a: backlog
+  5-7-about-the-data-page-a: done
   epic-5-retrospective: optional
 
   epic-6: in-progress
   6-1-nasa-datasets-and-references-t-drafts-a-reviews: backlog
-  6-2-readme-and-fresh-clone-run-both-t-runs-the-clone: backlog
+  6-2-readme-and-fresh-clone-run-both-t-runs-the-clone: in-progress
   6-3-security-and-readiness-checks-a: backlog
   6-4-the-link-stays-up-through-judging-t: backlog
   6-5-demo-assets-and-submission-text-a: in-progress
@@ -104,18 +104,18 @@ development_status:
   7-5-season-to-date-statistics-t: backlog
   7-6-season-to-date-chart-a: backlog
   7-7-hotspot-map-for-a-month-a: backlog
-  7-8-all-candidates-table-a: backlog
+  7-8-all-candidates-table-a: done
   epic-7-retrospective: optional
 
   epic-8: backlog
-  8-1-shareable-link-a: backlog
+  8-1-shareable-link-a: done
   8-2-administrative-unit-selection-a: backlog
   8-3-reference-period-as-a-request-option-t: backlog
   8-4-reference-period-control-a: backlog
   8-5-trend-test-t: backlog
   8-6-trend-indicator-a: backlog
   8-7-two-area-comparison-a: backlog
-  8-8-featured-area-gallery-a: backlog
+  8-8-featured-area-gallery-a: done
   8-9-cell-states-for-one-month-worldwide-t: backlog
   8-10-globe-of-unusual-burning-a: backlog
   epic-8-retrospective: optional

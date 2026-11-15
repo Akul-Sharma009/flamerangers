@@ -389,8 +389,10 @@ export interface components {
             colour_class: number | null;
             /** @description Index of the anomaly's class in statistics.anomaly_breaks. null when there is no anomaly. */
             anomaly_class: number | null;
-            cells_flagged_strong: number;
-            cells_flagged_marginal: number;
+            /** @description null when count is null (outside the record or not loaded). 0 means no cell is flagged strong. */
+            cells_flagged_strong: number | null;
+            /** @description null when count is null. 0 means no cell is flagged marginal. */
+            cells_flagged_marginal: number | null;
             /** @description Every 1 degree cell the area overlaps. */
             cells_total: number;
             /** @description Rank among complete months inside the range, 1 = highest. Ties share a rank. null when not ranked. */
@@ -442,6 +444,8 @@ export interface components {
             /** @description d, the data-through day. */
             day: number;
             count_to_date: number;
+            /** @description true when any of days 1 to d has no input data for a feeding satellite. The web then shows notes.missing_days_to_date. */
+            missing_days_to_date: boolean;
             same_days_median: number;
             /** @description true when same_days_median is 0. Then ratio is null. */
             no_typical_activity: boolean;

@@ -1,0 +1,50 @@
+/* Story 3.9: the most active months and years. The same ledger page: serif
+   headings, tabular numerals, ruled tables, no cards and no colour fills. */
+
+/* Laptop width: the rankings sit in the left column under the hero's left side,
+   beside the grid, so a selected item and its mark on the calendar are in view
+   together. Narrow widths keep source order: the rankings follow the calendar. */
+@media (min-width: 801px) {
+  main.ledger.has-ranks { grid-template-rows: auto 1fr; }
+  main.ledger.has-ranks > .leftcol { grid-column: 1; grid-row: 1; }
+  main.ledger.has-ranks > .calsection { grid-column: 2; grid-row: 1 / span 2; }
+  main.ledger.has-ranks > .rankings { grid-column: 1; grid-row: 2; align-self: start; }
+}
+
+.rankings { border-top: 3px double var(--ink); padding-top: 8px; }
+.rankings h2 { font-family: var(--serif); font-size: 18px; font-weight: 600; margin: 0 0 2px; }
+.rankings .kicker { font-size: 12px; color: var(--muted); letter-spacing: .05em; text-transform: uppercase; margin: 0 0 6px; }
+.rankings .rangenote { font-size: 12.5px; line-height: 1.45; color: var(--muted); margin: 0 0 8px; }
+
+.ranklists { display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 1fr); gap: 4px 16px; }
+.ranktable[data-list="calendar_months"] { grid-column: 1 / -1; }
+@media (max-width: 800px) {
+  .ranklists { grid-template-columns: minmax(0, 1fr); }
+}
+
+.ranktable { width: 100%; border-collapse: collapse; font: 12px var(--num); font-variant-numeric: tabular-nums; margin-top: 8px; }
+.ranktable caption { text-align: left; font: 600 13.5px var(--serif); color: var(--ink); padding-bottom: 3px; }
+.ranktable caption .unit { display: block; font: 11px var(--sans); color: var(--muted); font-weight: 400; }
+.ranktable thead th { font: 11px var(--sans); color: var(--muted); text-align: left; border-bottom: 1px solid var(--ink); padding: 2px 4px; }
+.ranktable td, .ranktable tbody th { padding: 0 4px; border-bottom: 1px solid var(--faint); text-align: left; font-weight: 400; }
+.ranktable .rk { width: 3.2em; white-space: nowrap; }
+.ranktable .val, .ranktable thead th.val { text-align: right; white-space: nowrap; }
+.ranktable tr.empty td { color: var(--muted); font-family: var(--sans); padding: 3px 4px; }
+
+/* Each entry is a toggle; a pressed one is drawn reversed, like the view switches. */
+.ranktable button {
+  font: 12.5px var(--sans); color: var(--ink); background: none; border: 0; padding: 6px 2px; margin: 0 -2px;
+  cursor: pointer; text-align: left; white-space: nowrap; text-decoration: underline dotted var(--muted); text-underline-offset: 3px;
+}
+.ranktable button:hover { text-decoration-style: solid; text-decoration-color: var(--ink); }
+.ranktable button:focus-visible { outline: 2px solid var(--ink); outline-offset: 1px; }
+.ranktable tr.on td, .ranktable tr.on th { background: var(--ink); color: var(--paper); }
+.ranktable tr.on button { color: var(--paper); text-decoration: none; }
+.ranktable tr.on button:focus-visible { outline-color: var(--paper); outline-offset: -2px; }
+
+.ranknotes { margin: 10px 0 0; padding: 0 0 0 16px; font-size: 12px; line-height: 1.5; color: var(--muted); }
+
+.rankings .sr {
+  position: absolute; width: 1px; height: 1px; padding: 0; margin: -1px; overflow: hidden;
+  clip: rect(0 0 0 0); white-space: nowrap; border: 0;
+}

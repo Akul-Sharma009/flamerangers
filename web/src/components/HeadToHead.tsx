@@ -86,7 +86,7 @@ function PairRows({ rows, columns }: { rows: PairRow[]; columns: { key: string }
 export function ScoresTable({ scores, rowClass }: { scores: HeadToHeadView["scores"]; rowClass?: (key: string) => string | undefined }) {
   return (
     <div className="h2h-scroll" role="region" aria-label={scores.title} tabIndex={0}>
-      <table className="h2h-table scores">
+      <table className="h2h-table scores" aria-label={scores.title}>
         <thead>
           <tr>
             <th scope="col">{T.approachHeader}</th>
@@ -126,7 +126,7 @@ export function ByYear({ byYear }: { byYear: HeadToHeadView["byYear"] }) {
       <h3>{byYear.title}</h3>
       <p className="aside">{T.byYearScope}</p>
       <div className="h2h-scroll" role="region" aria-label={byYear.title} tabIndex={0}>
-        <table className="h2h-table years">
+        <table className="h2h-table years" aria-label={byYear.title}>
           <thead>
             <tr>
               <th scope="col">{T.yearHeader}</th>
@@ -167,7 +167,7 @@ export function Pairs({ pairs }: { pairs: HeadToHeadView["pairs"] }) {
         <span className="mark within" aria-hidden="true">{T.withinMark}</span> {T.legendWithin}
       </p>
       <div className="h2h-scroll" role="region" aria-label={T.differencesHeading} tabIndex={0}>
-        <table className="h2h-table pairs">
+        <table className="h2h-table pairs" aria-label={T.differencesHeading}>
           <thead>
             <tr>
               <th scope="col">{T.pairHeader}</th>
@@ -239,7 +239,7 @@ export function HeadToHeadSection({ view, onChoose }: { view: HeadToHeadView; on
         <div className="h2h-rule" data-note="rule">
           <h3>{T.ruleHeading}</h3>
           <p>{T.ruleText}</p>
-          <table className="h2h-table tests">
+          <table className="h2h-table tests" aria-label={T.ruleHeading}>
             <thead>
               <tr>
                 <th scope="col">{T.approachHeader}</th>

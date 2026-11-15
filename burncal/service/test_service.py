@@ -1,4 +1,4 @@
-"""Story 1.3 service stub tests, contract 0.3.0.
+"""Story 1.3 service stub tests, contract 0.4.0.
 
 AC1: with no store, every contract endpoint answers from the fixture, and the
      answers validate against the contract (JSON, problem+json and the CSV spec).
@@ -203,3 +203,13 @@ def test_1_3_ac3_service_reads_no_secret():
     source = "\n".join(p.read_text(encoding="utf-8") for p in (ROOT / "burncal" / "service").glob("*.py") if not p.name.startswith("test_"))
     for name in ("FIRMS_MAP_KEY", "EARTHDATA_TOKEN", "dotenv", '".env"', "'.env'"):
         assert name not in source, name
+
+
+def test_0_4_0_both_csv_headers_write_the_six_counting_limits_in_order(client):
+    import yaml
+    six = yaml.safe_load((ROOT / "contract" / "messages.yaml").read_text(encoding="utf-8"))["counting_limits"]
+    assert len(six) == 6
+    for path in ("/analytics.csv", "/hotspots.csv"):
+        text = client.post(path, json=BODIES[path]).text
+        got = [line.partition(": ")[2] for line in text.splitlines() if line.startswith("# counting_limits: ")]
+        assert got == six, path

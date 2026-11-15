@@ -132,6 +132,7 @@ function buildLoaded(calendar: Calendar, meta: Meta, cm: CurrentMonth, sentences
   if (fed) figures.push({ key: "satellite", label: "Fed by", value: fed });
 
   const notes: string[] = [messages.labels.quality[cm.quality]];
+  if (cm.missing_days_to_date) notes.push(messages.notes.missing_days_to_date);
   if (!cm.validated_satellite) notes.push(messages.notes.validated_satellite_false);
   if (cm.monthly_validation_only) notes.push(messages.notes.monthly_validation_only);
   // The current month is never complete, so its flags are provisional.

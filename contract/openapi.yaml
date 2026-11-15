@@ -1,7 +1,7 @@
 openapi: 3.1.0
 info:
   title: "Harmonized burning activity calendar: data service"
-  version: 0.3.0
+  version: 0.4.0
   description: >
     Read-only API over one published store version. Every number is computed in
     burncal/core or the service and rounded once there (counts to 1 decimal,
@@ -488,8 +488,8 @@ components:
         anomaly_pct: {description: "anomaly_count over reference_mean, as a percentage with 2 decimals. null when the mean is 0.", $ref: "#/components/schemas/Ratio"}
         colour_class: {type: ["integer", "null"], minimum: 0, description: "Index of the count's class in statistics.colour_breaks. null when count is null."}
         anomaly_class: {type: ["integer", "null"], minimum: 0, description: "Index of the anomaly's class in statistics.anomaly_breaks. null when there is no anomaly."}
-        cells_flagged_strong: {type: integer, minimum: 0}
-        cells_flagged_marginal: {type: integer, minimum: 0}
+        cells_flagged_strong: {type: ["integer", "null"], minimum: 0, description: "null when count is null (outside the record or not loaded). 0 means no cell is flagged strong."}
+        cells_flagged_marginal: {type: ["integer", "null"], minimum: 0, description: "null when count is null. 0 means no cell is flagged marginal."}
         cells_total: {type: integer, minimum: 0, description: "Every 1 degree cell the area overlaps."}
         rank: {type: ["integer", "null"], minimum: 1, description: "Rank among complete months inside the range, 1 = highest. Ties share a rank. null when not ranked."}
       additionalProperties: false
@@ -562,11 +562,12 @@ components:
     CurrentMonth:
       description: Days 1 to d of the current month against the same days of each reference year.
       type: object
-      required: [month, day, count_to_date, same_days_median, no_typical_activity, ratio, difference, reference_period, same_days_by_year, cells_flagged_strong, cells_flagged_marginal, cells_total, quality, validated_satellite, monthly_validation_only]
+      required: [month, day, count_to_date, missing_days_to_date, same_days_median, no_typical_activity, ratio, difference, reference_period, same_days_by_year, cells_flagged_strong, cells_flagged_marginal, cells_total, quality, validated_satellite, monthly_validation_only]
       properties:
         month: {$ref: "#/components/schemas/YearMonth"}
         day: {type: integer, minimum: 1, maximum: 31, description: "d, the data-through day."}
         count_to_date: {type: number, minimum: 0}
+        missing_days_to_date: {type: boolean, description: "true when any of days 1 to d has no input data for a feeding satellite. The web then shows notes.missing_days_to_date."}
         same_days_median: {type: number, minimum: 0}
         no_typical_activity: {type: boolean, description: "true when same_days_median is 0. Then ratio is null."}
         ratio: {description: "count_to_date over same_days_median.", $ref: "#/components/schemas/Ratio"}

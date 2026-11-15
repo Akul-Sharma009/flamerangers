@@ -1,4 +1,5 @@
 import { useEffect, useMemo, useRef, useState, type CSSProperties } from "react";
+import type { AoiInput } from "../area/featured";
 import { buildCard, type Calendar, type Figure, type Meta, type RulerData } from "./model";
 import { layoutRuler } from "./ruler";
 import type { Sentences } from "./words";

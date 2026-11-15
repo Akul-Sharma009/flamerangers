@@ -1,0 +1,16 @@
+.picdl { display: flex; flex-wrap: wrap; align-items: center; gap: 6px 10px; margin: 8px 0 0; font: 12px var(--sans); color: var(--muted); }
+.picdl select, .picdl button { font: 12px var(--sans); color: var(--ink); background: var(--paper); border: 1px solid var(--ink); padding: 3px 8px; min-height: 32px; }
+.picdl button { cursor: pointer; }
+.picdl button:disabled { opacity: .5; cursor: progress; }
+.picdl [role="alert"] { color: var(--ink); }
+.downloads { margin: 14px 0 0; font: 12px var(--sans); color: var(--muted); }
+.downloads h2 { font: 600 13px var(--sans); color: var(--ink); margin: 0 0 6px; }
+.downloads .dlrow { display: flex; flex-wrap: wrap; align-items: center; gap: 6px 10px; margin: 6px 0; }
+.downloads button { font: 12px var(--sans); color: var(--ink); background: var(--paper); border: 1px solid var(--ink); padding: 3px 8px; min-height: 32px; cursor: pointer; }
+.downloads button:disabled { opacity: .5; cursor: not-allowed; }
+.downloads .dlerr { color: var(--ink); margin: 6px 0; }
+.downloads .dlerr p { margin: 0 0 6px; }
+.downloads .dlyears { display: flex; flex-wrap: wrap; gap: 6px; }
+.downloads .dlnote { margin: 0 0 6px; }
+.downloads .picdl { margin-top: 6px; }
+.downloads label { display: inline-flex; align-items: center; gap: 6px; min-height: 32px; }

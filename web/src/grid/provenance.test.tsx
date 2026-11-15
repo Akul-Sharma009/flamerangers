@@ -59,8 +59,12 @@ function linesFor(c: Calendar, ym: string): string[] {
 }
 
 const notes = messages.notes as unknown as Record<string, string | undefined>;
+// Restore the contract's own value (0.4.0 has one) rather than deleting it,
+// so later tests render with the real messages.
+const contractMonthComplete = notes.month_complete;
 afterEach(() => {
-  delete notes.month_complete;
+  if (contractMonthComplete === undefined) delete notes.month_complete;
+  else notes.month_complete = contractMonthComplete;
 });
 
 describe("Story 3.6 AC1: focusing any cell reads every input satellite, standard or NRT, and complete or partial", () => {
@@ -100,15 +104,16 @@ describe("Story 3.6 AC1: focusing any cell reads every input satellite, standard
     expect(lines.filter((l) => l === messages.labels.quality.NRT)).toHaveLength(1);
   });
 
-  it("states every partial reason; contract 0.3.0 has no sentence for a complete month, so none is typed", () => {
+  it("states every partial reason; contract 0.4.0 has a sentence for a complete month", () => {
     for (const m of fixture.months.filter((x) => x.count !== null)) {
       const lines = linesFor(fixture, m.month);
       for (const p of m.partial_reasons) expect(lines).toContain(messages.labels.partial_reason[p]);
     }
-    expect(completeNote()).toBeNull();
+    expect(completeNote()).toBe(messages.notes.month_complete);
     const done = linesFor(fixture, "2015-09");
     // Story 3.8 appends the month's flag lines after the flag label; the provenance lines before them are unchanged.
-    expect(done.slice(2, 5)).toEqual([messages.labels.source.aqua_real, "From Aqua (MODIS), 30 days, standard quality", messages.labels.flag_state.strong]);
+    const want = [messages.labels.source.aqua_real, "From Aqua (MODIS), 30 days, standard quality", messages.notes.month_complete, messages.labels.flag_state.strong];
+    expect(done.filter((l) => want.includes(l))).toEqual(want); // in this order; 0.4.0 adds the complete-month sentence
   });
 
   it("says a month is complete once the contract adds notes.month_complete, and only for complete months", () => {

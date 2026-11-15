@@ -19,7 +19,7 @@ Every line starts with `# `. Lines appear in this order; `key: value` on each.
 | `flag_reference_years` | Start and end year | analytics |
 | `row_filter` | "rows that feed the record" or "all satellites" | hotspots |
 | `row_count_note` | "After December 2021 the number of rows differs from the harmonized count. The `weight` column sums to the harmonized count over rows where `feeds_record` is true and `excluded_reason` is none." | hotspots |
-| `counting_limits` | One line per limit, from the about-the-data text | both |
+| `counting_limits` | One line per limit: the six `counting_limits` in `contract/messages.yaml`, in order (0.4.0) | both |
 | `citation` | One line per dataset used | both |
 
 ## `/analytics.csv`: one row per month

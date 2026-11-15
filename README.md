@@ -101,7 +101,51 @@ Each step prints counts only and never prints the key. Regions are the `region_i
 
 `burncal/core/params/MANIFEST.json` lists a hash for each of these. It also lists two intermediate CSVs (`intermediate/rows_sumatra_201509.csv` and `intermediate/footprints_sumatra_201509.csv`, with their `README.txt`). Those are 37 MB of debugging aids that stay in the planning repo; they are not part of this repo.
 
+The parity check also needs its input case, which is kept in the planning record and is not public. So a fresh clone can build and serve the Aqua counts through December 2021, but cannot publish converted counts from January 2022; the published record holds those.
+
 `evidence/scoring/` holds the scoring outputs, copied unchanged, with hashes in its own `MANIFEST.json`. They contain scores only. Never edit files in either folder.
+
+## Run the web against the fixture
+
+The web needs no service to run. With `VITE_SERVICE_BASE_URL` unset or empty, it reads the contract fixture in `contract/fixture/` directly: a placeholder Sumatra record, under a banner saying the numbers are invented. The two CSV downloads need the service.
+
+```bash
+cd web
+npm install
+npm run dev                   # http://localhost:5173
+```
+
+Don't copy `web/.env.example` for this: it sets `VITE_SERVICE_BASE_URL=http://localhost:8000`, which points the web at a running service instead.
+
+To run the web against the service answering from the same fixture, start the service with no store (see "Run the service", or `uv run uvicorn burncal.service.app:app --port 8000` from the repo root), then:
+
+```bash
+cd web
+VITE_SERVICE_BASE_URL=http://localhost:8000 npm run dev
+```
+
+The service allows `http://localhost:5173` by default (`CORS_ORIGINS`). In fixture mode it answers every area with the fixture's placeholder Sumatra record, including the CSV downloads, and refuses any other record version.
+
+The pages are `#/` (the calendar), `#/evidence` (how the conversion was chosen and tested) and `#/about` (about the data).
+
+## Rebuild the evidence
+
+`evidence/build.py` writes `web/src/evidence/evidence.json`, everything the evidence page shows. It reads each number from a field in the scoring files in `evidence/scoring/` (copied unchanged; hashes in `evidence/scoring/MANIFEST.json`), and from the fixed sentences in `evidence/claims.yaml`. Nothing is typed in or recomputed, and no data download or key is needed.
+
+```bash
+uv run python evidence/build.py            # write web/src/evidence/evidence.json
+uv run python evidence/build.py --check    # fail if it is stale, breaks contract/evidence.schema.json, or any figure differs from its source
+uv run pytest evidence                     # the claims and the build, checked against the scoring files
+```
+
+Then rebuild the web and check its words:
+
+```bash
+cd web && npm run build && cd ..
+uv run python evidence/wording.py          # fail on banned wording in README.md or web/dist
+```
+
+Run the build after any change to `claims.yaml`. The scoring files are never edited. They come unchanged from the run that chose and tested the conversion, which is kept in the planning record.
 
 ## Status
 

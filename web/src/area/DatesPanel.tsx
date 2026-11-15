@@ -3,8 +3,17 @@
 // (/meta); the panel only formats them.
 import { useState, type FormEvent } from "react";
 import type { DateRange, Meta } from "../api/client";
+import { messages } from "../api/messages";
 import { formatDay } from "../format";
-import { checkRange, earlierDay, laterDay, type DateField, type RangeResult } from "./dates";
+import { checkRange, earlierDay, laterDay, type DateField, type RangeProblem, type RangeResult } from "./dates";
+
+/** The contract's sentence for each refused range (messages.yaml client, 0.4.0). */
+export const REFUSAL = {
+  unreadable: "date_unreadable",
+  before_record: "date_before_record",
+  after_data_through: "date_after_data_through",
+  out_of_order: "dates_out_of_order",
+} as const satisfies Record<RangeProblem, keyof typeof messages.client>;
 
 /** What the dates tab needs, all served: the bounds and reference period from /meta, and the range on show. */
 export interface DatesSetting {
@@ -49,7 +58,7 @@ export function DatesPanel({ dates, onSelectRange, initialRefusal }: Props) {
   // The browser's own date checks (required, min, max) stop a refused range
   // before submit and say why in the browser's words. checkRange marks the
   // fields if one gets through (a browser without date inputs).
-  // TODO(label): contract/messages.yaml has no sentence for a refused range yet.
+  // Each refusal has its contract sentence (0.4.0).
   const fields = [
     { field: "start" as const, label: "From", value: start, set: setStart, min: bounds.start, max: earlierDay(end, bounds.end) },
     { field: "end" as const, label: "To", value: end, set: setEnd, min: laterDay(start, bounds.start), max: bounds.end },
@@ -84,6 +93,11 @@ export function DatesPanel({ dates, onSelectRange, initialRefusal }: Props) {
           </label>
         ))}
       </div>
+      {bad && (
+        <p className="refusal" role="alert">
+          {messages.client[REFUSAL[bad.problem]]}
+        </p>
+      )}
       <dl className="bounds">
         <dt>Record</dt>
         <dd data-field="meta.data_through">
@@ -94,6 +108,7 @@ export function DatesPanel({ dates, onSelectRange, initialRefusal }: Props) {
           {referencePeriod.start_year} to {referencePeriod.end_year}
         </dd>
       </dl>
+      <p className="note">{messages.notes.range_and_reference}</p>
       <div className="picker-actions">
         <button type="submit" className="primary">
           Show these dates

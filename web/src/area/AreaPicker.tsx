@@ -4,6 +4,7 @@ import { useState, type FormEvent } from "react";
 import type { DateRange } from "../api/client";
 import { DatesPanel, type DatesSetting } from "./DatesPanel";
 import { featuredAreas, type AoiInput, type FeaturedArea } from "./featured";
+import { FeaturedGallery } from "./FeaturedGallery";
 import { MapView, type DrawMode } from "./MapView";
 import {
   parseCorners, parseVertices, type CornerField, type Corners, type MultiPolygon, type Polygon, type TypedResult,
@@ -84,7 +85,7 @@ export function AreaPicker({
   const badField = (f: CornerField) => (bad?.fields?.includes(f) ? true : undefined);
 
   return (
-    <div className="picker" id="area-picker">
+    <div className="picker" id="area-picker" onKeyDown={(e) => { if (e.key === "Escape") onClose(); }}>
       <div className="picker-tabs" role="tablist" aria-label="Ways to choose an area or dates">
         {TABS.map((t) => (
           <button
@@ -94,7 +95,16 @@ export function AreaPicker({
             id={`picker-tab-${t.id}`}
             aria-selected={tab === t.id}
             aria-controls={`picker-panel-${t.id}`}
+            tabIndex={tab === t.id ? 0 : -1}
             onClick={() => setTab(t.id)}
+            onKeyDown={(e) => {
+              const step = e.key === "ArrowRight" ? 1 : e.key === "ArrowLeft" ? -1 : 0;
+              if (!step) return;
+              e.preventDefault();
+              const next = TABS[(TABS.findIndex((x) => x.id === t.id) + step + TABS.length) % TABS.length];
+              setTab(next.id);
+              document.getElementById(`picker-tab-${next.id}`)?.focus();
+            }}
           >
             {t.label}
           </button>
@@ -110,19 +120,7 @@ export function AreaPicker({
 
       {tab === "featured" ? (
         <div role="tabpanel" id="picker-panel-featured" aria-labelledby="picker-tab-featured">
-          <ul className="featured">
-            {list.map((a) => (
-              <li key={a.id}>
-                <button
-                  type="button"
-                  aria-current={a.name === currentName ? "true" : undefined}
-                  onClick={() => onSelect(a.aoi)}
-                >
-                  {a.name}
-                </button>
-              </li>
-            ))}
-          </ul>
+          <FeaturedGallery areas={list} currentName={currentName} onSelect={onSelect} />
         </div>
       ) : null}
 
