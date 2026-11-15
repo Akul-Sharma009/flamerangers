@@ -752,6 +752,13 @@ The points where the plan left room are listed in `DECISIONS.md` ("Contract 0.2.
 - Checked on fixtures only. Before going live: the data owner agrees 0.5.0, redeploys the service, then the web (service first). Then check each new panel on the live site.
 - Details, choices and open items: `DECISIONS.md` ("Epics 7 and 8 built in parallel").
 
+## Story 6.3: security and readiness (15 Nov, done)
+
+- `/security-review` on the changes since `596416b`: no High or Medium finding. `/codex:review --base 596416b`: no actionable bugs.
+- gitleaks: 101 commits on every branch and the working files, no leaks. pip-audit (uv export) and `npm audit --omit=dev`: no known vulnerabilities. `.env` git-ignored, `.env.example` present, no notebooks, gitleaks pre-commit hook in place.
+- Not covered: the Vercel deploy folder (outside the repo). Definition-of-done items owned elsewhere: the fresh-clone run (6.2) and the link through judging (6.4).
+- References field: Natural Earth admin 5.1.2 and the trend test's papers (Mann 1945, Kendall 1938, Sen 1968) added.
+
 ## Story 2.9: the current month, refreshed daily (branch `teammate/2.9-daily-refresh`, 15 Nov)
 
 - `burncal.pipeline.refresh` brings every region up to the day before FIRMS's last NRT day. It asks FIRMS which days each source has, re-downloads only the source-year files whose span changed (daily: MODIS NRT and NOAA-20 NRT for 2026), links every other file, and rebuilds only the years that changed. Then it publishes all six regions as one new version. Everything new goes under one new folder (`store/refresh/<date>/`); nothing is overwritten.
