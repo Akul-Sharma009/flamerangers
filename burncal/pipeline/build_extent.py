@@ -31,12 +31,13 @@ def missing_static_inputs(paths) -> list[str]:
     return [f"{s}_{y}" for y in core_clean.STATIC_YEARS for s in STATIC_SOURCES if f"{s}_{y}" not in names]
 
 
-def build(raw_dir, land_path, out_dir, *, require_static_inputs: bool = True) -> dict:
+def build(raw_dir, land_path, out_dir, *, require_static_inputs: bool = True, years=None) -> dict:
     """One satellite family and year at a time, so an extent never has to fit in memory at once.
 
     The static mask comes first, from the tuning-year MODIS and Suomi NPP files only. Each batch then
     holds the standard and NRT files of one satellite family and year, so standard still beats NRT per
     satellite-day (AD-6). The result equals cleaning the whole extent at once.
+    years: when given, only the batches of those years are cleaned and written (the static mask is unchanged).
     """
     paths = sorted(Path(raw_dir).glob("*.csv"))
     if require_static_inputs and (gone := missing_static_inputs(paths)):
@@ -49,7 +50,9 @@ def build(raw_dir, land_path, out_dir, *, require_static_inputs: bool = True) ->
     del mask_rows
     n_in = n_out = 0
     by = {}
-    for _, batch in _batches(paths).items():
+    for (_, year), batch in _batches(paths).items():
+        if years is not None and year not in years:
+            continue
         df = ingest.ingest_csv_files(batch)
         if df.empty or "longitude" not in df:
             continue  # a year with no hotspots in the extent

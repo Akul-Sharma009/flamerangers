@@ -124,11 +124,12 @@ def evidence_cells(extent, geoms, classes) -> pd.DataFrame:
                          "evidence_class": regions.evidence_class(sw_lon, sw_lat, geoms, classes)})
 
 
-def build(clean_dir, out_dir, *, extent, regions_path=REGIONS_FILE, params=None) -> dict:
+def build(clean_dir, out_dir, *, extent, regions_path=REGIONS_FILE, params=None, years=None) -> dict:
     """One satellite-year file at a time. extent: (west, south, east, north), whole 5-degree tiles.
 
     The season history is read once from the Aqua files of 2003-2011. Footprints are built within
     each satellite-year file; a pass crossing midnight on 31 December is split there.
+    years: when given, only the parts of those years are converted and written; the history still reads all of 2003-2011.
     """
     if not regions.is_tile_extent(extent):
         raise ValueError(f"build extent {tuple(extent)} is not whole 5-degree tiles; use {regions.tile_extent(extent)}")
@@ -145,6 +146,8 @@ def build(clean_dir, out_dir, *, extent, regions_path=REGIONS_FILE, params=None)
     rows = feeding = 0
     weights, rules_n = {}, {}
     for p in parts:
+        if years is not None and int(p.stem.rsplit("_", 1)[1]) not in years:
+            continue
         df = pd.read_parquet(p)
         if not (df["longitude"].between(x0, x1).all() and df["latitude"].between(y0, y1).all()):
             raise ValueError(f"{p.name}: rows fall outside the build extent")

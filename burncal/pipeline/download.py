@@ -32,17 +32,26 @@ def region_extent(region_id: str) -> tuple:
     return regions.tile_extent(shape(f["geometry"]).bounds)
 
 
-def plan(*, data_through: date) -> dict:
-    """source -> spans of dates to download."""
-    D = date
+def plan(*, data_through: date, sp_end: dict | None = None) -> dict:
+    """source -> spans of dates to download. sp_end: last standard day per family (default SP_END; Story 2.9
+    passes FIRMS's availability, so standard days replace NRT days as they arrive)."""
+    D, sp = date, sp_end or SP_END
     return {
-        "MODIS_SP": [(D(2002, 7, 1), SP_END["MODIS"])],
-        "MODIS_NRT": [(SP_END["MODIS"] + timedelta(days=1), data_through)],
-        "VIIRS_SNPP_SP": [(D(y, 1, 1), D(y, 12, 31)) for y in core_clean.STATIC_YEARS] + [(D(2022, 1, 1), SP_END["VIIRS"])],
-        "VIIRS_SNPP_NRT": [(SP_END["VIIRS"] + timedelta(days=1), min(SNPP_LAST, data_through))],
-        "VIIRS_NOAA20_SP": [(D(2022, 1, 1), SP_END["VIIRS"])],
-        "VIIRS_NOAA20_NRT": [(SP_END["VIIRS"] + timedelta(days=1), data_through)],
+        "MODIS_SP": [(D(2002, 7, 1), sp["MODIS"])],
+        "MODIS_NRT": [(sp["MODIS"] + timedelta(days=1), data_through)],
+        "VIIRS_SNPP_SP": [(D(y, 1, 1), D(y, 12, 31)) for y in core_clean.STATIC_YEARS] + [(D(2022, 1, 1), sp["VIIRS"])],
+        "VIIRS_SNPP_NRT": [(sp["VIIRS"] + timedelta(days=1), min(SNPP_LAST, data_through))],
+        "VIIRS_NOAA20_SP": [(D(2022, 1, 1), sp["VIIRS"])],
+        "VIIRS_NOAA20_NRT": [(sp["VIIRS"] + timedelta(days=1), data_through)],
     }
+
+
+def availability(text: str) -> dict:
+    """FIRMS data_availability CSV -> {"sp_end": {"MODIS", "VIIRS"}, "nrt_end"}: the last standard day per
+    family (VIIRS: the earlier of Suomi NPP and NOAA-20) and the last NRT day both MODIS and NOAA-20 have."""
+    last = {row.split(",")[0]: date.fromisoformat(row.split(",")[2]) for row in text.strip().splitlines()[1:]}
+    return {"sp_end": {"MODIS": last["MODIS_SP"], "VIIRS": min(last["VIIRS_SNPP_SP"], last["VIIRS_NOAA20_SP"])},
+            "nrt_end": min(last["MODIS_NRT"], last["VIIRS_NOAA20_NRT"])}
 
 
 def years(spans):

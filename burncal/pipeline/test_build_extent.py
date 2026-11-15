@@ -71,6 +71,19 @@ def test_2_8_build_one_satellite_year_at_a_time_equals_the_whole_extent(tmp_path
 
 
 
+def test_2_9_ac1_clean_one_year_equals_that_year_of_the_whole_build(tmp_path):
+    raw, land = _files(tmp_path)
+    (raw / "MODIS_SP_2023.csv").write_text(MODIS + "1.0,1.0,320,1,1,2023-07-01,0600,Aqua,MODIS,80,6.1,300,10,D,0\n")
+    build_extent.build(raw, land, tmp_path / "all", require_static_inputs=False)
+    summary = build_extent.build(raw, land, tmp_path / "one", require_static_inputs=False, years={2024})
+    one = sorted(p.name for p in (tmp_path / "one").glob("*.parquet"))
+    assert one and all(n.endswith("_2024.parquet") for n in one)
+    assert {p.name for p in (tmp_path / "all").glob("*_2023.parquet")}  # the whole build did write 2023
+    for n in one:
+        pd.testing.assert_frame_equal(pd.read_parquet(tmp_path / "one" / n), pd.read_parquet(tmp_path / "all" / n))
+    assert summary["rows_stored"] == sum(len(pd.read_parquet(tmp_path / "one" / n)) for n in one)
+
+
 def test_2_5_static_mask_build_fails_without_every_tuning_year_file(tmp_path):
     import pytest
     raw, land = _files(tmp_path)

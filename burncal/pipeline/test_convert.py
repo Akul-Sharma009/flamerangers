@@ -102,3 +102,16 @@ def test_2_4_ac3_every_1deg_cell_has_an_evidence_class(tmp_path, params):
     rec = pd.read_parquet(tmp_path / "out" / "AQUA_2015.parquet")
     assert {"weight", "feeds_record", "validated_satellite", "rules_region", "region_id"} <= set(rec.columns)
     assert summary["rows"] == 2
+
+
+def test_2_9_ac1_convert_one_year_equals_that_year_of_the_whole_build(tmp_path, params):
+    clean = tmp_path / "clean"; clean.mkdir()
+    _rows([("AQUA", "2015-01-01 06:00", 101.5, -1.5, "none")]).to_parquet(clean / "AQUA_2015.parquet")
+    _rows([("AQUA", "2016-01-01 06:00", 101.5, -1.5, "none")]).to_parquet(clean / "AQUA_2016.parquet")
+    kw = dict(extent=(95.0, -5.0, 105.0, 5.0), params=params)
+    convert.build(clean, tmp_path / "all", **kw)
+    summary = convert.build(clean, tmp_path / "one", years={2016}, **kw)
+    assert sorted(p.name for p in (tmp_path / "one").glob("AQUA_*.parquet")) == ["AQUA_2016.parquet"]
+    assert (tmp_path / "one" / "evidence_1deg.parquet").exists() and summary["rows"] == 1
+    pd.testing.assert_frame_equal(pd.read_parquet(tmp_path / "one" / "AQUA_2016.parquet"),
+                                  pd.read_parquet(tmp_path / "all" / "AQUA_2016.parquet"))
