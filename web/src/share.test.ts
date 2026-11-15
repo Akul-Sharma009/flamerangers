@@ -2,7 +2,7 @@ import { describe, expect, it } from "vitest";
 import { messages } from "./api/messages";
 import { featuredAreas } from "./area/featured";
 import { routeFromHash } from "./route";
-import { currentQuery, decodeShape, encodeShare, encodeShape, parseShare, rangeNote, type ShareState } from "./share";
+import { addressChange, currentQuery, decodeShape, encodeShare, encodeShape, parseShare, rangeNote, type ShareState } from "./share";
 
 const areas = featuredAreas();
 const sumatra = areas.find((a) => a.isDefault)!;
@@ -114,5 +114,32 @@ describe("shareable link (Story 8.1)", () => {
     const drawn = encodeShare({ area: { name: null, geometry: { type: "Polygon", coordinates: [ring] } }, range: { start: "2002-07-01", end: "2026-11-10" }, grid: "table", measure: "anomaly" }, areas);
     console.log(`featured longest shape: ${longest} chars; 100-vertex drawn area, full link: ${drawn.length} chars`);
     expect(longest).toBeLessThan(2000);
+  });
+});
+
+describe("an address edited in an open tab (Story 8.1)", () => {
+  const shown = "#/?area=sumatra&view=table";
+
+  it("reloads when the area, dates or view in the address change", () => {
+    expect(addressChange("#/?area=amazon_forest&view=table", shown)).toBe("reload");
+    expect(addressChange("#/?area=sumatra&from=2015-01-01&to=2020-12-31&view=table", shown)).toBe("reload");
+    expect(addressChange("#/?area=sumatra", shown)).toBe("reload");
+    expect(addressChange("#/?area=nowhere", shown)).toBe("reload"); // the link's own note explains it
+  });
+
+  it("does nothing for the address the page already wrote, or for another page", () => {
+    expect(addressChange(shown, shown)).toBe("ignore");
+    expect(addressChange("#/evidence", shown)).toBe("ignore");
+    expect(addressChange("#/about", shown)).toBe("ignore");
+  });
+
+  it("keeps the shown state when the address has none (the masthead's Calendar link)", () => {
+    expect(addressChange("#/", shown)).toBe("restore");
+    expect(addressChange("", shown)).toBe("restore");
+  });
+
+  it("a reload reads the edited address as a fresh link does", () => {
+    const edited = "#/?area=amazon_forest&view=table";
+    expect(parseShare(currentQuery(edited)).area.name).toBe(areas.find((a) => a.id === "amazon_forest")!.aoi.name);
   });
 });

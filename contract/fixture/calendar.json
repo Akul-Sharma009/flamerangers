@@ -450,5 +450,37 @@
     "quality": "NRT",
     "validated_satellite": false,
     "monthly_validation_only": true
+  },
+  "trend": {
+    "status": "ok",
+    "test": "mann_kendall",
+    "min_years": 10,
+    "alpha": 0.05,
+    "left_out": [
+      {
+        "year": 2002,
+        "reason": "record_start"
+      },
+      {
+        "year": 2022,
+        "reason": "incomplete"
+      },
+      {
+        "year": 2026,
+        "reason": "incomplete"
+      }
+    ],
+    "years": {
+      "start": 2003,
+      "end": 2025,
+      "count": 22
+    },
+    "record_switch_inside": true,
+    "s": -13,
+    "z": -0.34,
+    "p_value": 0.7351,
+    "tau": -0.06,
+    "sen_slope_per_year": -116.8,
+    "direction": "none"
   }
 }

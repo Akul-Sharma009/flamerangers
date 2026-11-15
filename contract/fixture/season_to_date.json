@@ -1,0 +1,151 @@
+{
+  "record_version": "20261114-1a2b3c4d",
+  "data_through": "2026-11-13",
+  "cautions": [],
+  "unit_label": "hotspots, Aqua MODIS units",
+  "aoi": {
+    "aoi_id": "772b2a9121b196af",
+    "name": "Sumatra",
+    "area_km2": 1071229.5,
+    "evidence_class_counts": {
+      "tuned": 113,
+      "tested_unseen": 0,
+      "reported_only": 0,
+      "not_evaluated": 0
+    },
+    "region_caveat": "none"
+  },
+  "year": 2026,
+  "start": 0.0,
+  "resolution": "month",
+  "band": {
+    "lower_percentile": 10,
+    "upper_percentile": 90
+  },
+  "reference_period": {
+    "start_year": 2003,
+    "end_year": 2025
+  },
+  "past_years": [
+    2003,
+    2004,
+    2005,
+    2006,
+    2007,
+    2008,
+    2009,
+    2010,
+    2011,
+    2012,
+    2013,
+    2014,
+    2015,
+    2016,
+    2017,
+    2018,
+    2019,
+    2020,
+    2021,
+    2023,
+    2024,
+    2025
+  ],
+  "months": [
+    {
+      "month": "2026-01",
+      "cumulative": 1010.7,
+      "to_date": false,
+      "median": 902.1,
+      "band_low": 520.9,
+      "band_high": 1829.4
+    },
+    {
+      "month": "2026-02",
+      "cumulative": 2046.7,
+      "to_date": false,
+      "median": 2810.2,
+      "band_low": 1708.8,
+      "band_high": 6300.0
+    },
+    {
+      "month": "2026-03",
+      "cumulative": 3073.8,
+      "to_date": false,
+      "median": 4180.0,
+      "band_low": 3181.2,
+      "band_high": 9667.6
+    },
+    {
+      "month": "2026-04",
+      "cumulative": 3972.7,
+      "to_date": false,
+      "median": 4939.0,
+      "band_low": 3705.7,
+      "band_high": 11116.0
+    },
+    {
+      "month": "2026-05",
+      "cumulative": 4798.2,
+      "to_date": false,
+      "median": 5702.2,
+      "band_low": 4556.7,
+      "band_high": 12762.8
+    },
+    {
+      "month": "2026-06",
+      "cumulative": 6190.4,
+      "to_date": false,
+      "median": 7035.0,
+      "band_low": 5695.1,
+      "band_high": 16610.4
+    },
+    {
+      "month": "2026-07",
+      "cumulative": 7751.0,
+      "to_date": false,
+      "median": 9415.4,
+      "band_low": 8029.7,
+      "band_high": 23097.6
+    },
+    {
+      "month": "2026-08",
+      "cumulative": 12366.0,
+      "to_date": false,
+      "median": 12903.5,
+      "band_low": 10475.5,
+      "band_high": 33954.1
+    },
+    {
+      "month": "2026-09",
+      "cumulative": 15555.0,
+      "to_date": false,
+      "median": 19084.4,
+      "band_low": 14258.5,
+      "band_high": 42807.6
+    },
+    {
+      "month": "2026-10",
+      "cumulative": 17818.6,
+      "to_date": false,
+      "median": 21736.5,
+      "band_low": 18381.9,
+      "band_high": 49239.5
+    },
+    {
+      "month": "2026-11",
+      "cumulative": 18079.9,
+      "to_date": true,
+      "median": 22632.5,
+      "band_low": 19027.9,
+      "band_high": 53045.1
+    },
+    {
+      "month": "2026-12",
+      "cumulative": null,
+      "to_date": false,
+      "median": 23271.0,
+      "band_low": 19642.3,
+      "band_high": 54339.3
+    }
+  ]
+}

@@ -1,4 +1,5 @@
 import { useState } from "react";
+import type { YearRange } from "../reference/period";
 import type { DateRange, Meta, ServiceClient } from "../api/client";
 import type { AoiInput } from "../area/featured";
 import { downloadCsv, type CsvAsk, type CsvKind, type CsvOutcome } from "./csv";
@@ -26,7 +27,7 @@ export type State = { status: "idle" } | { status: "busy"; key: string } | CsvOu
  * so and offer nothing that would fail.
  */
 export function DownloadControls({
-  service, meta, aoi, range, area, pictures,
+  service, meta, aoi, range, area, pictures, reference = null,
 }: {
   service: ServiceClient | null;
   meta: Meta;
@@ -34,6 +35,8 @@ export function DownloadControls({
   range: DateRange | null;
   area: string;
   pictures: PictureSpec[];
+  /** Story 8.4: the reference period on screen, for the analytics CSV. */
+  reference?: YearRange | null;
 }) {
   const [allSatellites, setAllSatellites] = useState(false);
   const [state, setState] = useState<State>({ status: "idle" });
@@ -42,7 +45,7 @@ export function DownloadControls({
   const go = async (key: string, kind: CsvKind, ask: Partial<CsvAsk> = {}) => {
     if (!service) return;
     setState({ status: "busy", key });
-    setState(await downloadCsv(service, meta, aoi, range, area, { kind, ...ask }));
+    setState(await downloadCsv(service, meta, aoi, range, area, { kind, ...ask }, undefined, reference));
   };
 
   return (

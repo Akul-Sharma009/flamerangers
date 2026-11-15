@@ -5,6 +5,7 @@ import {
   ProblemError, rangeRequest, type Calendar, type DateRange, type Meta, type ProblemCode, type ServiceClient,
 } from "../api/client";
 import type { AoiInput } from "./featured";
+import { withReference, type YearRange } from "../reference/period";
 
 export type AreaResult =
   | { status: "ready"; meta: Meta; calendar: Calendar }
@@ -18,9 +19,11 @@ export type AreaResult =
  * says; a null range then follows the new data_through.
  */
 export async function loadArea(
-  client: ServiceClient, aoi: AoiInput, known?: Meta, range: DateRange | null = null,
+  client: ServiceClient, aoi: AoiInput, known?: Meta, range: DateRange | null = null, sharedScaleWith?: AoiInput,
+  /** Story 8.4: the reference period; null (or the default) sends no option. */
+  reference: YearRange | null = null,
 ): Promise<AreaResult> {
-  const request = (m: Meta, a: AoiInput) => rangeRequest(m, a, range);
+  const request = (m: Meta, a: AoiInput) => withReference(rangeRequest(m, a, range, sharedScaleWith), reference, m);
   let meta: Meta | null = known ?? null;
   try {
     meta ??= await client.getMeta();

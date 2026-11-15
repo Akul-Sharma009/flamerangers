@@ -1,0 +1,8 @@
+.splicetoggle { margin: 8px 0; font: 12px var(--sans); color: var(--muted); }
+.splicebuttons { display: flex; flex-wrap: wrap; align-items: center; gap: 6px; }
+.splicebuttons button { font: 12px var(--sans); color: var(--ink); background: var(--paper); border: 1px solid var(--ink); padding: 3px 10px; min-height: 32px; cursor: pointer; }
+.splicebuttons button[aria-pressed="true"] { background: var(--ink); color: var(--paper); }
+.splicenote { margin: 6px 0; max-width: 70ch; }
+.splicechart { margin: 12px 0; }
+.splicechart figcaption { font: 600 13px var(--sans); color: var(--ink); margin: 0 0 4px; }
+.splicechart svg { max-width: 100%; height: auto; display: block; }

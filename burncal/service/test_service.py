@@ -1,4 +1,4 @@
-"""Story 1.3 service stub tests, contract 0.4.0.
+"""Story 1.3 service stub tests, contract 0.5.0.
 
 AC1: with no store, every contract endpoint answers from the fixture, and the
      answers validate against the contract (JSON, problem+json and the CSV spec).
@@ -38,8 +38,12 @@ RANGE = {"record_version": VERSION, "aoi": AOI, "start": "2002-07-01", "end": "2
 BODIES = {
     "/calendar": RANGE,
     "/cells": {"record_version": VERSION, "aoi": AOI, "month": "2015-09"},
+    "/raw_splice": RANGE,
+    "/season": {"record_version": VERSION, "aoi": AOI},
     "/hotspots.csv": RANGE,
     "/analytics.csv": RANGE,
+    "/season_to_date": {"record_version": VERSION, "aoi": AOI, "year": 2026},
+    "/world_cells": {"record_version": VERSION, "month": "2015-09"},  # Story 8.9
 }
 
 COMMON_KEYS = ["title", "aoi_id", "aoi_name", "aoi_area_km2", "aoi_geometry", "date_range",
@@ -213,3 +217,51 @@ def test_0_4_0_both_csv_headers_write_the_six_counting_limits_in_order(client):
         text = client.post(path, json=BODIES[path]).text
         got = [line.partition(": ")[2] for line in text.splitlines() if line.startswith("# counting_limits: ")]
         assert got == six, path
+
+
+def test_7_3_season_is_the_fixture_and_valid(client):
+    body = client.post("/season", json={"record_version": RANGE["record_version"], "aoi": RANGE["aoi"]}).json()
+    assert body == fixture("season.json")
+    assert_valid(body, "Season")
+
+
+def test_7_3_criterion_3_on_sumatra_fixture():
+    """Criterion 3 recomputed here from the Sumatra calendar fixture by plain code, not by core."""
+    import statistics
+    cal, season = fixture("calendar.json"), fixture("season.json")
+    ref = cal["reference_period"]
+    by = {}
+    for m in cal["months"]:
+        y, mo = int(m["month"][:4]), int(m["month"][5:])
+        if m["complete"] and m["count"] is not None and ref["start_year"] <= y <= ref["end_year"]:
+            by.setdefault(mo, []).append(m["count"])
+    medians = [statistics.median(by[mo]) for mo in range(1, 13)]
+    assert [x["median"] for x in season["typical"]["months"]] == [round(x, 1) for x in medians]
+    assert [x["median"] for x in season["typical"]["months"]] == [c["median"] for c in cal["calendar_month_medians"]]
+    assert [(x["low"], x["high"]) for x in season["typical"]["months"]] == [(min(by[mo]), max(by[mo])) for mo in range(1, 13)]
+    annual = sum(medians)
+    assert season["typical"]["peak_month"] == medians.index(max(medians)) + 1
+    assert season["typical"]["season_months"] == [i + 1 for i, x in enumerate(medians) if x >= 0.1 * annual]
+    assert season["typical"]["season_length"] == len(season["typical"]["season_months"])
+    for y in season["years"]:  # each full year: same definition on that year's own twelve counts
+        if None not in y["counts"]:
+            assert y["peak_month"] == y["counts"].index(max(y["counts"])) + 1
+            assert y["season_length"] == sum(c >= 0.1 * sum(y["counts"]) for c in y["counts"])
+        else:
+            assert y["peak_month"] is None
+
+
+def test_7_3_season_rejects_a_stale_version(client):
+    r = client.post("/season", json={"record_version": "19990101-00000000", "aoi": RANGE["aoi"]})
+    assert r.status_code == 410
+
+
+def test_7_5_season_to_date_is_the_fixture_and_valid_and_an_old_version_is_410(client):
+    body = client.post("/season_to_date", json={"record_version": VERSION, "aoi": AOI, "year": 2026}).json()
+    assert body == fixture("season_to_date.json")
+    assert_valid(body, "SeasonToDate")
+    assert body["start"] == 0 and body["resolution"] == "month"
+    assert body["band"] == {"lower_percentile": 10, "upper_percentile": 90}
+    r = client.post("/season_to_date", json={"record_version": "20261101-aaaaaaaa", "aoi": AOI, "year": 2026})
+    assert r.status_code == 410
+    assert client.post("/season_to_date", json={"record_version": VERSION, "aoi": AOI, "year": "x"}).status_code == 400

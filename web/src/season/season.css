@@ -1,0 +1,16 @@
+/* Story 7.4: the seasonal profile. Same ledger page: serif headings, ruled table, no cards. */
+.seasonpanel { border-top: 3px double var(--ink); padding-top: 8px; margin-top: 18px; }
+.seasonpanel h2 { font-family: var(--serif); font-size: 18px; font-weight: 600; margin: 0 0 2px; }
+.seasonpanel .kicker { font-size: 12px; color: var(--muted); letter-spacing: .05em; text-transform: uppercase; margin: 0 0 6px; }
+.seasonsentence { font: 600 14px var(--serif); margin: 0 0 8px; }
+.yearpick { font: 12px var(--sans); color: var(--muted); display: inline-flex; align-items: center; gap: 6px; min-height: 32px; }
+.yearpick select { font: 12px var(--sans); color: var(--ink); background: var(--paper); border: 1px solid var(--ink); padding: 3px 8px; min-height: 32px; }
+.seasonfig { margin: 6px 0; }
+.seasonchart { display: block; max-width: 100%; height: auto; font-family: var(--sans); }
+.seasonnote { font-size: 12.5px; line-height: 1.45; color: var(--muted); margin: 4px 0; }
+.seasontable { width: 100%; border-collapse: collapse; font: 12px var(--num); font-variant-numeric: tabular-nums; margin-top: 8px; }
+.seasontable caption { text-align: left; font: 600 13px var(--serif); padding-bottom: 3px; }
+.seasontable thead th { font: 11px var(--sans); color: var(--muted); text-align: left; border-bottom: 1px solid var(--ink); padding: 2px 4px; }
+.seasontable td, .seasontable tbody th { padding: 0 4px; border-bottom: 1px solid var(--faint); text-align: left; font-weight: 400; }
+.seasontable td { text-align: right; }
+.seasontable td:last-child { text-align: left; font-family: var(--sans); }

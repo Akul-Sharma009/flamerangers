@@ -31,12 +31,17 @@ SCHEMA_BY_PREFIX = {
     "problems/": "Problem",
     "meta": "Meta",
     "calendar": "Calendar",
+    "raw_splice": "RawSplice",
     "cells": "Cells",
+    "season_to_date": "SeasonToDate",  # before "season": the first matching prefix wins
+    "season": "Season",
     "hotspot_rows": "HotspotRowList",
+    "world_cells": "WorldCells",  # Story 8.9
 }
-REQUEST_ONLY = {"AoiInput", "CalendarRequest", "CellsRequest", "HotspotsCsvRequest"}
-ONE_DECIMAL = {"count", "median", "reference_mean", "total", "anomaly_count", "count_to_date", "same_days_median",
-               "difference", "mean_count", "threshold", "area_km2", "estimated_megabytes", "mean_abs_difference", "bias_pct"}
+REQUEST_ONLY = {"AoiInput", "CalendarRequest", "CellsRequest", "SeasonRequest", "HotspotsCsvRequest", "SeasonToDateRequest", "WorldCellsRequest"}
+ONE_DECIMAL = {"count", "cumulative", "band_low", "band_high", "median", "reference_mean", "total", "anomaly_count", "count_to_date", "same_days_median",
+               "difference", "mean_count", "threshold", "area_km2", "estimated_megabytes", "mean_abs_difference", "bias_pct", "low", "high", "counts"}
+FOUR_DECIMAL = {"p_value"}
 UNROUNDED = {"weight", "latitude", "longitude", "frp"}
 
 
@@ -207,7 +212,7 @@ def test_served_numbers_are_already_rounded():
     for name, doc in FIXTURES.items():
         for key, value in walk(doc):
             if isinstance(value, float) and key not in UNROUNDED:
-                limit = 1 if key in ONE_DECIMAL else 2
+                limit = 1 if key in ONE_DECIMAL else 4 if key in FOUR_DECIMAL else 2
                 if decimals(value) > limit:
                     bad.append((name, key, value))
     assert not bad, bad[:10]
@@ -251,6 +256,17 @@ def test_cells_fixture_matches_the_calendar_month():
             assert c["count"] >= 1.5 * c["threshold"]
         if c["flag_state"] == "not_flaggable":
             assert c["count"] < 10
+
+
+def test_8_9_world_cells_fixture_is_the_cells_fixture_for_its_covered_cells():
+    """Story 8.9: one implementation per number, so a cell reads the same in /cells and /world_cells."""
+    world, cells = FIXTURES["world_cells.json"], FIXTURES["cells.json"]
+    assert world["month"] == cells["month"] and world["coverage"] == FIXTURES["meta.json"]["coverage"]
+    by = {(c["sw_lon"], c["sw_lat"]): c for c in cells["cells"]}
+    assert {(c["sw_lon"], c["sw_lat"]) for c in world["cells"]} == set(by)
+    for c in world["cells"]:
+        a = by[(c["sw_lon"], c["sw_lat"])]
+        assert all(c[k] == a[k] for k in ("flag_state", "count", "threshold", "evidence_class", "provisional", "reference_year"))
 
 
 # ---- the other contract files ----

@@ -14,7 +14,7 @@ Updated: Sat 14 Nov 2026, late evening SGT (PRs 3 to 11 merged; the lead's revie
 | 1.3 Service stub | Done | On contract 0.2.0; Vercel trial measured (see below). Merged (PR 1) |
 | 2.1 C1 parameters | Done | In `burncal/core/params/` |
 | 2.2 C1 in core | Done | Full parity PASS on the lead's machine (worst miss 2.1e-9). Merged (PR 2) |
-| 1.5 Web shell | Review | Draws Sumatra from the fixture; committed. See below. |
+| 1.5 Web shell | Done | Acceptance criteria checked on the live site (15 Nov): https://burncal-web-eight.vercel.app. See below. |
 | 5.1 Scoring files and claims | Done | `evidence/claims.yaml` written and checked; the lead approved the wording. See below. |
 | 6.2 README and fresh-clone run | In progress | Lead's sections (web against the fixture, evidence rebuild) on `lead/6-2-readme`; the data owner's (run the service, rebuild one region) on `teammate/2.8-coverage` (6384b21). See below. |
 | 6.6 Pitch storyline | Done | Drafted in `docs/pitch/storyline.md` as a 7-slide deck. See below. |
@@ -719,6 +719,39 @@ The points where the plan left room are listed in `DECISIONS.md` ("Contract 0.2.
 | AC2 nothing fitted, no final-set data | The step reads only cleaned rows of 2022–2026 and the frozen params (hash in the file) |
 | AC3 a large difference goes to the lead | Siberia +17.3%, in `DECISIONS.md` and the report |
 
+## Story 6.4: six regions from inside the deployment (branch `teammate/6.4-host-bundled`, 15 Nov)
+
+- Option 1 works on Vercel Hobby: the whole version `20261113-19dfbcc8` (six regions, NOAA-20 headline) ships inside the function as a 3.5 GB large-functions bundle (`VERCEL_SUPPORT_LARGE_FUNCTIONS=1`, set for Preview and Production). Details and the numbers in `DECISIONS.md` (Story 6.4, 15 Nov).
+- Hobby refuses source files over 100 MB, so the deploy folder ships `points.parquet` as 15 parts and its `index.py` passes the glob as `points_location`. Answers hash identically to the single file.
+- Preview: p95 of 20 Sumatra calendars 1.04 s, whole extents up to 4.01 s, cold start 5.9 s, RSS 284 MB.
+- **In production since 15 Nov 14:34 SGT:** `burncal-stub.vercel.app` serves `20261113-19dfbcc8`, six regions, p95 1.14 s, whole extents up to 3.85 s. Rollback steps in `DECISIONS.md`.
+- Deploy folder recipe (outside the repo): as before, plus the whole version under `store/versions/<v>/` with `points/part-*.parquet` in place of `points.parquet`, the previous version beside it, and `store/CURRENT.json`. Redeploys upload only changed files.
+
+| Criterion | Test or evidence |
+| --- | --- |
+| Six regions served hosted | Preview: all six calendars 200, null only Jan–Jun 2002 and Dec 2026 |
+| p95 under 3 s | 20 Sumatra calendars, p95 1.04 s |
+| Whole extents under 10 s | 1.07–4.01 s |
+| Split points give the same answers | 12 areas plus one CSV year hash identically (single file against parts) |
+| Production and `/meta` | `/meta`: `19dfbcc8`, contract 0.4.0, six loaded, NOAA-20 headline; 20 calendars p95 1.14 s |
+| Version and CURRENT.json on Hugging Face | `19dfbcc8` uploaded (394 files, same count and bytes as local), then `store/CURRENT.json` = `19dfbcc8`, previous `d6f8b9e6` |
+
+### 6.4: free limits that could run out during judging (Vercel Hobby, read 15 Nov)
+
+- **What happens:** over any Hobby allowance, the team is paused and visitors get `503 DEPLOYMENT_PAUSED`; the usage resets after 30 days, but a paused team does not resume on its own (support, or move to Pro). So no limit may be crossed before 23:59 on judging days.
+- **Active CPU, 4 CPU-hours a month: the one to watch.** A calendar takes about 0.2 s (Sumatra) to 1 s (Southern Africa) of compute and each cold start about 1.4 s, so 4 hours is roughly 15,000 to 70,000 calendars. Usage before today is small.
+- **Provisioned memory, 360 GB-hours:** billed only while a request is in flight (2 GB instance, about 1 s per calendar: well over 100,000 calendars).
+- **Invocations 1M, CDN requests 1M, Fast Data Transfer 100 GB, Fast Origin Transfer 10 GB:** a calendar is 16 KB gzipped, so 10 GB is about 600,000 calendars; a year of Sumatra `/hotspots.csv` is 1.4 MB.
+- **Deployments 100 a day; each source file at most 100 MB** (hence the split points). Runtime logs keep 1 hour.
+- **Keep-warm:** Hobby cron runs at most once a day, so `.github/workflows/keep-warm.yml` asks `/meta` every 5 minutes (about 8,600 calls a month, negligible CPU). Whether it keeps an instance warm depends on how long Vercel keeps an idle instance, which the docs don't state; check the cold-start rate in the logs after a day.
+- **Not checked:** the account's usage so far this month (dashboard, Usage tab).
+
+## Epics 7 and 8 (15 Nov, branch `integrate/epics-7-8`)
+
+- Fifteen stories built in parallel and merged: 7.1–7.7 and 8.2–8.10 (7.8, 8.1 and 8.8 were already done). Contract 0.5.0 drafted: `/raw_splice`, `/season`, `/season_to_date`, `/world_cells`, `Calendar.trend`, and the `/calendar` options `reference_period` and `shared_scale_with`. All optional; old answers unchanged.
+- Checked on fixtures only. Before going live: the data owner agrees 0.5.0, redeploys the service, then the web (service first). Then check each new panel on the live site.
+- Details, choices and open items: `DECISIONS.md` ("Epics 7 and 8 built in parallel").
+
 ## Story 2.9: the current month, refreshed daily (branch `teammate/2.9-daily-refresh`, 15 Nov)
 
 - `burncal.pipeline.refresh` brings every region up to the day before FIRMS's last NRT day. It asks FIRMS which days each source has, re-downloads only the source-year files whose span changed (daily: MODIS NRT and NOAA-20 NRT for 2026), links every other file, and rebuilds only the years that changed. Then it publishes all six regions as one new version. Everything new goes under one new folder (`store/refresh/<date>/`); nothing is overwritten.
@@ -810,6 +843,7 @@ Checks on the merged master: `uv run pytest` 310 passed, 1 skipped (Sumatra reco
 ## Story 8.1: shareable link
 
 - Merged 15 Nov. `web/src/share.ts` encodes and reads the area, dates and view in the hash (`#/?area=sumatra&from=2015-01-01&to=2020-12-31&view=table&measure=anomaly`); `CalendarPage` reads it on first load and rewrites it with `replaceState`. No new wording; no Copy link button; no link length limit (approved). Details and the length measurements: DECISIONS.md.
+- 15 Nov fix: an address edited in an open tab (or Back and Forward) now loads what it names (`addressChange` in `share.ts`; `CalendarPage` remounts on `hashchange`). Checked against the live service. Web changed after the deployed build, so the web needs a rebuild and redeploy.
 
 ## Story 8.8: featured-area gallery
 
