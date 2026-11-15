@@ -619,6 +619,11 @@ Checks on the merged master: `uv run pytest` 310 passed, 1 skipped (Sumatra reco
 3. Contract 0.4.0 merged into master on 15 Nov, with the data owner's agreement (`DECISIONS.md`, "Contract 0.4.0 drafted by the lead"). It touches `burncal/service/answers.py` and `app.py`, which `teammate/2.8-coverage` also edits: expect conflicts there when 2.8 merges.
 4. Low items from the reviews, not yet acted on: `share_of_max` can use a part-year as the 100% bar; a null `frp` would be written as `nan`; `validated_satellite` is true for months outside the record; `anomaly_count` can be `-0.0`; with `year` set, `/hotspots.csv` has no row limit; `/cells` serves threshold 0.0 after `data_through`; `compare_tuning` prints "fire days".
 5. Lead: Story 3.4 (the dates tab) is at review on `claude/3-4-dates-ac58f0`, with sentences to add in a contract bump; Stories 5.5 and 5.6 go below the head-to-head table on the evidence page.
+6. **Lead: final reviews for Story 6.3 (planned 15 Nov).** Gitleaks over the whole history ran on 15 Nov at 12:28 SGT: 85 commits on every branch, including `teammate/2.8-coverage`, no leaks. Only `.env.example` and `web/.env.example` were ever committed, and `.env` is git-ignored. Still to run, once each, by the lead:
+   - `/security-review` and the Codex review (`/codex:review`) on master.
+   - **When:** after `teammate/2.8-coverage` is merged and the deploy settings (host config, `CORS_ORIGINS`, environment variables) are in master, since those are the riskiest parts for security and neither review would see them earlier.
+   - **Latest:** about 18:30 SGT, to leave time to fix findings before the 21:00 build stop. If 2.8 or the deploy is not in by then, run both on master as it stands and review the 2.8 changes on their own when they land.
+   - Rerun gitleaks after 2.8 merges if the branch gains new commits.
 
 ## Checkpoints (flags, not deadlines; times in SGT)
 
@@ -631,7 +636,7 @@ Checks on the merged master: `uv run pytest` 310 passed, 1 skipped (Sumatra reco
 | Sun 09:00 | The six evaluated regions are published (Story 2.8) | Data owner |
 | Before any global run | One global year is measured for size, download time and quota | Lead |
 | Sun 15:00 | Stories 6.5 and 6.1 are started | Lead, data owner |
-| Sun 15:00 | The planning documents the evidence view links to are copied into `docs/planning/`, after the lead has read each | Lead. Copied 15 Nov: the lead's session pre-screened the three files and the lead approved the copy with two sentences shortened (`docs/planning/README.md`). The security review, gitleaks scan of the history and Codex review are still open. |
+| Sun 15:00 | The planning documents the evidence view links to are copied into `docs/planning/`, after the lead has read each | Lead. Copied 15 Nov: the lead's session pre-screened the three files and the lead approved the copy with two sentences shortened (`docs/planning/README.md`). Gitleaks over the history: no leaks (12:28). The security review and Codex review are planned in "Next", item 6. |
 
 ## Things to keep in mind
 
