@@ -45,7 +45,6 @@ export function GlobeMap({ cells, label, onSelect }: { cells: WorldCells | null;
         topo.feature(atlas, atlas.objects.land!) as unknown as { features: { geometry: { type: string; coordinates: unknown } }[] },
       );
       const ink = token("--ink", "#1d1a16");
-      const paper = token("--paper", "#f6f0e4");
       const tint = token("--c3", "#b88a4f");
       const map = new maplibregl.Map({
         container: container.current,
@@ -58,13 +57,17 @@ export function GlobeMap({ cells, label, onSelect }: { cells: WorldCells | null;
             marks: { type: "geojson", data: { type: "FeatureCollection", features: [] } },
           },
           layers: [
-            { id: "paper", type: "background", paint: { "background-color": token("--faint", "#e9e0cf") } },
-            { id: "land", type: "fill", source: "land", paint: { "fill-color": paper } },
+            // Three tones so the globe's edge always shows: space is the page colour (the container),
+            // the ocean a step darker, land a step lighter.
+            { id: "ocean", type: "background", paint: { "background-color": "#ddd2bd" } },
+            { id: "land", type: "fill", source: "land", paint: { "fill-color": "#fcf9f2" } },
             { id: "coast", type: "line", source: "land", paint: { "line-color": token("--muted", "#6b6257"), "line-width": 0.5 } },
             {
               id: "cell-fill", type: "fill", source: "cells",
               paint: {
                 "fill-color": tint,
+                // No antialiasing: neighbouring translucent cells otherwise overlap by a hairline and draw a grid.
+                "fill-antialias": false,
                 "fill-opacity": ["match", ["get", "flag_state"], "outside_record", 0, 0.18],
               },
             },

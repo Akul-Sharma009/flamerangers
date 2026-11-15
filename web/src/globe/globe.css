@@ -10,7 +10,7 @@
 .globe-controls button:disabled, .globe-download button:disabled { opacity: 0.4; cursor: default; }
 .globe-controls select { font-family: var(--num); font-variant-numeric: tabular-nums; font-size: 13px; min-height: 32px; padding: 2px 4px; border: 1px solid var(--rule); background: var(--paper); color: var(--ink); }
 .globe-controls :focus-visible, .globe-download :focus-visible, .globe-table a:focus-visible { outline: 2px solid var(--ink); outline-offset: 2px; }
-.globe-map { width: 100%; height: min(70vh, 620px); margin: 8px 0; background: var(--faint); border: 1px solid var(--rule); }
+.globe-map { width: 100%; height: min(70vh, 620px); margin: 8px 0; background: var(--paper); border: 1px solid var(--rule); }
 .globe-key { list-style: none; margin: 6px 0; padding: 0; display: flex; flex-wrap: wrap; gap: 4px 16px; font-size: 12px; }
 .globe-key li { display: flex; align-items: center; gap: 6px; }
 .gk rect { fill: var(--c3); fill-opacity: 0.18; stroke: var(--rule); stroke-width: 0.8; }
