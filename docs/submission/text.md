@@ -32,7 +32,7 @@ Words: 7. The challenge title as the brief gives it.
 What the organisers ask for: the solution, the problem it addresses, and its impact.
 
 <!-- field:summary -->
-Every haze season, people in Singapore ask whether Sumatra is burning more than usual [pending: Story 6.1, a checked source on transboundary haze]. Answering that needs a record that compares this month with the same months of past years. Satellites have counted hotspots since 2002, but the record changes instrument: Aqua MODIS, then VIIRS, a finer sensor that counts hotspots differently [pending: Story 6.1, product documentation]. Joined as they are, the years after the change do not read on the same scale as the years before.
+Every haze season, people in Singapore ask whether Sumatra is burning more than usual (Koplitz et al. 2016). Answering that needs a record that compares this month with the same months of past years. Satellites have counted hotspots since 2002, but the record changes instrument: Aqua MODIS, then VIIRS, a finer sensor that counts hotspots differently (Giglio et al. 2016; Schroeder et al. 2014). Joined as they are, the years after the change do not read on the same scale as the years before.
 
 We built a public web calendar of satellite hotspots: every month from July 2002 to now for a chosen land area, coloured on one scale. It holds real Aqua MODIS counts through December 2021 and, from January 2022, VIIRS counts converted to Aqua-equivalent by one frozen method, C1. The change is drawn as a ruled line, not hidden. Sumatra opens by default, and a current-month card sets this month so far against the same days of every past year.
 
@@ -45,7 +45,7 @@ C1 was chosen by a rule fixed before scoring and tested on held-back years again
 The impact is one public link, with no login, where haze and air-quality desks, scientists who study burning and land managers can read two decades of hotspots on one scale: https://burncal-web-eight.vercel.app. Today the published record covers the six evaluated regions; the rest of the world and a current month refreshed daily [pending: Story 2.9] are still to come.
 <!-- /field:summary -->
 
-Words: 327.
+Words: 325.
 
 ## 4. Project Demo
 

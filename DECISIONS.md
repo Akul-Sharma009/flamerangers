@@ -1151,3 +1151,10 @@ Each entry has: a status (**ASSUMED** or **TESTED**), its evidence, and a "revis
 - **Status:** ASSUMED.
 - **Decision:** Neither Vercel project is linked to the GitHub repo; the team decided against it. The service must not be linked in any case: the repo has no store data, so a Git build would serve nothing. The service is deployed from `tools/build_deploy.py`'s folder (by hand, or by the daily workflow); the web is built with `VITE_SERVICE_BASE_URL=https://burncal-stub.vercel.app` and deployed by hand after each web change on master. The hosted functions run in iad1, not sin1. The build state the workflow reads (1,033 files: raw, clean, record, land outline) is in the store dataset's `state/` folder, checked file by file against the local copy.
 - **Revisit if:** the web should deploy itself on every merge (then the repo owner installs the Vercel GitHub app and the web project is linked with root `web`).
+
+## Story 6.1: the summary's two source marks filled (15 Nov 2026)
+
+- **Status:** TESTED (sources checked against Crossref and the publisher's page; text checks pass).
+- **Decision:** The haze sentence cites Koplitz et al. (2016), Environmental Research Letters 11(9) 094023: its abstract names fires in Sumatra and Kalimantan and models the smoke reaching Indonesia, Malaysia and Singapore. Singapore's own pages (haze.gov.sg, the NEA FAQ) say the haze comes from regional forest and peat fires but name no island, so they are listed as context, not as the source. The instrument sentence cites the product papers already in the references (Giglio et al. 2016 for MODIS, Schroeder et al. 2014 for VIIRS). The summary's stated word count is now 325.
+- **Evidence:** `docs/submission/test_text.py` (5 passed), `evidence/wording.py` and `evidence/build.py --check` passed.
+- **Revisit if:** the lead prefers a Singapore government source; then one that names Sumatra is still needed.
