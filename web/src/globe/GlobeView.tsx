@@ -182,6 +182,7 @@ export function GlobeView({ meta, loadCells = defaultLoader, loadEvidence = defa
       </div>
 
       {cells ? (
+        <div className="table-scroll" role="region" aria-label={`Flagged cells, ${formatYearMonth(cells.month)}`} tabIndex={0}>
         <table className="globe-table">
           <caption>Flagged cells, {formatYearMonth(cells.month)}, with links to their calendars</caption>
           <thead>
@@ -208,6 +209,7 @@ export function GlobeView({ meta, loadCells = defaultLoader, loadEvidence = defa
             ))}
           </tbody>
         </table>
+        </div>
       ) : null}
     </section>
   );

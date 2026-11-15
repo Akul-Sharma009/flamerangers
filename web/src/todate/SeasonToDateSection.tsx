@@ -78,6 +78,7 @@ export function SeasonToDateSection({
           {words.start ? <p className="stdnote">{words.start}</p> : null}
           <details className="stdtable">
             <summary>Table of the same figures</summary>
+            <div className="table-scroll" role="region" aria-label={`${words.title} (${season.unit_label})`} tabIndex={0}>
             <table>
               <caption>{words.title} ({season.unit_label})</caption>
               <thead>
@@ -97,6 +98,7 @@ export function SeasonToDateSection({
                 ))}
               </tbody>
             </table>
+            </div>
           </details>
           <PictureDownload
             key={key}

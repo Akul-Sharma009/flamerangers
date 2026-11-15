@@ -1159,6 +1159,34 @@ Each entry has: a status (**ASSUMED** or **TESTED**), its evidence, and a "revis
 - **Evidence:** `docs/submission/test_text.py` (5 passed), `evidence/wording.py` and `evidence/build.py --check` passed.
 - **Revisit if:** the lead prefers a Singapore government source; then one that names Sumatra is still needed.
 
+## Story 2.9 AC2: the first hosted run passed (15 Nov 2026)
+
+- **Status:** TESTED.
+- **Decision:** The first run on master failed at the state download, before any change: `hf` 1.6.0 imports `click` without declaring it, and `hf download` reads a second pattern after one `--include` as a file name. The workflow now installs `click` with the CLI and repeats `--include`. Run from the fix branch (`gh workflow run --ref`), it passed every step: state fetched, refreshed and published on the recorded pass with no private case, numbers checked, version and state uploaded, deployed to production, production checked, then `CURRENT.json` switched.
+- **Evidence:** run 43709476744 (15 Nov 19:33–19:55 SGT). It published `20261114-072d10c1`: FIRMS's last NRT day was still 15 Nov, so the data is through 14 Nov as before and the rows match (79,881,504); the version changed only because the code revision did. The manifest records the recorded pass. Production: `/meta` on the new version, all six regions 200 with nulls only Jan–Jun 2002 and Dec 2026, 20 Sumatra calendars p95 1.36 s. The dataset's `CURRENT.json` names it, with `20261114-5a585fe8` as previous.
+- **Revisit if:** a run fails; each failure stops before `CURRENT.json` moves, so the last good version keeps serving.
+
+## Story 6.2: fresh clone of the final master passes (15 Nov 2026)
+
+- **Status:** TESTED.
+- **Decision:** A clean clone of master at `bf17ab7`, set up only as the README says (`.env` from `.env.example`, `uv sync`, `npm install`), with no store, no parity case and no key, passes every check. Nothing depends on the data owner's machine.
+- **Evidence:** import check passed; `uv run pytest` 526 passed, 22 skipped (all skips need the git-ignored store or the private parity case, as each says); evidence and wording checks passed (the wording check reads `web/dist`, so it runs after the web build); the recorded parity pass matches the clone's `burncal/core`; the fixture service answers `/meta` (contract 0.5.0, placeholder true); web on Node 26.13: 29 files, 394 tests passed, build passed; no local path or account name in any tracked file; gitleaks over 107 commits: no leaks; no `.env`, store or parquet file is tracked.
+- **Revisit if:** master changes after the build stop.
+
+## Six regions for the submission; the deeper views checked live (15 Nov 2026)
+
+- **Status:** TESTED (live check); the region scope is decided.
+- **Decision:** The submission and judging run on the six evaluated regions; no world store before the build stop (the data owner, 15 Nov, on the 2.8 AC3 measurement: about 65 GB of disk at once, more than the 5 GB hosting bundle, and no tested accuracy outside the six regions). The "Deeper views" paragraph of the submission was checked on the live site and its pending mark removed.
+- **Evidence:** live site, 15 Nov about 20:15 SGT, Sumatra: the raw splice view switches (its note names the January 2012 step); comparison years 2012–2025 change the card's median (77 to 38.6 hotspots); two areas side by side load with one colour scale (Sumatra and Australian grassland); picking September 2015 draws its hotspots on a map with the flagged cells legend; the seasonal profile, the running total with the 10th–90th percentile band, and the trend test with its step caution are on the page; choosing "Riau, Indonesia" by name loads its calendar (88,117.8 km²); the globe loads (checked after the 0.5.0 deploy). Vercel usage for the cycle 16 Oct to 15 Nov: Active CPU 43 min 8 s of 4 h, 892 function invocations, 178 MB of 100 GB transfer.
+- **Revisit if:** a world store is built after judging.
+
+## Phone width and 400 answers fixed before the build stop (15 Nov 2026)
+
+- **Status:** TESTED.
+- **Decision:** At 375 px three pages scrolled sideways on the live site: the evidence page (616 px: its one-column grid grew to its widest child, and a 64-character hash did not wrap), the globe page (404 px: the flagged-cells table) and the calendar (the season-to-date "table of the same figures"). The evidence grid column may now shrink below its tables (`minmax(0, 1fr)`), the hash wraps, and each wide table scrolls inside its own labelled, focusable box (`.table-scroll`, the existing `h2h-scroll` pattern). Separately, a 400 answer now names the version being served and its data-through date; it used to copy the fixture's placeholder values.
+- **Evidence:** `web/src/phone.test.tsx` (`test_3_10_*`, 3 tests); web 397 tests, typecheck and build passed; `test_review_a_400_problem_names_the_served_version`; full Python suite 549 passed with the parity case; the recorded parity pass still matches (`burncal/core` unchanged).
+- **Revisit if:** a new table or panel is added to the web.
+
 ## UI fixes after the lead's review (15 Nov 2026)
 
 - **Status:** TESTED by the lead in the browser (fixture mode, 15 Nov). Not yet checked against the live service. The full list with each fix's spec is in the lead's local notes; the decisions that change earlier ones are below.

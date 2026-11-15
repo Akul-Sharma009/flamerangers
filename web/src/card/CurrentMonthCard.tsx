@@ -139,6 +139,7 @@ function Ruler({ data, width: fixedWidth }: { data: RulerData; width?: number })
       ) : null}
       <details className="rulertable">
         <summary>Same days in each year, as a table</summary>
+        <div className="table-scroll" role="region" aria-label="Same days in each year" tabIndex={0}>
         <table>
           <thead>
             <tr>
@@ -161,6 +162,7 @@ function Ruler({ data, width: fixedWidth }: { data: RulerData; width?: number })
             ) : null}
           </tbody>
         </table>
+        </div>
         {data.median ? <p>{data.median.label}</p> : null}
       </details>
     </div>

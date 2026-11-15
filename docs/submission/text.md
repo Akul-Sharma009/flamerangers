@@ -42,10 +42,10 @@ C1 was chosen by a rule fixed before scoring and tested on held-back years again
 
 > **[flag-precision-vs-b]** C1 failed the flag-precision test against (b): 0.704 against 0.736. Under the rule fixed beforehand the outcome was "nothing beat one global factor", and the project lead kept C1 as a recorded deviation after seeing the scores.
 
-The impact is one public link, with no login, where haze and air-quality desks, scientists who study burning and land managers can read two decades of hotspots on one scale: https://burncal-web-eight.vercel.app. Today the published record covers the six evaluated regions; the rest of the world and a current month refreshed daily [pending: Story 2.9] are still to come.
+The impact is one public link, with no login, where haze and air-quality desks, scientists who study burning and land managers can read two decades of hotspots on one scale: https://burncal-web-eight.vercel.app. Today the published record covers the six evaluated regions and is refreshed every day from near-real-time data; the rest of the world is still to come.
 <!-- /field:summary -->
 
-Words: 325.
+Words: 324.
 
 ## 4. Project Demo
 
@@ -74,7 +74,7 @@ What the organisers ask for: approach, tools, technologies and NASA datasets use
 <!-- field:details -->
 **What it does.** The calendar page draws a year-by-month grid for the chosen land area, newest year at the top, each month coloured by its hotspot count on one scale. Year totals with their ranks end each row and calendar-month medians foot each column. The switch from Aqua MODIS to converted VIIRS, between December 2021 and January 2022, is a ruled line with a note. Months outside the record are hatched, so they never look like zero; near-real-time, incomplete and range-cut months carry marks that do not rely on colour. Every month shows its exact served count and provenance on hover, focus or tap, and the same data is available as a table. The reader picks a featured area, draws one on a map, or types its coordinates, and can narrow the dates. A current-month card gives the count so far, the median for the same days of past years and a ruler with one mark per past year. An evidence page states the outcome in plain words and holds a head-to-head table of every scored method. The service also writes an analytics CSV and a hotspots CSV for any search.
 
-**Deeper views.** The reader can switch the calendar to the raw splice, Aqua MODIS and then Suomi NPP joined with no conversion, to see the step the record avoids. Below it sit the typical season (the median and range for each calendar month, the peak month and the season length) and this year's running total against the 10th to 90th percentile band of past years. Picking a month shows its hotspots on a map with the flagged 1° cells outlined. A country or province can be chosen by name, the comparison years can be changed, and two areas can be put side by side on one colour scale. A Mann-Kendall trend test on the annual totals comes with the caution that a step at the sensor switch can look like a trend, and a globe shows the 1° cells flagged as unusual in a month, in the regions the record covers. [pending: checked on the live site after the redeploy]
+**Deeper views.** The reader can switch the calendar to the raw splice, Aqua MODIS and then Suomi NPP joined with no conversion, to see the step the record avoids. Below it sit the typical season (the median and range for each calendar month, the peak month and the season length) and this year's running total against the 10th to 90th percentile band of past years. Picking a month shows its hotspots on a map with the flagged 1° cells outlined. A country or province can be chosen by name, the comparison years can be changed, and two areas can be put side by side on one colour scale. A Mann-Kendall trend test on the annual totals comes with the caution that a step at the sensor switch can look like a trend, and a globe shows the 1° cells flagged as unusual in a month, in the regions the record covers.
 
 Each month also names every satellite that fed it, with its quality and days, and says when it falls outside the validation; an area the conversion was not tuned on carries a caveat beside the map. An anomaly view recolours each month by its difference from the reference-period mean and marks months with flagged 1° cells. Rankings list the most active months and years, and selecting one highlights it on the calendar. The six evaluated regions are one click away, and the page's link restores the area, dates and view. Both CSVs, and pictures of the calendar and the ruler, download from the page, which works by keyboard and at phone width. The evidence page adds every candidate's score, what an Aqua-only record would have shown, and what the scores can't show, including a reported-only comparison of NOAA-20 with Suomi NPP; an about page explains the data and its limits.
 
@@ -113,7 +113,7 @@ The record holds satellite hotspot counts over land. It holds no smoke, haze, ai
 **NASA datasets.** MODIS and VIIRS hotspots from NASA FIRMS, and the VIIRS swath product from NASA LP DAAC. Named in field 7.
 <!-- /field:details -->
 
-Words: 1295. Long; if the form has a limit, cut the paragraph after "What it does", "What exists today" and the `comparator-vs-b` claim first.
+Words: 1286. Long; if the form has a limit, cut the paragraph after "What it does", "What exists today" and the `comparator-vs-b` claim first.
 
 ## 7. NASA data
 
