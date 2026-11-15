@@ -92,3 +92,4 @@ main.evidence { display: grid; grid-template-columns: minmax(0, 7fr) minmax(0, 5
 .skip:focus { left: 8px; top: 8px; }
 .mast nav a { display: inline-block; padding: 7px 2px; }
 @media (max-width: 800px) { .mast nav a { padding: 9px 2px; } }
+.linknote { margin: 0 0 12px; padding: 8px 10px; border-left: 3px solid var(--rule); font-size: 13px; line-height: 1.4; }

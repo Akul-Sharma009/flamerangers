@@ -6,7 +6,7 @@ import { GAP, layoutGrid, move, type Layout } from "./layout";
 import { asSentence, buildGridModel, detailAt, type Calendar, type CellModel, type GridModel, type GridSentences, type Measure, type Meta, type Pos } from "./model";
 import "./grid.css";
 
-type View = "grid" | "table";
+export type View = "grid" | "table";
 
 const key = (p: Pos) => `${p.r}-${p.c}`;
 const same = (a: Pos | null, b: Pos) => a !== null && a.r === b.r && a.c === b.c;
@@ -22,7 +22,7 @@ const same = (a: Pos | null, b: Pos) => a !== null && a.r === b.r && a.c === b.c
  */
 export function CalendarGrid({
   calendar, meta, width: fixedWidth, initialView = "grid", initialMeasure = "count", initialActive = null,
-  measure: heldMeasure, onMeasureChange, onPick, sentences, highlight = null,
+  measure: heldMeasure, onMeasureChange, view: heldView, onViewChange, onPick, sentences, highlight = null,
 }: {
   calendar: Calendar;
   meta: Meta;
@@ -32,6 +32,9 @@ export function CalendarGrid({
   initialActive?: Pos | null;
   measure?: Measure;
   onMeasureChange?: (m: Measure) => void;
+  /** Story 8.1: grid or table held by the page so the address can follow it. */
+  view?: View;
+  onViewChange?: (v: View) => void;
   onPick?: (month: string) => void;
   /** The contract's sentences; tests pass their own. Default: messages.yaml. */
   sentences?: GridSentences;
@@ -40,7 +43,12 @@ export function CalendarGrid({
 }) {
   const wrapRef = useRef<HTMLDivElement>(null);
   const [measured, setMeasured] = useState(0);
-  const [view, setView] = useState<View>(initialView);
+  const [ownView, setOwnView] = useState<View>(initialView);
+  const view = heldView ?? ownView;
+  const setView = (v: View) => {
+    setOwnView(v);
+    onViewChange?.(v);
+  };
   const [ownMeasure, setOwnMeasure] = useState<Measure>(initialMeasure);
   const measure = heldMeasure ?? ownMeasure;
   const setMeasure = (m: Measure) => {

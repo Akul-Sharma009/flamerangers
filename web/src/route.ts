@@ -10,7 +10,8 @@ export const ROUTES = [
 export type RouteId = (typeof ROUTES)[number]["id"];
 
 export function routeFromHash(hash: string): RouteId {
-  const found = ROUTES.find((r) => r.hash === hash);
+  // Story 8.1: the calendar's state rides after a "?" ("#/?area=sumatra"); the route is what precedes it.
+  const found = ROUTES.find((r) => r.hash === hash.split("?")[0]);
   return found ? found.id : "calendar";
 }
 

@@ -654,3 +654,7 @@ Checks on the merged master: `uv run pytest` 310 passed, 1 skipped (Sumatra reco
 ## Story 3.10: accessibility and phone-width pass
 
 - Done in the worktree, not committed. Anomaly view: a bar marks below-mean classes (grid, table, legend) so the sides differ in greyscale. 32 px targets, picker arrow keys and Escape, a skip control, evidence table names. Checks: tsc, vitest (288), build, wording.py passed. Details and the `TODO(skip_link)` wording: DECISIONS.md.
+
+## Story 8.1: shareable link
+
+- Done in the worktree, not committed. `web/src/share.ts` encodes and reads the area, dates and view in the hash (`#/?area=sumatra&from=2015-01-01&to=2020-12-31&view=table&measure=anomaly`); `CalendarPage` reads it on first load and rewrites it with `replaceState`. No new wording; no Copy link button. Details and the length measurements: DECISIONS.md.

@@ -851,3 +851,11 @@ Each entry has: a status (**ASSUMED** or **TESTED**), its evidence, and a "revis
 - **Wording (TODO(skip_link)), approved by the lead on 15 Nov:** "Skip to the page content". No contract sentence exists. It is a button because the hash is the router.
 - **Not fixed:** grid cells stay 18 px wide at 375 px (the table view is the phone alternative); MapLibre's own animation under reduced motion was not traced.
 - **Revisit if:** a screen-reader pass finds the below-mark bar noisy, or the contract adds a skip sentence.
+
+## Story 8.1: shareable link (15 Nov 2026)
+
+- **Status:** TESTED (unit tests for each round trip, the fields held and bad links; browser look at 375 px and the default pane width in fixture mode). Tier 3. Link format approved by the lead on 15 Nov, with no length limit: the part after `#` never reaches a server and browsers accept far longer, so the only risk is a chat app shortening a pasted link.
+- **Decision:** the address is `#/?area=<featured id>` or `#/?shape=<geometry>`, plus `from`, `to`, `view=table` and `measure=anomaly` only when they differ from the default. The picked cell and the highlighted ranking are not in the link (the criteria name only area, dates and view). The address is rewritten with `replaceState` as the state changes, so no history entries.
+- **Geometry:** `P`/`M`, polygons joined by `/`, rings by `~`, vertices by `;`, `lon,lat` in each. Coordinates are written exactly as held; the app rounds none, and rounding would change the area shared. Measured: the longest featured area is 163 characters; the corners form (5 vertices) is about 60; 100 vertices at full precision made a 3,770-character link (above 2,000).
+- **Bad links:** unreadable area or unknown id shows `invalid_aoi`; a coordinate outside WGS84 shows the out-of-range sentence; unreadable or out-of-order dates, and dates outside the served record (checked once /meta loads), show the existing date sentences and load the whole record. An unknown view or measure falls back silently (no contract sentence).
+- **Revisit if:** drawn or vertex-typed areas can exceed about 40 vertices (the 2,000-character mark at full precision): then cap the link (leave the area out and say so) or round to 5 decimals (about 1 m). The lead chooses; no limit is set here. Also if the lead wants a Copy link button (not built).
