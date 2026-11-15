@@ -48,12 +48,12 @@ development_status:
   2-2-c1-in-core-matching-the-scored-predictions-t: done
   2-3-ingest-and-cleaning-for-one-extent-t: done
   2-4-weights-and-the-harmonized-record-t: done
-  2-5-grids-thresholds-and-flags-t: in-progress  # merged; AC2 Australia and Amazon results not recorded; static-input check open
-  2-6-publish-a-version-and-serve-real-counts-t: review  # AC6 measured on Vercel: p95 1.09 s
+  2-5-grids-thresholds-and-flags-t: done  # closed by the lead 15 Nov; AC2 and static-input check recorded in DECISIONS.md
+  2-6-publish-a-version-and-serve-real-counts-t: done  # closed by the lead 15 Nov; AD-2 gate and AC6 hosted p95 done
   2-7-hotspots-for-any-search-t: done
   2-8-coverage-for-the-evaluated-regions-then-the-world-t: in-progress  # merged to master (PR 12); six regions published and on the store, production serves all six from the bundle (Story 6.4); world waits for the lead
   2-9-the-current-month-refreshed-daily-t: backlog
-  2-10-noaa-20-against-suomi-npp-reported-only-t: review  # merged (PR 15); headline served by /meta in production (20261113-19dfbcc8); Siberia +17.3% reported to the lead
+  2-10-noaa-20-against-suomi-npp-reported-only-t: done  # closed by the lead 15 Nov; merged (PR 15), headline served by /meta; Siberia +17.3% reported
   epic-2-retrospective: optional
 
   epic-3: in-progress
