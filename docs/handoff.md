@@ -719,6 +719,24 @@ The points where the plan left room are listed in `DECISIONS.md` ("Contract 0.2.
 | AC2 nothing fitted, no final-set data | The step reads only cleaned rows of 2022–2026 and the frozen params (hash in the file) |
 | AC3 a large difference goes to the lead | Siberia +17.3%, in `DECISIONS.md` and the report |
 
+## Story 2.9: the current month, refreshed daily (branch `teammate/2.9-daily-refresh`, 15 Nov)
+
+- `burncal.pipeline.refresh` brings every region up to the day before FIRMS's last NRT day. It asks FIRMS which days each source has, re-downloads only the source-year files whose span changed (daily: MODIS NRT and NOAA-20 NRT for 2026), links every other file, and rebuilds only the years that changed. Then it publishes all six regions as one new version. Everything new goes under one new folder (`store/refresh/<date>/`); nothing is overwritten.
+- When FIRMS adds standard days, the standard file and the NRT file both change, so that year is rebuilt with standard rows (standard beats NRT per satellite-day, AD-6) and the version changes.
+- A 2026-only rebuild from the same raw files equals the full build in all six regions: every clean, record and grid file identical (Southern Africa 87 s, the rest 6–17 s).
+- Real run to 14 Nov (15 Nov, 6 min 12 s for six regions): FIRMS NRT ran to 15 Nov, so `data_through` is 14 Nov. Re-downloaded only MODIS NRT and NOAA-20 NRT 2026 per region; rebuilt 2026 only. Published `20261114-5a585fe8`, **in production since 15 Nov 16:13 SGT**: parity PASS (worst 2.9e-10), `check_numbers` 0 failures in all six regions, every region calendar 200 with nulls only Jan–Jun 2002 and Dec 2026, Sumatra November 231.4 → 232.5. Local: 20 Sumatra calendars p95 0.17 s, largest whole extent 0.85 s. Production (from Singapore): 20 Sumatra calendars p50 0.98 s, p95 1.16 s; whole extents 0.87–3.88 s; one year of `/hotspots.csv` 1.11 s; cold start 6.2 s, RSS 284 MB.
+- **Deploy change:** the bundle now carries only the current version. Two six-region versions came to 5.1 GB, over the 5 GB large-function limit; a request naming the previous version gets `410 version_superseded` (tested). Points ship in 16 parts under 100 MB; 12 areas and one CSV year answer identically to the single file. Production and previews run in **iad1**, not sin1.
+- Hugging Face: `store/versions/20261114-5a585fe8` uploaded (394 files, as local), then `store/CURRENT.json` points at it (previous `20261113-19dfbcc8`).
+- **Not done:** the hosted daily job (AC2). It needs a recorded parity pass (publish without the private case), three GitHub secrets (FIRMS key, Hugging Face write token, Vercel token; the lead adds them), and the deploy-folder build in the repo. Until then the refresh runs on the data owner's machine.
+
+| Criterion | Test or evidence |
+| --- | --- |
+| AC1 current month in the record, `data_through` at most 2 days old | `test_2_9_ac1_refresh_fetches_only_the_files_whose_span_changed`, `test_2_9_ac1_availability_gives_standard_ends_and_last_full_nrt_day`; real run above |
+| AC1 a year rebuilt alone equals the full build | `test_2_9_ac1_clean_one_year_equals_that_year_of_the_whole_build`, `test_2_9_ac1_convert_one_year_equals_that_year_of_the_whole_build`; six-region proof above |
+| AC1 a partial download is never published | `test_2_9_ac1_an_incomplete_fetch_stops_the_refresh` |
+| AC2 daily job reads the key from CI secrets, never logs it | Not done (needs the lead: secrets). The key stays in `firms.py`, which never prints URLs |
+| AC3 standard days replace NRT days, version changes | `test_2_9_ac3_standard_days_replace_nrt_days_as_they_arrive`; the version hash covers the raw files |
+
 ## Next
 
 From the lead's review of PRs 3 to 11 and the Codex adversarial review of the prototype (both 14 Nov; Codex: needs attention, three high findings, all folded into item 1). Merged with two fixes: `/meta` from a store now says contract 0.3.0 (a test ties it to `openapi.yaml`), and a hotspot search with no record file in its range gives the header and no rows instead of a 500.
