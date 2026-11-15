@@ -42,10 +42,10 @@ C1 was chosen by a rule fixed before scoring and tested on held-back years again
 
 > **[flag-precision-vs-b]** C1 failed the flag-precision test against (b): 0.704 against 0.736. Under the rule fixed beforehand the outcome was "nothing beat one global factor", and the project lead kept C1 as a recorded deviation after seeing the scores.
 
-The impact is one public link, with no login, where haze and air-quality desks, scientists who study burning and land managers can read two decades of hotspots on one scale: https://burncal-web-eight.vercel.app. Today the published record covers the six evaluated regions; the rest of the world and a current month refreshed daily [pending: Story 2.9] are still to come.
+The impact is one public link, with no login, where haze and air-quality desks, scientists who study burning and land managers can read two decades of hotspots on one scale: https://burncal-web-eight.vercel.app. Today the published record covers the six evaluated regions and is refreshed every day from near-real-time data; the rest of the world is still to come.
 <!-- /field:summary -->
 
-Words: 325.
+Words: 324.
 
 ## 4. Project Demo
 

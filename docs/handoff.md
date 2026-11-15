@@ -791,7 +791,7 @@ The points where the plan left room are listed in `DECISIONS.md` ("Contract 0.2.
 
 **As of 15 Nov 19:20 SGT (build stops 21:00):**
 
-1. Lead: set the repository variable `HF_DATASET`, merge PR 17 (Story 2.9) and PR 18 (Story 6.1), then run Actions → daily-refresh once. Data owner checks the run, then replaces `[pending: Story 2.9]` in `docs/submission/text.md`.
+1. DONE (19:55): PR 17 and PR 18 merged, `HF_DATASET` set; the daily workflow's first run passed from the fix branch (run 43709476744) and production serves `20261114-072d10c1`. Lead: merge the fix PR (`teammate/2.9-ci-fix`) so the 09:30 schedule uses it. The submission's daily-refresh sentence is filled.
 2. Lead, 20:15: world or six regions (data owner recommends six regions; see the 2.8 AC3 entry in `DECISIONS.md`).
 3. Data owner, about 20:30: 6.2 fresh-clone run on final master.
 4. Before judging: watch Active CPU on the Vercel usage page (Hobby: 4 h a month); keep-warm runs every 5 minutes.
