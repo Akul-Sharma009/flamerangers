@@ -719,6 +719,33 @@ The points where the plan left room are listed in `DECISIONS.md` ("Contract 0.2.
 | AC2 nothing fitted, no final-set data | The step reads only cleaned rows of 2022–2026 and the frozen params (hash in the file) |
 | AC3 a large difference goes to the lead | Siberia +17.3%, in `DECISIONS.md` and the report |
 
+## Story 6.4: six regions from inside the deployment (branch `teammate/6.4-host-bundled`, 15 Nov)
+
+- Option 1 works on Vercel Hobby: the whole version `20261113-19dfbcc8` (six regions, NOAA-20 headline) ships inside the function as a 3.5 GB large-functions bundle (`VERCEL_SUPPORT_LARGE_FUNCTIONS=1`, set for Preview and Production). Details and the numbers in `DECISIONS.md` (Story 6.4, 15 Nov).
+- Hobby refuses source files over 100 MB, so the deploy folder ships `points.parquet` as 15 parts and its `index.py` passes the glob as `points_location`. Answers hash identically to the single file.
+- Preview: p95 of 20 Sumatra calendars 1.04 s, whole extents up to 4.01 s, cold start 5.9 s, RSS 284 MB.
+- **In production since 15 Nov 14:34 SGT:** `burncal-stub.vercel.app` serves `20261113-19dfbcc8`, six regions, p95 1.14 s, whole extents up to 3.85 s. Rollback steps in `DECISIONS.md`.
+- Deploy folder recipe (outside the repo): as before, plus the whole version under `store/versions/<v>/` with `points/part-*.parquet` in place of `points.parquet`, the previous version beside it, and `store/CURRENT.json`. Redeploys upload only changed files.
+
+| Criterion | Test or evidence |
+| --- | --- |
+| Six regions served hosted | Preview: all six calendars 200, null only Jan–Jun 2002 and Dec 2026 |
+| p95 under 3 s | 20 Sumatra calendars, p95 1.04 s |
+| Whole extents under 10 s | 1.07–4.01 s |
+| Split points give the same answers | 12 areas plus one CSV year hash identically (single file against parts) |
+| Production and `/meta` | `/meta`: `19dfbcc8`, contract 0.4.0, six loaded, NOAA-20 headline; 20 calendars p95 1.14 s |
+| Version and CURRENT.json on Hugging Face | `19dfbcc8` uploaded (394 files, same count and bytes as local), then `store/CURRENT.json` = `19dfbcc8`, previous `d6f8b9e6` |
+
+### 6.4: free limits that could run out during judging (Vercel Hobby, read 15 Nov)
+
+- **What happens:** over any Hobby allowance, the team is paused and visitors get `503 DEPLOYMENT_PAUSED`; the usage resets after 30 days, but a paused team does not resume on its own (support, or move to Pro). So no limit may be crossed before 23:59 on judging days.
+- **Active CPU, 4 CPU-hours a month: the one to watch.** A calendar takes about 0.2 s (Sumatra) to 1 s (Southern Africa) of compute and each cold start about 1.4 s, so 4 hours is roughly 15,000 to 70,000 calendars. Usage before today is small.
+- **Provisioned memory, 360 GB-hours:** billed only while a request is in flight (2 GB instance, about 1 s per calendar: well over 100,000 calendars).
+- **Invocations 1M, CDN requests 1M, Fast Data Transfer 100 GB, Fast Origin Transfer 10 GB:** a calendar is 16 KB gzipped, so 10 GB is about 600,000 calendars; a year of Sumatra `/hotspots.csv` is 1.4 MB.
+- **Deployments 100 a day; each source file at most 100 MB** (hence the split points). Runtime logs keep 1 hour.
+- **Keep-warm:** Hobby cron runs at most once a day, so `.github/workflows/keep-warm.yml` asks `/meta` every 5 minutes (about 8,600 calls a month, negligible CPU). Whether it keeps an instance warm depends on how long Vercel keeps an idle instance, which the docs don't state; check the cold-start rate in the logs after a day.
+- **Not checked:** the account's usage so far this month (dashboard, Usage tab).
+
 ## Next
 
 From the lead's review of PRs 3 to 11 and the Codex adversarial review of the prototype (both 14 Nov; Codex: needs attention, three high findings, all folded into item 1). Merged with two fixes: `/meta` from a store now says contract 0.3.0 (a test ties it to `openapi.yaml`), and a hotspot search with no record file in its range gives the header and no rows instead of a 500.

@@ -1,0 +1,14 @@
+# Story 6.4: keep the hosted service warm through judging. Vercel Hobby cron runs at most once a day,
+# so a GitHub schedule asks /meta every 5 minutes (GitHub may run it late). No secret is used.
+name: keep-warm
+on:
+  schedule:
+    - cron: "*/5 * * * *"
+  workflow_dispatch:
+permissions: {}
+jobs:
+  ping:
+    runs-on: ubuntu-latest
+    timeout-minutes: 2
+    steps:
+      - run: curl -fsS -o /dev/null -w "%{http_code} %{time_total}s\n" --max-time 60 https://burncal-stub.vercel.app/meta
