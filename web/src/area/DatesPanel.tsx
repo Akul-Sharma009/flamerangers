@@ -8,7 +8,7 @@ import { formatDay } from "../format";
 import { checkRange, earlierDay, laterDay, type DateField, type RangeProblem, type RangeResult } from "./dates";
 
 /** The contract's sentence for each refused range (messages.yaml client, 0.4.0). */
-const REFUSAL = {
+export const REFUSAL = {
   unreadable: "date_unreadable",
   before_record: "date_before_record",
   after_data_through: "date_after_data_through",
