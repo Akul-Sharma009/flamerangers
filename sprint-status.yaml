@@ -29,7 +29,7 @@
 # - Dev moves story to 'review', then runs code-review (fresh context, different LLM recommended)
 # - Retrospective appends its action items to action_items; the status view surfaces open ones
 generated: 11-14-2026 02:21
-last_updated: 11-15-2026 (Stories 3.8 and 5.6 merged)
+last_updated: 11-15-2026 (Stories 3.9 and 5.7 merged)
 project: SpaceApps
 project_key: NOKEY
 tracking_system: file-system
@@ -65,7 +65,7 @@ development_status:
   3-6-provenance-and-evidence-caveats-on-every-cell-a: done
   3-7-current-month-card-a: done
   3-8-anomaly-view-and-flags-a: done
-  3-9-most-active-months-and-years-a: backlog
+  3-9-most-active-months-and-years-a: done
   3-10-accessibility-and-phone-width-pass-a: backlog
   epic-3-retrospective: optional
 
@@ -77,14 +77,14 @@ development_status:
   4-5-numbers-agree-check-t: done
   epic-4-retrospective: optional
 
-  epic-5: in-progress
+  epic-5: done
   5-1-commit-the-scoring-outputs-and-the-fixed-claims-a: done
   5-2-evidence-build-and-its-checks-a: done
   5-3-the-outcome-in-plain-words-a: done
   5-4-head-to-head-table-a: done
   5-5-aqua-only-and-the-incumbent-a: done
   5-6-what-the-scores-can-t-show-a: done
-  5-7-about-the-data-page-a: backlog
+  5-7-about-the-data-page-a: done
   epic-5-retrospective: optional
 
   epic-6: in-progress
