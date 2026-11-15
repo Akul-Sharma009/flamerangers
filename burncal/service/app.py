@@ -192,12 +192,17 @@ def create_app(store_root=None, fetch=None, points_location=None) -> FastAPI:
     app.add_middleware(CORSMiddleware, allow_origins=origins, allow_methods=["GET", "POST"],
                        allow_headers=["Content-Type"])
 
+    def bad(base, detail):
+        """A 400 problem naming the version being served (the fixture's names only without a store)."""
+        cur = store.latest() if store else None
+        served = {"record_version": cur.record_version, "data_through": cur.data_through.isoformat()} if cur else {}
+        return JSONResponse({**base, "status": 400, **served, "detail": detail}, status_code=400, media_type=PROBLEM)
+
     @app.exception_handler(RequestValidationError)
     def bad_request(request: Request, exc: RequestValidationError):
         loc = ".".join(str(p) for p in exc.errors()[0]["loc"] if p != "body") or "body"
         base = bad_period if loc.startswith("reference_period") else invalid  # Story 8.3
-        body = {**base, "status": 400, "detail": f"{loc}: {exc.errors()[0]['msg']}"}
-        return JSONResponse(body, status_code=400, media_type=PROBLEM)
+        return bad(base, f"{loc}: {exc.errors()[0]['msg']}")
 
     def stale(req):
         if req.record_version != meta["record_version"]:
@@ -219,8 +224,7 @@ def create_app(store_root=None, fetch=None, points_location=None) -> FastAPI:
         except Exception:  # noqa: BLE001
             geom = None
         if geom is None or geom.is_empty or not geom.is_valid or geom.bounds[2] - geom.bounds[0] > 180:
-            return None, None, JSONResponse({**invalid, "status": 400, "detail": "aoi.geometry: not a valid area"},
-                                            status_code=400, media_type=PROBLEM)
+            return None, None, bad(invalid, "aoi.geometry: not a valid area")
         if not v.covers(geom):
             return None, None, problem(outside, 404, v)
         return v, geom, None

@@ -54,6 +54,10 @@ ol.notes li { margin-bottom: 4px; }
 .problem { border-top: 1px solid var(--ink); border-bottom: 1px solid var(--ink); padding: 8px 0; font-family: var(--serif); font-size: 16px; }
 .loading { color: var(--muted); font-size: 13px; }
 
+/* Story 3.10: a wide table scrolls inside its own box at phone width, never the page. */
+.table-scroll { max-width: 100%; overflow-x: auto; }
+.table-scroll:focus-visible { outline: 2px solid var(--ink); outline-offset: 2px; }
+
 .stub h1 { font-family: var(--serif); font-weight: 600; font-size: 28px; margin: 4px 0 8px; }
 .stub p { max-width: 60ch; line-height: 1.5; color: var(--muted); }
 
@@ -77,7 +81,7 @@ main.evidence { display: grid; grid-template-columns: minmax(0, 7fr) minmax(0, 5
 .evidence .files .label { font-weight: 600; }
 
 @media (max-width: 800px) {
-  main.evidence { grid-template-columns: 1fr; gap: 8px; }
+  main.evidence { grid-template-columns: minmax(0, 1fr); gap: 8px; }
   .evidence h1 { font-size: 25px; }
   .evidence .lead { font-size: 19.5px; }
   header.mast { padding: 8px 16px; }
