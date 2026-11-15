@@ -294,7 +294,7 @@ def test_regions_match_meta_coverage():
     regions = json.loads((HERE / "regions.geojson").read_text(encoding="utf-8"))
     props = {f["properties"]["region_id"]: f["properties"] for f in regions["features"]}
     coverage = {r["region_id"]: r for r in FIXTURES["meta.json"]["coverage"]["regions"]}
-    assert set(props) == set(coverage) and len(props) == 6
+    assert set(props) == set(coverage) and len(props) == 7
     for rid, p in props.items():
         assert p["evidence_class"] == coverage[rid]["evidence_class"] and p["name"] == coverage[rid]["name"]
     assert [rid for rid, p in props.items() if p["default"]] == ["sumatra"]

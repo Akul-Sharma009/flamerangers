@@ -60,7 +60,7 @@ describe("8.10 AC2: the month control, and the month and provenance in words", (
   it("states the month, its source and what is loaded, from served fields", () => {
     const w = monthWords(world);
     expect(w[0]).toBe(`September 2015. ${messages.labels.source.aqua_real}`);
-    expect(w[1]).toBe("Loaded: Sumatra. Not loaded yet: Australian grassland, Amazon forest, Southern African savanna, Siberian boreal forest, Punjab cropland.");
+    expect(w[1]).toBe("Loaded: Sumatra. Not loaded yet: Australian grassland, Amazon forest, Southern African savanna, Siberian boreal forest, Punjab cropland, Kalimantan.");
     expect(w[2]).toContain(world.record_version);
     const t = text(view());
     for (const line of w) expect(t).toContain(line);

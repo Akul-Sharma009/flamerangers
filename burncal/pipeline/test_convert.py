@@ -115,3 +115,10 @@ def test_2_9_ac1_convert_one_year_equals_that_year_of_the_whole_build(tmp_path, 
     assert (tmp_path / "one" / "evidence_1deg.parquet").exists() and summary["rows"] == 1
     pd.testing.assert_frame_equal(pd.read_parquet(tmp_path / "one" / "AQUA_2016.parquet"),
                                   pd.read_parquet(tmp_path / "all" / "AQUA_2016.parquet"))
+
+
+def test_2_8_a_featured_area_not_evaluated_never_steers_the_conversion():
+    """Kalimantan is featured for the reader but not evaluated: no season region, no evidence class."""
+    geoms, classes = convert.load_regions()
+    assert "kalimantan" not in geoms and "kalimantan" not in classes
+    assert set(classes.values()) <= {"tuned", "tested_unseen", "reported_only"}

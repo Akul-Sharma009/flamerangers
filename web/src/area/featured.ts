@@ -10,7 +10,7 @@ export interface FeaturedArea {
   name: string;
   isDefault: boolean;
   /** How the conversion was evaluated here (contract/regions.geojson). */
-  evidenceClass: "tuned" | "tested_unseen" | "reported_only";
+  evidenceClass: "tuned" | "tested_unseen" | "reported_only" | "not_evaluated";
   aoi: AoiInput;
 }
 

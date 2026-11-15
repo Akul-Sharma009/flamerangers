@@ -59,10 +59,10 @@ function page(result: AreaResult | null, selected: AoiInput = defaultArea().aoi,
 }
 
 describe("Story 3.3 AC1: choose an area by drawing, typing or picking", () => {
-  it("lists the six featured areas from contract/regions.geojson, Sumatra the default", () => {
+  it("lists the seven featured areas from contract/regions.geojson, Sumatra the default", () => {
     const areas = featuredAreas();
     expect(areas.map((a) => a.name)).toEqual([
-      "Sumatra", "Australian grassland", "Amazon forest", "Southern African savanna", "Siberian boreal forest", "Punjab cropland",
+      "Sumatra", "Australian grassland", "Amazon forest", "Southern African savanna", "Siberian boreal forest", "Punjab cropland", "Kalimantan",
     ]);
     expect(defaultArea().name).toBe("Sumatra");
   });

@@ -10,7 +10,7 @@ from burncal.service.app import create_app
 ROOT = Path(__file__).resolve().parents[2]
 STORE = ROOT / "store" / "published"
 REGIONS = json.loads((ROOT / "contract" / "regions.geojson").read_text(encoding="utf-8"))["features"]
-IDS = [f["properties"]["region_id"] for f in REGIONS]
+IDS = [f["properties"]["region_id"] for f in REGIONS if f["properties"]["evidence_class"] != "not_evaluated"]
 
 
 def _manifest():
@@ -22,7 +22,7 @@ def _manifest():
 
 
 MAN = _manifest()
-SIX = MAN is not None and sorted(e["name"] for e in MAN.get("extents", [])) == sorted(IDS)
+SIX = MAN is not None and set(IDS) <= {e["name"] for e in MAN.get("extents", [])}
 pytestmark = pytest.mark.skipif(not SIX, reason="the six-region version is not published locally (store/ is git-ignored)")
 
 

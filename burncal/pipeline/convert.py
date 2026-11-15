@@ -25,8 +25,10 @@ ROW_ORDER = ["satellite", "acq_datetime_utc", "latitude", "longitude"]
 def load_regions(path=REGIONS_FILE) -> tuple[dict, dict]:
     """(geometry by region_id, evidence_class by region_id) from the contract's regions file."""
     gj = json.loads(Path(path).read_text(encoding="utf-8"))
-    geoms = {f["properties"]["region_id"]: shape(f["geometry"]) for f in gj["features"]}
-    classes = {f["properties"]["region_id"]: f["properties"]["evidence_class"] for f in gj["features"]}
+    # A featured area that was not evaluated (Kalimantan) is for the reader only: it never sets a season or a class.
+    feats = [f for f in gj["features"] if f["properties"]["evidence_class"] != "not_evaluated"]
+    geoms = {f["properties"]["region_id"]: shape(f["geometry"]) for f in feats}
+    classes = {f["properties"]["region_id"]: f["properties"]["evidence_class"] for f in feats}
     return geoms, classes
 
 
