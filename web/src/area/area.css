@@ -91,3 +91,10 @@ ul.featured li { border-bottom: 1px solid var(--faint); }
 }
 .dates dl.bounds dt { color: var(--muted); }
 .dates dl.bounds dd { margin: 0; font-family: var(--num); }
+
+/* Story 8.8: featured-area gallery cards */
+ul.gallery { display: grid; grid-template-columns: repeat(auto-fill, minmax(min(100%, 240px), 1fr)); gap: 10px; }
+ul.gallery li.card { display: flex; gap: 10px; align-items: flex-start; border: 1px solid var(--rule); padding: 8px; }
+ul.gallery .outline { flex: none; fill: var(--faint); stroke: var(--ink); stroke-width: 1; }
+ul.gallery .card-text { min-width: 0; }
+ul.gallery .card-label, ul.gallery .card-caveat { margin: 2px 0 0; font-size: 12.5px; color: var(--muted); }

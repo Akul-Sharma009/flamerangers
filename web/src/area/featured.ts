@@ -9,11 +9,13 @@ export interface FeaturedArea {
   id: string;
   name: string;
   isDefault: boolean;
+  /** How the conversion was evaluated here (contract/regions.geojson). */
+  evidenceClass: "tuned" | "tested_unseen" | "reported_only";
   aoi: AoiInput;
 }
 
 interface RegionFeature {
-  properties: { region_id: string; name: string; featured?: boolean; default?: boolean };
+  properties: { region_id: string; name: string; evidence_class: FeaturedArea["evidenceClass"]; featured?: boolean; default?: boolean };
   geometry: { type: "Polygon" | "MultiPolygon"; coordinates: unknown[] };
 }
 
@@ -25,6 +27,7 @@ export function featuredAreas(raw: string = regionsRaw): FeaturedArea[] {
       id: f.properties.region_id,
       name: f.properties.name,
       isDefault: f.properties.default === true,
+      evidenceClass: f.properties.evidence_class,
       aoi: {
         name: f.properties.name,
         geometry: { type: f.geometry.type, coordinates: f.geometry.coordinates },
