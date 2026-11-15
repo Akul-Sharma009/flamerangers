@@ -86,3 +86,9 @@ main.evidence { display: grid; grid-template-columns: minmax(0, 7fr) minmax(0, 5
   main.ledger { grid-template-columns: minmax(0, 1fr); gap: 16px; }
   .place .name { font-size: 24px; }
 }
+
+/* Story 3.10: tap targets and the skip control. */
+.skip { position: absolute; left: -9999px; top: 0; font: 13px var(--sans); background: var(--ink); color: var(--paper); border: 0; padding: 8px 12px; z-index: 10; }
+.skip:focus { left: 8px; top: 8px; }
+.mast nav a { display: inline-block; padding: 7px 2px; }
+@media (max-width: 800px) { .mast nav a { padding: 9px 2px; } }

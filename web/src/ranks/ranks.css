@@ -33,7 +33,7 @@
 
 /* Each entry is a toggle; a pressed one is drawn reversed, like the view switches. */
 .ranktable button {
-  font: 12.5px var(--sans); color: var(--ink); background: none; border: 0; padding: 4px 2px; margin: 0 -2px;
+  font: 12.5px var(--sans); color: var(--ink); background: none; border: 0; padding: 6px 2px; margin: 0 -2px;
   cursor: pointer; text-align: left; white-space: nowrap; text-decoration: underline dotted var(--muted); text-underline-offset: 3px;
 }
 .ranktable button:hover { text-decoration-style: solid; text-decoration-color: var(--ink); }
