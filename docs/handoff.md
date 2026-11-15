@@ -679,6 +679,21 @@ The first draft passed its tests but an independent review found it could not ca
 
 The points where the plan left room are listed in `DECISIONS.md` ("Contract 0.2.0"). Both owners have agreed to them.
 
+## Story 6.1: NASA datasets and references (branch `teammate/6.1-datasets`, draft for the lead, 15 Nov)
+
+- `docs/submission/datasets-references.md`: field 7 (NASA data) and field 8 (References), ready to paste, and the link and citation for each of the about page's four `[pending: Story 6.1]` marks.
+- For the lead: the about page lists NOAA-21 under VIIRS, but no published version holds NOAA-21; four items stay `[unverified]` (listed in the file).
+
+| Criterion | Test or evidence |
+| --- | --- |
+| AC1 each NASA dataset with link, citation and its use | Field 7 in the file; each DOI resolved at doi.org |
+| AC2 every external resource listed | Field 8: datasets, Natural Earth, two papers, services named in the text, every pinned library with its licence |
+| AC2 every citation checked or marked `[unverified]` | Checking method at the top of the file; four marks remain |
+
+## Story 6.2: fresh-clone run, rerun on master (15 Nov)
+
+- Fresh clone of master at `b1e8e2e` (after PR 12): `uv sync`, import check, pytest 405 passed and 11 skipped (no local store), evidence check, fixture `/meta`, web `npm ci`, typecheck, 313 tests, build and wording check all passed.
+
 ## Next
 
 From the lead's review of PRs 3 to 11 and the Codex adversarial review of the prototype (both 14 Nov; Codex: needs attention, three high findings, all folded into item 1). Merged with two fixes: `/meta` from a store now says contract 0.3.0 (a test ties it to `openapi.yaml`), and a hotspot search with no record file in its range gives the header and no rows instead of a 500.
