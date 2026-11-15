@@ -507,6 +507,92 @@ Each entry has: a status (**ASSUMED** or **TESTED**), its evidence, and a "revis
 - **Evidence:** the stub trial (`docs/handoff.md`, Story 1.3) and the teammate's object-storage timing (cold Sumatra calendar 4.07 s on Vercel through DuckDB range reads). The real service loads the current and the previous version wholly into memory at start-up (`burncal/service/store.py`); its memory use is not measured yet.
 - **Revisit if:** the service's memory with Sumatra's current and previous versions loaded comes near 2 GB, or six regions will not fit in 2 GB; the store version cannot reach the function (bundle over the limit, or `/tmp` too small); or the hosted p95 of 20 Sumatra calendars misses the 3 s target (Story 2.6 AC6). The options then are serving only the current version, splitting regions across deployments, lazy reads by tile, or a container host from the list above.
 
+## Story 2.5 AC2: Australian grassland and Amazon forest threshold parity (15 Nov)
+
+- **Status:** TESTED (Amazon); TESTED with one open cell (Australia)
+- **Decision:** Thresholds come from the same code for all three tuning regions; the parity check feeds it region-clipped 2003–2011 Aqua counts, as the harness did.
+- **Evidence:** `test_2_5_ac2_amazon_thresholds_match_the_parity_targets` and `test_2_5_ac2_australia_thresholds_match_except_the_known_cell` (they run where the records are built). Amazon forest: 672 of 672 cell-months within 1e-6. Australian grassland: 967 of 972. The 5 misses are all at 136°E 16°S (the McArthur River mine), months 1, 2, 10, 11 and 12, product higher (for example 88.2 against 87.0 in October). The record was built without Suomi NPP 2016, which FIRMS refused on four attempts, so the static mask could not mark this persistent source. The build now refuses to run without every static-mask tuning-year file (MODIS and Suomi NPP for 2014, 2016, 2017 and 2020).
+- **Revisit if:** the rebuild with Suomi NPP 2016 still misses this cell; then the cause is elsewhere.
+
+## The lead's review list: gate, nulls, static inputs, last good version (15 Nov)
+
+- **Status:** TESTED
+- **Decision:**
+  - **AD-2 gate.** `publish` runs the parity case check (`burncal/pipeline/parity.py`, the same comparison as Story 2.2's test) whenever the version holds converted counts (data through 2022 or later). If the case is not available or any of 4A, 1A and C1 at 1° and 0.25° misses by more than 1e-6, publish refuses and nothing is written. The manifest records the result.
+  - **Null is not 0.** A month of the record with no feeding day loaded is "uncovered": `/calendar` gives count null with `outside_coverage`, and the flag table gives count null with `outside_record` (the contract has no flag state for "not loaded"). Partly covered months keep their count and carry `missing_days`.
+  - **Static-mask inputs.** The clean step refuses to run unless MODIS and Suomi NPP standard files for 2014, 2016, 2017 and 2020 are all present.
+  - **AD-11.** If the pointer names a version that fails to load, the service keeps answering from the last good versions and keeps the error; it does not retry on every request.
+- **Evidence:** `test_2_6_ad2_*` in `burncal/pipeline/test_publish.py` (the real case passes with `BURNCAL_PARITY_CASE_DIR` set), `test_2_6_null_is_not_zero_*`, `test_2_5_static_mask_build_fails_without_every_tuning_year_file`, `test_2_6_ad11_*`.
+- **Revisit if:** the lead wants publishing allowed on a machine without the case (for example a hosted daily refresh, Story 2.9); then the gate needs a recorded pass the refresh can check instead.
+
+## The service reads hotspots from disk, not memory (15 Nov)
+
+- **Status:** TESTED
+- **Decision:** The service no longer loads a version's points into memory. `publish` writes `points.parquet` sorted by 0.25° cell key, with the key, month index and day stored (DuckDB, sorting out of core). The service keeps only small tables in memory (flags, evidence, coverage, the list of fine cells) and reads the fine grid and the points with DuckDB per request: whole cells from the grid, cut cells and the current-month card from the points of those cells only. Versions published before this compute the key in the query, which is slower but correct. DuckDB is limited to 512 MB and 2 threads.
+- **Evidence:** All tests pass, including fast path against brute force on three areas and the same-days check. Real Sumatra: fast path equals the point sum (largest difference 9.5e-10). Two Sumatra versions loaded: 217 MB steady, 273 MB peak after requests (was 1,025 and 1,172 MB). 20 local Sumatra calendars: p95 0.10 s (was 0.04 s).
+- **Revisit if:** a continental area is slower than the 10 s target; then add a per-area cache or a coarser pre-summed grid.
+
+## The lead's low review items (15 Nov)
+
+- **Status:** TESTED (seven items); one needs a contract change
+- **Decision:**
+  - `share_of_max` divides by the largest complete year, so a part-year is never the 100% bar (it can exceed 1 only when a part-year is larger than every complete year).
+  - Months outside the record (count null) have `validated_satellite` false.
+  - Counts and ratios are never served as `-0.0`.
+  - `/cells` gives a null threshold where the cell-month has no count (outside the record or not loaded).
+  - A missing FRP is an empty CSV cell, never `nan`.
+  - `/hotspots.csv` streams its rows batch by batch, so a year asked for with `year` (no row limit, as the contract requires) never has to fit in memory. Rows come file by file (satellite, then year), each file in time order, no longer sorted across satellites.
+  - `compare_tuning` says "hotspot days".
+  - **Not done, needs a contract change (lead):** the current-month card has no field to say that days 1 to *d* of the current month have missing input days. Its reference years are already only complete months. A `cautions` list on `CurrentMonth`, or a `missing_days` boolean, in contract 0.4.0 would carry it.
+- **Evidence:** `test_review_*` in `burncal/core/test_stats.py` and `burncal/service/test_store_service.py`; a year of Sumatra hotspots for all satellites (24.5 MB) downloaded from the live service in 10.4 s.
+- **Revisit if:** the web needs hotspot rows sorted by time across satellites.
+
+## Codex review items: parity pass tied to the version, lazy previous version, load check before the pointer (14 Nov)
+
+- **Status:** TESTED
+- **Decision:**
+  - **AD-2, tied to the version.** The parity check returns the sha256 of the `c1_params.json` it read. `publish` refuses unless that hash equals the hash it writes into the manifest, and records both the hash and the code revision under `parity`. The publish command refuses to run while `burncal/` has uncommitted changes, so the manifest's revision names the code that passed.
+  - **AD-11, previous version on demand.** The service loads only the current version at start-up. The previous one loads the first time a request names it; if it fails, that request gets `410 version_superseded` naming the current version, the failure is kept and not retried, and the current version keeps answering.
+  - **AD-11, load before switching.** `publish` loads the new version once, as the service does, before it moves the version into place and switches `CURRENT.json`. A version that does not load is never named by the pointer.
+  - **Hosting.** `remote.sync` copies only the current version's serving files; the previous version's files are fetched when a request first names it. `/tmp` (106 MB free on Vercel after a Sumatra sync) is the tighter limit, not memory.
+- **Evidence:** `test_2_6_ad2_the_parity_pass_is_tied_to_the_params_hash_and_code_revision`, `test_2_6_ad2_publish_refuses_a_pass_for_other_params`, `test_2_6_ad2_publish_refuses_uncommitted_code`, `test_2_6_ad11_publish_loads_the_new_version_before_switching_the_pointer`, `test_2_6_ad11_only_the_current_version_loads_at_start`, `test_2_6_ad11_a_broken_previous_version_does_not_stop_the_current`, `test_2_6_sync_copies_the_current_version_and_fetches_the_previous_on_use`; the real parity case returns the frozen params hash. Publish test inputs now carry small real grids, since placeholder grids no longer load.
+- **Deployed (15 Nov, code `ec595a1`):** start-up sync 0.5 s, RSS 250 MB, `/tmp` free 137 MB (106 MB before); 20 Sumatra calendars p95 1.07 s; the previous version answers on demand, 4.8 s for its first request.
+- **Revisit if:** a hosted refresh (Story 2.9) publishes without the case folder; it then needs a recorded pass keyed on the same hash and revision.
+
+## Sumatra rebuilt on whole tiles and redeployed (14 Nov)
+
+- **Status:** TESTED
+- **Decision:** Sumatra is rebuilt from whole-tile downloads (90–110°E, 10°S–10°N) and served as version `20261113-9cedd502`. Only the files the download plan names are built: each region's planned files are linked into a staging folder named by `region_id`, so files left over from earlier trial plans (NOAA-21, Suomi NPP years outside the static-mask years, NOAA-20 before 2022) are not in the version. Those rows would have had weight 0, so no count changes; they would only have added rows to the all-satellites hotspot CSV for Sumatra and not for other regions.
+- **Evidence:** parity gate PASS (worst miss 2.9e-10, C1 0.25° 5.2e-11); `tools/check_numbers.py`: 0 failures over 300 months; Sumatra threshold parity 899/900 (only the known September cell at 105°E 6°S); hosted on Vercel: `/meta` placeholder false, 20 Sumatra calendars p50 0.88 s, p95 1.12 s, max 1.17 s; start-up log: imports 1.3–1.4 s, store sync 1.7–2.1 s, load 0.2–0.3 s, RSS 275 MB, `/tmp` free 106 MB (two versions synced, 53 MB, before the lazy previous version above was deployed).
+- **Revisit if:** a planned source-year cannot be downloaded (its months then show as not loaded), or the lead wants NOAA-21 or the extra Suomi NPP years in the hotspot CSV.
+
+## Story 2.5 AC2: Australia's five misses are not the static mask (15 Nov)
+
+- **Status:** TESTED (the static mask is ruled out); cause ASSUMED (coastline), open with the lead
+- **Decision:** The 15 Nov entry blamed the missing Suomi NPP 2016 file. The whole-tile rebuild has that file and still misses the same 5 cell-months at the cell with south-west corner 136°E 16°S (months 1, 2, 10, 11, 12; product higher, for example 88.2 against 87.0 in October), so that cause is wrong. In 2003–2011 Aqua no row in that cell is marked static, and its busiest 30-arc-second cells have 1 to 11 hotspot days in each static-mask year, far below the 50-day rule. The cell lies on the Gulf of Carpentaria coast and 8 of its Aqua rows in those months are marked offshore, so a coastline difference from the harness is the likelier cause. Nothing is changed: thresholds come from the same code for every region, and Amazon (672/672) and Sumatra (899/900) agree.
+- **Evidence:** `test_2_5_ac2_australia_thresholds_match_except_the_known_cell` on the whole-tile build (`store/build/record/australia_grassland`, 8,881,356 rows, all 42 planned files including Suomi NPP 2016); row counts by month and exclusion for the cell from the cleaned files.
+- **Revisit if:** the harness's 2003–2011 Aqua counts for this cell show which rows differ; then record the cause in `docs/cleaning-differences.md` beside the Sumatra September 2006 cell.
+
+## Story 2.8: the six evaluated regions in one version; not deployed (15 Nov)
+
+- **Status:** TESTED (built, published locally, checked); hosting ASSUMED blocked by size, decision with the lead
+- **Decision:** Each region is downloaded on whole 5° tiles, staged from the planned files only, built one satellite-year file at a time, and all six are published in one version, `20261113-d6f8b9e6` (79,876,339 rows in counts; parity PASS, tied to the params hash and commit `ec595a1`). The version is not deployed: the files the service syncs at start-up come to 901 MB (points 892.5 MB, grids 8.5 MB, the rest under 0.1 MB), over the 120 MB gate and far over Vercel's `/tmp` (about 160 MB in all, 106 MB free with Sumatra loaded). The hosted service stays on Sumatra (`20261113-9cedd502`). The world run waits for the lead.
+- **Evidence:**
+  - Rows per region (all planned files, no failed year after at most 3 passes): Sumatra 1,815,622; Punjab 3,010,664; Amazon forest 6,588,767; Siberia 6,167,705; Australian grassland 8,881,356; Southern Africa 53,909,754.
+  - Serving set by region (each published alone): Sumatra 21.6 MB, Punjab 36.7 MB, Siberia 59.8 MB, Amazon forest 74.4 MB; four regions together 193.6 MB; all six 901 MB. Hotspot record files: 2.1 GB for all six (Southern Africa 1.4 GB).
+  - `tools/check_numbers.py` now checks every region polygon the version holds plus the drawn Amazon polygon: 0 failures for all seven searches over 300 months each.
+  - Threshold parity on the whole-tile builds: Sumatra 899/900, Amazon forest 672/672, Australian grassland 967/972 (both known cells, see the entries above).
+  - Calendar time, local, current version only (5 requests each, p50): region polygons 0.16 to 0.80 s; whole extents 0.18 s (Sumatra 20×20°) to 1.15 s (Southern Africa 15×15°), Siberia 35×15° 0.44 s. Hosted adds about 0.8 s (Sumatra p50 0.88 s hosted against 0.16 s local). A true continental area needs the world store.
+  - Peak build memory: Southern Africa clean 4.4 GB, convert 4.3 GB; publishing all six 4.0 GB.
+  - `test_2_8_ac1_*` in `burncal/service/test_regions_store.py` run on the published version: each region's calendar loads with every record month non-null; extents are the whole-tile boxes; an area outside every extent or across an extent edge gets `outside_coverage`.
+- **Options for serving more than Sumatra (lead's call):**
+  1. **Read the points from public storage with DuckDB `httpfs`** instead of syncing them. `points.parquet` is sorted by 0.25° cell, so a calendar reads only the row groups of the cells an area cuts. Syncing drops to about 9 MB. Measured earlier: a cold Sumatra calendar over range reads took 4.07 s on Vercel; the 10 s target looks reachable but the six-region numbers are not measured. Costs nothing.
+     **Measured 15 Nov** (six-region version on the public dataset, points read by HTTP range requests from the data owner's machine in Singapore; counts equal to the local copy in all 12 cases): first request 5.3 s (Amazon polygon) to 42.7 s (Southern Africa whole extent); 9 of 12 over 10 s (region polygons: Sumatra 11.7, Australia 20.0, Amazon 5.3, Southern Africa 42.4, Siberia 25.2, Punjab 9.5 s). Repeat requests 0.35 to 0.67 s. The first request reads every row group whose key range the area's cells span, and keys run by longitude first, so an area touches most of its region's 100,000-row groups. As is, option 1 misses the target on a cold instance; sorting the points by 1° block with smaller row groups, or caching each region's points in `/tmp` after the first read, would be the next things to try. Not measured from Vercel.
+  2. **Vercel large functions** (public beta, up to 5 GB bundle): ship the version in the deployment. Beta, and memory (2 GB) still has to hold DuckDB's working set for the largest area. Cost and Hobby availability not checked.
+  3. **Serve the regions that fit** in one version under 120 MB: Sumatra and Punjab (58.3 MB), or Sumatra with Siberia (81.4 MB) or Amazon forest (96.0 MB). Australian grassland and Southern Africa do not fit with this layout.
+  4. **Make the points smaller.** About 40% of the rows feed the record; the rest are kept for raw counts and the all-satellites CSV. Moving those to a coarser table would shrink the file, but changes how raw counts are served, so it needs the lead (AD-8).
+- **Revisit if:** the lead picks an option, or the world run is approved (the store grows by roughly the global-to-six-region area ratio).
+
 ## Story 3.5: React draws the grid's SVG, not D3 (14 Nov 2026)
 
 - **Status:** ASSUMED
@@ -885,3 +971,42 @@ Each entry has: a status (**ASSUMED** or **TESTED**), its evidence, and a "revis
 - **6.5, submission text:** the summary's two claims, the "impact is one public link" sentence and the project name are approved as drafted. Official dataset names and citations are used as published, even where they contain the word this project does not use; everything the project writes itself says "hotspots".
 - **Still open for 6.3:** `/security-review`, a gitleaks scan of the full history, and the Codex review before the repo goes public, all run by the lead.
 - **Revisit if:** a reviewer finds anything in `docs/planning/` that should not be public, or the live form limits the summary's length.
+
+## Story 2.8 AC2: plan global history on the area API, not the country files (15 Nov)
+
+- **Status:** ASSUMED (estimates from measured samples; the weight of a world request is not measured)
+- **Decision:** Global history would come from the area API on the world extent, as the regions did, not from the country files. The country files end with 2025 (no 2026 file), have no NOAA-21, and would need a land-mask join to match the area API's extents; the area API serves every source to the present at 2 transactions per day of range, so the quota (5,000 per 10 minutes) is not the limit: the whole record is 27,818 to 37,612 transactions, about 1 hour of quota. The limits are disk and serving size: 31–54 GB of CSV and a 15–25 GB store version. No global download is made; the lead sees these numbers first (AC3).
+- **Evidence:** HEAD and byte-range requests on `data/country/` (every year 2000–2025 for MODIS, 2012–2025 Suomi NPP, 2018–2025 NOAA-20; 404 for 2026 and for `viirs-jpss2`); `mapkey_status` before and after 1-day and 5-day requests over Punjab, Siberia and Southern Africa; zip ratio of five raw CSVs (16.3–17.5 bytes a row); the six-region version's bytes per row (points 11.2, whole version 36.3). Figures in `docs/handoff.md`, Story 2.8 AC2.
+- **Revisit if:** a one-day world sample shows a world request weighs more than 2 transactions a day, or downloads slower than 0.6 MB/s; or the country files gain a 2026 file.
+
+## Story 2.8, option 1: points read remotely; the re-sort did not help, concurrency did (15 Nov)
+
+- **Status:** TESTED (counts and times from the data owner's machine); hosting ASSUMED (not yet measured on Vercel)
+- **Decision:** The lead chose option 1: the service reads each version's `points.parquet` from the public store by HTTP range requests (DuckDB `httpfs`) instead of syncing it, so the start-up sync drops from 901 MB to about 9 MB for six regions. `create_app(points_location=...)` and `remote.sync(with_points=False)` do it; the host ships the `httpfs` extension in its bundle so nothing downloads at start. Remote reads run with 16 DuckDB threads. The points keep their layout (sorted by 0.25° cell key, 100,000-row groups): the trial re-sort by 1° block with 25,000-row groups is not adopted.
+- **Evidence:** six-region version `20261113-d6f8b9e6`, from Singapore. "First" is the first calendar count for an area on a fresh connection, after the file is opened; opening (the footer) took 1.0–1.9 s and happens when the version loads.
+
+| Area | Before (old layout, 2 threads) | Re-sort trial (2 threads) | Re-sort trial (16 threads) | **Adopted (old layout, 16 threads)** |
+| --- | --- | --- | --- | --- |
+| Tiny box, 0.06° (Sumatra) | 1.0–1.9 s | 3.9 s | 1.9 s | **1.7 s** |
+| Sumatra polygon | 11.7 s | 17.8 s | 6.6 s | **5.6 s** |
+| Australian grassland polygon | 20.0 s | 46.2 s | 18.0 s | **6.2 s** |
+| Amazon forest polygon | 5.3 s | 18.4 s | 7.4 s | **3.0 s** |
+| Southern Africa polygon | 42.4 s | 69.0 s | 12.7 s | **8.6 s** |
+| Siberia polygon | 25.2 s | 26.7 s | 10.4 s | **7.4 s** |
+| Punjab polygon | 9.5 s | 16.3 s | 7.2 s | **6.2 s** |
+| Sumatra whole extent | 6.9 s | 13.1 s | 6.6 s | **4.1 s** |
+| Australian grassland whole extent | 22.9 s | 47.2 s | 15.7 s | **9.1 s** |
+| Amazon forest whole extent | 15.7 s | 30.3 s | 7.6 s | **6.1 s** |
+| Southern Africa whole extent | 42.7 s | 92.0 s | 19.6 s | **9.5 s** |
+| Siberia whole extent | 20.4 s | 31.2 s | 15.9 s | **10.8 s** |
+| Punjab whole extent | 6.1 s | 11.1 s | 5.0 s | **3.4 s** |
+
+  - Repeat requests: 0.3–0.7 s in every column (DuckDB keeps the fetched ranges in memory).
+  - Why the re-sort lost: DuckDB 2.0 already prunes the old layout through its join filter (both layouts scan about 1.2M rows for Southern Africa's polygon), so the cost is the number of range requests, and 4× smaller row groups mean about 4× more requests, plus a 3.2 MB footer instead of 0.8 MB.
+  - Threads: 32 and 64 threads gave 9.1–11.8 s on the three worst whole extents, no better than 16: the reads are now bandwidth-bound.
+  - Counts: equal to the local copy in every timed case; `tools/check_numbers.py`, now over all 12 areas plus the Amazon polygon, gives 0 failures with local points (before) and with remote points (after). Every `/calendar` answer for those 13 searches is identical before and after: 0 differences over 3,900 months, counts and raw counts per satellite.
+  - The tiny box shows the fixed part: about 1.7 s of any first request is round trips that no layout removes.
+- **Not done:** the `/tmp` cache fallback. The worst first request is still over 10 s (Siberia's whole extent, 10.8 s), but a `/tmp` cache only speeds up repeat reads on the same instance, which are already 0.3–0.7 s; it cannot speed up the first read on a fresh instance. Held for the lead's decision.
+- **Deployed and rolled back (15 Nov).** With the store pointer on the six-region version, the hosted service (Vercel sin1, code `cbe834c`) answered every area, but slowly: first requests 4.4–32.1 s (Southern Africa's whole extent 32.1 s, its polygon 31.4 s; Sumatra polygon 7.3 s), repeats 1.5–29 s, and one repeat for Siberia's whole extent failed with a 500 after 154 s. The cause, from the runtime error: Hugging Face answered `429 Too Many Requests` ("rate limit your IP"; policy 3,000 requests per 300 s per IP, anonymous). Range reads make many requests, from a shared Vercel address, so the public dataset cannot serve option 1 without a token. The pointer was set back to Sumatra (`20261113-9cedd502`) and the previous deployment promoted within minutes; checked after: `/meta` placeholder false, 20 Sumatra calendars p95 0.95 s, all 200.
+- **Options now (the lead's call):** a Hugging Face token on the host (a secret, which the service does not hold today); another public object store without that limit (Cloudflare R2 or S3: a new account, possibly paid); fewer, larger range requests (bigger row groups, which this test argues against for the cold case); or option 3 (serve the regions whose points fit in `/tmp`).
+- **Revisit if:** first requests from Vercel (sin1) differ from these; or a whole-extent area must meet 10 s on a cold instance, which then needs warming the instance's cache at start-up or a coarser pre-summed table for the cut cells.

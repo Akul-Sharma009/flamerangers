@@ -22,6 +22,8 @@ SUMATRA = REGIONS["sumatra"]
 AMAZON = {"type": "Polygon", "coordinates": [[[-59.3, -11.2], [-55.1, -11.9], [-52.6, -8.4], [-54.9, -5.6], [-58.8, -6.7], [-59.3, -11.2]]]}
 PUNJAB = REGIONS["punjab"]
 AREAS = {"sumatra": SUMATRA, "amazon": AMAZON, "punjab": PUNJAB}
+PARITY_OK = lambda: {"passed": True, "misses": {},  # noqa: E731  stand-in for the AD-2 case check
+                    "params_sha256": publish.params_sha256()}
 DT = date(2026, 11, 13)
 EXTENT = [-62.0, -13.0, 108.0, 33.0]
 
@@ -80,12 +82,12 @@ def store_root(tmp_path_factory):
         t.to_parquet(grids_dir / f"{name}.parquet")
     (raw / "coverage.json").write_text(json.dumps({"extent": EXTENT, "sources": {
         "MODIS_SP": [["2002-07-01", "2026-08-31"]], "MODIS_NRT": [["2026-09-01", "2026-11-13"]],
-        "VIIRS_SNPP_SP": [["2012-01-20", "2024-02-10"], ["2024-02-16", "2026-07-31"]],
+        "VIIRS_SNPP_SP": [["2012-01-20", "2023-04-30"], ["2023-06-01", "2024-02-10"], ["2024-02-16", "2026-07-31"]],
         "VIIRS_SNPP_NRT": [["2026-08-01", "2026-11-02"]], "VIIRS_NOAA20_NRT": [["2026-08-01", "2026-11-13"]]}}))
     root = tmp / "store"
-    publish.publish(rec, grids_dir, raw, root, data_through=DT, code_revision="old")
-    publish.publish(rec, grids_dir, raw, root, data_through=DT, code_revision="previous")
-    publish.publish(rec, grids_dir, raw, root, data_through=DT, code_revision="current")
+    publish.publish(rec, grids_dir, raw, root, data_through=DT, code_revision="old", parity_check=PARITY_OK)
+    publish.publish(rec, grids_dir, raw, root, data_through=DT, code_revision="previous", parity_check=PARITY_OK)
+    publish.publish(rec, grids_dir, raw, root, data_through=DT, code_revision="current", parity_check=PARITY_OK)
     return root
 
 
@@ -284,8 +286,8 @@ def test_3_2_ac3_same_days_fast_path_equals_brute_force(store_root):
     for geom in AREAS.values():
         g = shape(geom)
         fast = v.same_days(g, 11, 13, range(2003, 2026))
-        inside = shapely.intersects_xy(g, v._p_lon, v._p_lat)
-        assert np.allclose(fast[1], v.same_days(g, 11, 13, range(2003, 2026), mask=inside)[1], atol=1e-9)
+        brute = v.same_days(g, 11, 13, range(2003, 2026), brute=True)
+        assert abs(fast[0] - brute[0]) < 1e-9 and np.allclose(fast[1], brute[1], atol=1e-9)
 
 
 # --- Stories 2.7 and 4.2: hotspots for any search, as CSV ---------------------------
@@ -312,7 +314,7 @@ def test_2_7_ac1_rows_inside_the_area_and_exact_dates_with_every_column(client, 
     assert r.status_code == 200 and r.headers["content-type"].startswith("text/csv")
     head, cols, rows = _rows(r.text)
     assert cols == HOTSPOT_COLUMNS
-    df = pd.concat(pd.read_parquet(p) for p in sorted((store_root / "versions" / versions[0] / "records").glob("[A-Z]*_[0-9]*.parquet")))
+    df = pd.concat(pd.read_parquet(p) for p in sorted((store_root / "versions" / versions[0] / "records").glob("*/[A-Z]*_[0-9]*.parquet")))
     g = shape(AMAZON)
     d = df["utc_date"].astype(str)
     want = df[shapely.intersects_xy(g, df["longitude"], df["latitude"]) & (d >= "2015-03-10") & (d <= "2016-02-20")]
@@ -444,6 +446,17 @@ def test_4_5_ac1_calendar_csvs_and_hotspots_agree(client, versions, area):
     assert report["months_compared"] == 300 and report["hotspot_months_compared"] == 233
 
 
+def test_2_8_check_numbers_searches_every_region_the_version_holds():
+    regions = {"a": {"type": "Polygon", "coordinates": [[[1, 1], [2, 1], [2, 2], [1, 2], [1, 1]]]},
+               "b": {"type": "Polygon", "coordinates": [[[11, 1], [12, 1], [12, 2], [11, 2], [11, 1]]]},
+               "c": {"type": "Polygon", "coordinates": [[[31, 1], [32, 1], [32, 2], [31, 2], [31, 1]]]}}
+    found = check_numbers.searches(regions, [[0, 0, 5, 5], [10, 0, 15, 5]])
+    assert [n for n, _ in found] == ["a", "b", "extent 0,0,5,5", "extent 10,0,15,5"]
+    box = dict(found)["extent 0,0,5,5"]["coordinates"][0]
+    assert min(x for x, _ in box) > 0 and max(x for x, _ in box) < 5  # just inside the extent, so it is covered
+    assert [n for n, _ in check_numbers.searches(regions, [[-60, -15, -50, -5]])] == ["extent -60,-15,-50,-5", "amazon"]
+
+
 def test_4_5_ac2_a_failing_check_fails(client, versions, monkeypatch):
     real = check_numbers._calendar
 
@@ -458,6 +471,110 @@ def test_4_5_ac2_a_failing_check_fails(client, versions, monkeypatch):
     assert report["failures"]
     assert check_numbers.exit_code(report) == 1
 
+
+
+def test_2_6_null_is_not_zero_an_uncovered_month_is_null(client, versions):
+    c = client.post("/calendar", json=_body(versions[0], SUMATRA)).json()
+    m = {x["month"]: x for x in c["months"]}
+    assert m["2023-05"]["count"] is None and m["2023-05"]["null_reason"] == "outside_coverage"
+    assert m["2023-05"]["rank"] is None and m["2023-05"]["source"] is None
+    assert m["2023-04"]["count"] is not None and m["2023-06"]["count"] is not None
+    cells = client.post("/cells", json={"record_version": versions[0], "aoi": {"name": None, "geometry": PUNJAB},
+                                         "month": "2023-05"}).json()["cells"]
+    assert all(x["count"] is None and x["flag_state"] == "outside_record" for x in cells)
+
+
+
+def test_2_6_ad11_a_version_that_fails_to_load_leaves_the_last_good_one_serving(store_root, versions, tmp_path):
+    import os
+    import shutil
+    root = tmp_path / "copy"
+    shutil.copytree(store_root, root)
+    app = TestClient(create_app(root))
+    assert app.get("/meta").json()["record_version"] == versions[0]
+    broken = "20261114-deadbeef"
+    (root / "versions" / broken).mkdir()
+    (root / "versions" / broken / "manifest.json").write_text("{not json")
+    (root / "CURRENT.json").write_text(json.dumps({"record_version": broken, "previous": versions[0]}))
+    os.utime(root / "CURRENT.json", ns=(10**18, 10**18))
+    m = app.get("/meta")
+    assert m.status_code == 200 and m.json()["record_version"] == versions[0]
+    assert app.post("/calendar", json=_body(versions[0], PUNJAB, name=None)).status_code == 200
+
+
+# --- hosting: the store copied from public storage into local disk ---------------------
+def test_2_6_store_synced_from_a_url_answers_the_same(store_root, versions, tmp_path):
+    from burncal.service import remote
+    local = remote.sync(store_root.as_uri(), tmp_path / "tmpstore")
+    v = versions[0]
+    vdir = local / "versions" / v
+    assert (vdir / "points.parquet").exists() and (vdir / "grids" / "flags_1deg.parquet").exists()
+    assert not list((vdir / "records").glob("*/[A-Z]*_[0-9]*.parquet"))  # hotspot files wait until needed
+    synced = TestClient(create_app(local, fetch=remote.fetcher(store_root.as_uri(), local)))
+    direct = TestClient(create_app(store_root))
+    body = _body(v, AMAZON, name=None)
+    assert synced.post("/calendar", json=body).json() == direct.post("/calendar", json=body).json()
+    hot = {**body, "start": "2015-01-01", "end": "2015-12-31", "all_satellites": True}
+    assert synced.post("/hotspots.csv", json=hot).text == direct.post("/hotspots.csv", json=hot).text
+    assert list((vdir / "records").glob("*/[A-Z]*_2015.parquet"))  # fetched on first use
+    # a second sync downloads nothing new
+    assert remote.sync(store_root.as_uri(), tmp_path / "tmpstore") == local
+
+
+# --- the lead's low review items (15 Nov) --------------------------------------------
+def test_review_months_outside_the_record_are_not_validated_and_never_minus_zero(client, versions):
+    c = client.post("/calendar", json=_body(versions[0], PUNJAB, name=None)).json()
+    out = [m for m in c["months"] if m["count"] is None]
+    assert out and all(m["validated_satellite"] is False for m in out)
+    for m in c["months"]:
+        for f in ("anomaly_count", "anomaly_pct", "ratio_to_median"):
+            assert m[f] is None or str(m[f]) != "-0.0", (m["month"], f)
+
+
+def test_review_cells_after_data_through_have_no_threshold(client, versions):
+    c = client.post("/cells", json={"record_version": versions[0], "aoi": {"name": None, "geometry": PUNJAB},
+                                     "month": "2026-12"}).json()
+    assert all(x["threshold"] is None and x["count"] is None for x in c["cells"])
+
+
+def test_review_hotspot_csv_streams_a_large_year(client, versions, monkeypatch):
+    from burncal.service import store as store_mod
+    monkeypatch.setattr(store_mod, "MAX_SYNC_ROWS", 10)
+    r = client.post("/hotspots.csv", json={**_body(versions[0], SUMATRA, "2002-07-01", "2026-11-13", name=None),
+                                            "all_satellites": True, "year": 2015})
+    assert r.status_code == 200 and r.text.count("\n2015-") == 0 and "2015-" in r.text
+
+
+# --- Codex review (14 Nov): the previous version loads only when a request names it ----------
+def test_2_6_ad11_only_the_current_version_loads_at_start(store_root, versions):
+    s = Store(store_root)
+    assert set(s._versions) == {versions[0]}
+    assert s.get(versions[1]) is not None and set(s._versions) == {versions[0], versions[1]}
+
+
+def test_2_6_ad11_a_broken_previous_version_does_not_stop_the_current(store_root, versions, tmp_path):
+    import shutil
+    root = tmp_path / "copy"
+    shutil.copytree(store_root, root)
+    (root / "versions" / versions[1] / "manifest.json").write_text("{not json")
+    app = TestClient(create_app(root))
+    assert app.get("/meta").json()["record_version"] == versions[0]
+    assert app.post("/calendar", json=_body(versions[0], PUNJAB, name=None)).status_code == 200
+    r = app.post("/calendar", json=_body(versions[1], PUNJAB, name=None))
+    assert r.status_code == 410 and r.json()["current_record_version"] == versions[0]
+    assert app.post("/calendar", json=_body(versions[0], PUNJAB, name=None)).status_code == 200
+
+
+def test_2_6_sync_copies_the_current_version_and_fetches_the_previous_on_use(store_root, versions, tmp_path):
+    from burncal.service import remote
+    local = remote.sync(store_root.as_uri(), tmp_path / "tmpstore")
+    assert (local / "versions" / versions[0] / "manifest.json").exists()
+    assert not (local / "versions" / versions[1]).exists()
+    app = TestClient(create_app(local, fetch=remote.fetcher(store_root.as_uri(), local)))
+    direct = TestClient(create_app(store_root))
+    body = _body(versions[1], AMAZON, name=None)
+    assert app.post("/calendar", json=body).json() == direct.post("/calendar", json=body).json()
+    assert (local / "versions" / versions[1] / "points.parquet").exists()
 
 # --- Story 3.4: a changed date range ------------------------------------------------
 def test_3_4_ac3_rankings_follow_the_range_median_and_anomalies_keep_the_reference_period(client, versions):
@@ -480,3 +597,48 @@ def test_3_4_ac3_rankings_follow_the_range_median_and_anomalies_keep_the_referen
     assert all(m["rank"] is None for m in cut["months"] if not "2010-03" <= m["month"] <= "2012-06")
     # The record high is the whole record's, whatever the range (contract: record_high).
     assert cut["statistics"]["record_high"] == full["statistics"]["record_high"]
+
+
+# --- Story 2.8, option 1: a version's points read from another location (a URL on the host) ---
+def test_2_8_a_version_reads_its_points_from_another_location(store_root, versions, tmp_path):
+    import shutil
+    v = versions[0]
+    local = tmp_path / "nopoints"
+    shutil.copytree(store_root, local, ignore=shutil.ignore_patterns("points.parquet"))
+    elsewhere = tmp_path / "remote" / v
+    elsewhere.mkdir(parents=True)
+    shutil.copy2(store_root / "versions" / v / "points.parquet", elsewhere / "points.parquet")
+    where = lambda version: (tmp_path / "remote" / version / "points.parquet").as_posix()  # noqa: E731
+    app = TestClient(create_app(local, points_location=where))
+    direct = TestClient(create_app(store_root))
+    for geom in (SUMATRA, AMAZON, PUNJAB):
+        body = _body(v, geom, name=None)
+        assert app.post("/calendar", json=body).json() == direct.post("/calendar", json=body).json()
+
+
+def test_2_8_sync_without_points_reads_them_from_the_store_url(store_root, versions, tmp_path):
+    from burncal.service import remote
+    local = remote.sync(store_root.as_uri(), tmp_path / "tmpstore", with_points=False)
+    # DuckDB reads the points from a plain path here, as it reads an https URL on the host
+    assert not (local / "versions" / versions[0] / "points.parquet").exists()
+    app = TestClient(create_app(local, fetch=remote.fetcher(store_root.as_uri(), local),
+                                points_location=remote.points_url(store_root.as_posix())))
+    direct = TestClient(create_app(store_root))
+    for v in versions[:2]:  # the previous version too, loaded on demand
+        body = _body(v, AMAZON, name=None)
+        assert app.post("/calendar", json=body).json() == direct.post("/calendar", json=body).json()
+    assert not list((local / "versions").glob("*/points.parquet"))
+
+
+def test_3_2_missing_days_to_date_reads_the_area_extent(store_root, versions, tmp_path):
+    """Contract 0.4.0's card flag, on a multi-extent store: the current month's missing days are read per extent."""
+    import shutil
+    root = tmp_path / "copy"
+    shutil.copytree(store_root, root)
+    path = root / "versions" / versions[0] / "missing_days.parquet"
+    miss = pd.read_parquet(path)
+    extent = miss["extent"].iloc[0] if "extent" in miss and len(miss) else ""
+    row = {"year": 2026, "month": 11, "uncovered": False, "extent": extent}
+    pd.concat([miss, pd.DataFrame([row])], ignore_index=True).to_parquet(path, index=False)
+    c = TestClient(create_app(root)).post("/calendar", json=_body(versions[0])).json()
+    assert c["current_month"]["missing_days_to_date"] is True

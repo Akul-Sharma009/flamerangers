@@ -16,7 +16,7 @@ from typing import Literal
 from fastapi import FastAPI, Request
 from fastapi.exceptions import RequestValidationError
 from fastapi.middleware.cors import CORSMiddleware
-from fastapi.responses import JSONResponse, Response
+from fastapi.responses import JSONResponse, Response, StreamingResponse
 import pandas as pd
 import yaml
 import shapely
@@ -95,15 +95,30 @@ def _csv(header, columns, rows):
     return Response(out.getvalue(), media_type="text/csv")
 
 
+def _csv_stream(header, columns, batches):
+    """The CSV as a stream: header block, column line, then each batch of rows as it is read."""
+    def lines(rows):
+        out = io.StringIO()
+        csv.writer(out, lineterminator="\n").writerows([_cell(v) for v in row] for row in rows)
+        return out.getvalue()
+
+    def gen():
+        yield "".join(f"# {k}: {v}\n" for k, v in header) + lines([columns])
+        for b in batches:
+            if len(b):
+                yield lines(_hotspot_cells(b))
+    return StreamingResponse(gen(), media_type="text/csv")
+
+
 def _regions():
     gj = json.loads((CONTRACT / "regions.geojson").read_text(encoding="utf-8"))
     return {f["properties"]["region_id"]: (f["properties"]["name"], f["properties"]["evidence_class"],
                                            shape(f["geometry"])) for f in gj["features"]}
 
 
-def _open_store(root):
+def _open_store(root, fetch=None, points_location=None):
     root = Path(root or environ.get("BURNCAL_STORE_ROOT", DEFAULT_STORE))
-    return Store(root) if (root / "CURRENT.json").exists() else None
+    return Store(root, fetch, points_location) if (root / "CURRENT.json").exists() else None
 
 
 def _hotspot_cells(rows):
@@ -116,15 +131,18 @@ def _hotspot_cells(rows):
     cols["acq_datetime_utc"], cols["type"] = t, [None if x is pd.NA else int(x) for x in typ]
     cols["weight"] = [repr(float(w)) for w in rows["weight"]]
     cols["feeds_record"] = [bool(x) for x in rows["feeds_record"]]
-    cols["frp"] = [float(x) for x in rows["frp"]]
+    cols["frp"] = [None if pd.isna(x) else float(x) for x in rows["frp"]]  # a missing FRP is an empty cell, never "nan"
     return list(zip(*(cols[c] for c in HOTSPOT_COLUMNS)))
 
 
-def create_app(store_root=None) -> FastAPI:
-    store, regions = _open_store(store_root), _regions()
+def create_app(store_root=None, fetch=None, points_location=None) -> FastAPI:
+    """fetch: set when the store was synced from a URL (burncal.service.remote), to get record files on use.
+    points_location: version -> where its points.parquet is read (a URL, read by range requests; Story 2.8)."""
+    store, regions = _open_store(store_root, fetch, points_location), _regions()
     load = lambda p: json.loads((CONTRACT / "fixture" / p).read_text(encoding="utf-8"))  # noqa: E731
-    meta, calendar, cells = load("meta.json"), load("calendar.json"), load("cells.json")
-    hotspot_rows = load("hotspot_rows.json")["rows"]
+    # The fixture answers are only needed without a store (they are not shipped to the host).
+    meta, calendar, cells, hotspot_rows = (None, None, None, None) if store else (
+        load("meta.json"), load("calendar.json"), load("cells.json"), load("hotspot_rows.json")["rows"])
     superseded, invalid = load("problems/version_superseded.json"), load("problems/invalid_aoi.json")
     text = (CONTRACT / "messages.yaml").read_text(encoding="utf-8")
     notes = dict(re.findall(r'^  (\w+): "(.*)"$', text, re.M))
@@ -165,7 +183,7 @@ def create_app(store_root=None) -> FastAPI:
         if geom is None or geom.is_empty or not geom.is_valid or geom.bounds[2] - geom.bounds[0] > 180:
             return None, None, JSONResponse({**invalid, "status": 400, "detail": "aoi.geometry: not a valid area"},
                                             status_code=400, media_type=PROBLEM)
-        if not shapely.covers(v.extent, geom):
+        if not v.covers(geom):
             return None, None, problem(outside, 404, v)
         return v, geom, None
 
@@ -184,7 +202,7 @@ def create_app(store_root=None) -> FastAPI:
                   ("data_through", dt),
                   ("record_switch", f'Aqua MODIS counts through {rs["aqua_through"]}; '
                                     f'converted VIIRS counts from {rs["viirs_from"]}'),
-                  ("count_unit", meta["unit_label"])]
+                  ("count_unit", answers.UNIT_LABEL)]
         tail = limits + [("citation", "placeholder: dataset citations come from Story 6.1")]
         return common + extra(span) + tail
 
@@ -247,7 +265,7 @@ def create_app(store_root=None) -> FastAPI:
             head = header(req, "hotspots", lambda span: [
                 ("row_filter", "all satellites" if req.all_satellites else "rows that feed the record"),
                 ("row_count_note", ROW_COUNT_NOTE)], v, geom)
-            return _csv(head, HOTSPOT_COLUMNS, _hotspot_cells(rows))
+            return _csv_stream(head, HOTSPOT_COLUMNS, rows)
         if (bad := stale(req)):
             return bad
         rows = [r for r in hotspot_rows if req.all_satellites or r["feeds_record"]]
@@ -259,4 +277,10 @@ def create_app(store_root=None) -> FastAPI:
     return app
 
 
-app = create_app()
+def __getattr__(name):
+    """`burncal.service.app:app` (uvicorn, Dockerfile) is built on first use, not at import, so a host
+    entry point can build its own app with create_app() without loading a store twice."""
+    if name == "app":
+        globals()["app"] = create_app()
+        return globals()["app"]
+    raise AttributeError(name)

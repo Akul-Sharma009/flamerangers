@@ -147,6 +147,84 @@ Not in the repo: the Vercel trial used a two-line `index.py` entrypoint and a `r
 | AC3 standard beats NRT per satellite-day | `test_2_3_ac3_*` in `test_ingest.py` and `test_build_extent.py`; 3,949 NRT rows replaced in the Sumatra build |
 | AC4 tuning-year Aqua counts agree, or differences listed with causes | `test_2_3_ac4_*` in `test_compare_tuning.py`; `uv run python -m burncal.pipeline.compare_tuning`; `docs/cleaning-differences.md` |
 
+## Story 6.2: README and fresh-clone run, data side (15 Nov)
+
+- README gains "Run the service" and "Rebuild the store for one region" (land layer, download, clean, convert, aggregate, publish, check). New `burncal/pipeline/download.py` (`uv run python -m burncal.pipeline.download <region_id> <raw dir> <data_through>`) downloads one region on whole tiles, resumably, and writes `coverage.json`; before this the download lived only in throwaway scripts.
+- **Fresh clone on the data owner's machine (15 Nov):** `uv sync`, import check, `uv run pytest` (317 passed, 13 skipped for want of a local store); the service in fixture mode answered `/meta`; the land layer downloaded with the stated hash; clean, convert, aggregate, publish and `tools/check_numbers.py` ran for Amazon forest from its downloaded files (Aqua through 2020, so no parity case needed): 1,316,333 rows, 0 disagreements over 228 months; `web/`: `npm ci`, 71 tests passed, build passed (npm notes that some packages' install scripts were not run).
+- Not checked from the clone: the download step itself (its plan and coverage file are unit-tested; a whole region takes hours), and publishing converted counts (needs the parity case from the planning record).
+- The web-against-fixture and evidence-rebuild sections are the lead's.
+
+## Story 6.3: data-side security checks (15 Nov; Story 6.3 is the lead's)
+
+| Check | Result |
+| --- | --- |
+| gitleaks, full history (`gitleaks git . --log-opts=--all`) | 54 commits, all branches: no leaks |
+| gitleaks, working tree (`gitleaks dir .`) | 1 hit: `.env` (the FIRMS key), git-ignored and never committed |
+| `pip-audit` on every pinned Python package (`uv export --all-groups`) | No known vulnerabilities |
+| `npm audit` in `web/` | 0 vulnerabilities (with and without dev dependencies) |
+| Notebooks | None in the repo |
+| Local paths (`/Users/`, `/private/tmp`, `/home/`) in any pushed branch | None |
+| Keys | `FIRMS_MAP_KEY` appears only empty in `.env.example` and as a dummy in a test |
+| Hosted service (Vercel `burncal-stub`) | No environment variables; the service reads no secret |
+
+- For the lead before the repo goes public: the data owner's Hugging Face account name appears in old, already-merged story branches (`teammate/1.3`, `2.3` to `2.7`) and so in git history, in the trial dataset's name; not in master or any current file. `LICENSE` names the lead's account as copyright holder. Deleting the merged branches, or leaving history as it is, is the lead's call.
+- Not run by the data owner (the lead runs reviews): `/security-review`, `/codex:review`, copying the three planning files, ticking `GUARDRAILS.md`.
+
+## Story 2.6 AC6 and hosting: the real service on Vercel (15 Nov)
+
+- Live at `https://burncal-stub.vercel.app` (Vercel Hobby, Python 3.14, the lead's choice). Serving version `20261113-3d2a8f8c` (Sumatra, built before the 15 Nov review fixes; the whole-tile rebuild replaces it). No environment variables yet: `CORS_ORIGINS` waits for the web's origin.
+- **How the store gets there:** copied from a public Hugging Face dataset into `/tmp` when an instance starts (`burncal/service/remote.py`): the pointer, then for the current and previous versions everything a calendar needs (31 MB for Sumatra). Hotspot record files (81 MB for Sumatra) are fetched the first time a request needs them. The deployment itself carries only code and contract files; its entry point (`index.py`, which names the dataset URL) and `requirements.txt` live outside the repo.
+- **Measured (15 Nov, from Singapore; the function ran in sin1):**
+
+| Measure | Result |
+| --- | --- |
+| Memory, current version loaded | 643 MB steady, 880 MB peak (runtime log). Two Sumatra versions locally: 1,025 MB steady, 1,172 MB peak; on Vercel expected about 1.1 GB and 1.3 GB, under the 2 GB limit. |
+| `/tmp` free after sync | 194 MB |
+| Cold start | 8.3 s for the first request to a new deployment (inside: imports 1.3 s, store sync 1.0–1.2 s, loading 1.5 s; the rest is the dependency install on a new instance) |
+| **2.6 AC6**: 20 Sumatra calendars | p50 0.82 s, **p95 1.09 s** against 3 s; max 1.11 s |
+
+- **Redeployed 14 Nov, whole-tile Sumatra** (`20261113-9cedd502`, built only from the planned files; see `DECISIONS.md`): parity PASS (worst 2.9e-10), `check_numbers` 0 failures over 300 months, threshold parity 899/900 (the known September cell). Hosted: `/meta` placeholder false; 20 calendars p50 0.88 s, **p95 1.12 s**, max 1.17 s; start-up log RSS 275 MB, `/tmp` free 106 MB with two versions synced (53 MB); cold first request 8.1 s. The deploy folder (code, `contract/messages.yaml`, `regions.geojson`, fixture problems, `index.py`, pinned `requirements.txt` with duckdb, `.python-version` 3.14, `.vercelignore`) is rebuilt outside the repo for each deploy.
+- **Codex review items** (14 Nov, `DECISIONS.md`): the parity pass carries the params hash and code revision, and publish refuses uncommitted `burncal/` code; publish loads a version before the pointer names it; the service loads (and the host syncs) the previous version only when a request names it. Deployed 15 Nov (code `ec595a1`): start-up sync 0.5 s, RSS 250 MB, `/tmp` free 137 MB (was 1.7–2.1 s, 275 MB, 106 MB); 20 Sumatra calendars p50 0.82 s, p95 1.07 s; a request naming the previous version 4.8 s the first time (fetch and load), then about 2.8 s (older format, key computed in the query).
+- **Six regions: fixed.** The service now reads hotspots from disk with DuckDB (`DECISIONS.md`, 15 Nov), so memory no longer grows with the area: two Sumatra versions take 217 MB steady (was 1,025 MB). Not yet deployed: the next deploy needs `duckdb` in the deploy requirements and a version published in the new format.
+
+## Story 2.8: coverage for the six evaluated regions (branch `teammate/2.8-coverage`; six regions done, world waits for the lead)
+
+- All six regions downloaded on whole 5° tiles (every planned file; Southern Africa and Australia needed 2 and 3 passes), staged from the planned files only, built, and published together as `20261113-d6f8b9e6` in the local store. **Not deployed:** the start-up sync would be 901 MB against the 120 MB gate. Sizes per region and four options for the lead are in `DECISIONS.md` (Story 2.8, 15 Nov). The hosted service still serves Sumatra only.
+- `tools/check_numbers.py` now checks every region the version holds: 0 failures for all six and the Amazon polygon. Threshold parity: Sumatra 899/900, Amazon 672/672, Australia 967/972. Australia's 5 misses are not the static mask (rebuilt with Suomi NPP 2016); a coastline difference is likelier, not yet checked.
+- Largest area served locally: Southern Africa's whole 15×15° extent, p50 1.15 s (target 10 s). Hosted, add about 0.8 s.
+- Option 1 measured (points read remotely from the public dataset, from Singapore): exact counts; first request 5–43 s, 9 of 12 areas over 10 s; repeats 0.35–0.67 s. Details in `DECISIONS.md` (Story 2.8).
+- **Option 1 chosen by the lead (15 Nov).** The service can read points from the store URL (`create_app(points_location=...)`, `remote.sync(with_points=False)`), with 16 DuckDB threads for remote reads. The 1° block re-sort was tried and dropped (worst first request 92 s at 2 threads, 19.6 s at 16, against 10.8 s for the old layout at 16). Adopted: region polygons 3.0–8.6 s first request, whole extents 3.4–10.8 s (Siberia's whole extent the one over 10 s), repeats 0.3–0.7 s; counts identical before and after over all 12 areas. Deployed 15 Nov and **rolled back**: Hugging Face rate-limited the host's range requests (429, 3,000 requests per 5 minutes per IP, anonymous), so first requests took 4–32 s and one request failed with a 500. Live again on Sumatra (p95 0.95 s). The next step needs the lead: a token (a secret), another object store (a new account), or serving the regions that fit. The `/tmp` cache fallback is not built (it cannot speed up a cold first request). The host bundle needs `duckdb_ext/httpfs.duckdb_extension` for linux.
+- To rebuild: download each region (`burncal.pipeline.download`), link its planned files into `store/staged/<region_id>/` (the extent's name in the version is that folder's name), then clean, convert, aggregate as in the README with outputs under `store/build/`, and publish all six triples in one command. Peak memory 4.4 GB (Southern Africa).
+
+### 2.8 AC2: global history planned from a measured sample (15 Nov; no global download made)
+
+- **Country files (no key):** the last year is **2025**, complete to 31 December 2025, standard processing (MODIS version 61.03, VIIRS version 2), for MODIS (`modis`), Suomi NPP (`viirs-snpp`) and NOAA-20 (`viirs-jpss1`). There is no 2026 file, and NOAA-21 (`viirs-jpss2`) has no country files at all. Each year also exists as one all-countries zip (`data/country/zips/<source>_<year>_all_countries.zip`): MODIS 65–90 MB a year (2002–2025), Suomi NPP 307–385 MB (2012–2025), NOAA-20 260–401 MB (2018–2025). Checked with HEAD and byte-range requests only.
+- **Area API (key):** quota 5,000 transactions per 10 minutes. Measured: a request costs **2 transactions per day of range**, whatever the area (100 to 525 deg²) or the rows (294 to 27,641). Whether a world-sized request costs the same is not measured.
+- **Rows:** our CSVs compress to 16.3–17.5 bytes a row (zip), so the all-countries zips hold about 4.7M MODIS and about 21M rows a year for each VIIRS satellite (Southern Africa's 4.3 GB raw folder checks out at this rate: 54M rows).
+- **Estimates, July 2002 to 13 November 2026, area API, world:**
+
+| Scope | 5-day requests | Transactions | Quota-bound time | Rows | CSV | Download at 0.6–2 MB/s | Store version (six-region ratios) |
+| --- | --- | --- | --- | --- | --- | --- | --- |
+| All five satellites, every day | 3,763 | 37,612 | 1.3 h | about 680M | about 54 GB | 25 h to 7.5 h | about 25 GB (points 8 GB) |
+| The product's plan (as the six regions) | 2,785 | 27,818 | 0.9 h | about 400M | about 31 GB | 14 h to 4 h | about 15 GB (points 4 GB) |
+
+- The download rate was measured on Southern Africa (4.3 GB in 1.9 h, 0.62 MB/s with 4 workers while other downloads ran); smaller regions were slower per byte because each request is small. A world request carries about 290,000 VIIRS rows (23 MB) per 5 days, so the rate is likelier bandwidth-bound; the upper figure is not measured.
+- **What it means:** the raw CSVs alone (31–54 GB) do not fit on the data owner's disk (29 GB free), and the store version (15–25 GB) does not fit any host measured so far. A world run needs either a pipeline that drops each raw year after building it, or a bigger machine, and a store read by range from object storage. These are the lead's calls (AC3); nothing needs money yet.
+- **To confirm before any world run (needs the lead's go-ahead, it is a global download):** one day of each source for the world (8 requests, about 20 MB) measures the weight of a world request and its time.
+
+| Criterion | Test or evidence |
+| --- | --- |
+| AC1 each region's calendar loads | `test_2_8_ac1_each_region_calendar_loads` (6 regions, every record month non-null) |
+| AC1 extents are whole tiles | `test_2_8_ac1_each_region_has_its_own_whole_tile_extent` |
+| AC1 outside coverage is `outside_coverage`, never zeros | `test_2_8_ac1_an_area_outside_every_extent_is_outside_coverage_never_zero`; synthetic `test_2_6_outside_coverage_is_404` |
+| AC1 numbers agree in every region | `tools/check_numbers.py store/published`; `test_2_8_check_numbers_searches_every_region_the_version_holds` |
+| AC1 thresholds | `test_2_5_ac2_*` on the whole-tile builds |
+| One version holds several extents | `test_2_8_one_version_holds_several_extents`; `test_2_8_build_one_satellite_year_at_a_time_equals_the_whole_extent` |
+| AC2 global plan from a measured sample | 2.8 AC2 above: country files end in 2025; transactions, time and size estimated from regional requests and the all-countries zips. Open: the weight of a world request (needs a one-day world sample) |
+| AC3 one global year measured, the lead sees it first | Not done (no global download without the lead) |
+| AC4 world run, continental areas against 10 s | Not done; largest served area so far 1.15 s locally |
+| AC5 too-large areas reported | Size finding above reported to the lead; no limit added |
+
 ## Story 4.5: numbers-agree check (branch `teammate/4.5-numbers-agree`, on top of 4.1)
 
 - `uv run python tools/check_numbers.py [store root]` exits 1 on any disagreement. For Sumatra, an Amazon polygon and the Punjab box over the whole record: every analytics CSV row equals its `/calendar` month field by field, and for every complete month up to December 2021 the hotspot CSV's feeding, kept rows number exactly the harmonized count. A search outside the store's coverage is reported as not loaded.
@@ -608,16 +686,16 @@ From the lead's review of PRs 3 to 11 and the Codex adversarial review of the pr
 Checks on the merged master: `uv run pytest` 310 passed, 1 skipped (Sumatra record test, no local `store/`; parity case set); full C1 parity PASS, worst miss 2.1e-9 (4A, 1°); import, evidence and wording checks passed; web typecheck, 71 tests and build passed; gitleaks `git` and `dir` found no leaks; `params/` and `evidence/scoring/` unchanged.
 
 1. Data owner, before any converted count is public:
-   - **AD-2 gate.** `publish()` in `burncal/pipeline/publish.py` hashes the params but never runs the parity check; only pytest does, and it skips without the case folder. Publish should refuse converted counts unless parity passes, and the passing result should be tied to the exact code revision and `c1_params.json` hash of the version being published (Codex review, 14 Nov).
-   - **Null is not 0.** In `burncal/service/answers.py` (`calendar()`), every month in the record gets a count even when no feeding day was loaded, so a coverage gap is served as `0.0`. `burncal/pipeline/aggregate.py` also writes 0 for in-record cell-months with no rows. Both should be null from coverage and missing days.
-   - **Static-mask inputs.** `burncal/pipeline/clean.py` / `build_extent.py` build the mask from whatever raw files are present. Fail the build unless Aqua, Terra and Suomi NPP for 2014, 2016, 2017 and 2020 are all there (the McArthur River cell, 136E 16S).
-   - **2.5 AC2 record.** Put the Australian grassland (967/972) and Amazon forest (672/672) threshold parity in `DECISIONS.md` and a test, with the 5 misses and their cause.
-   - **AD-11.** In `burncal/service/store.py` `refresh()`, a version that fails to load makes every request 500. Keep serving the last good version. Two cheap parts (Codex review, 14 Nov): load the previous version only when a request names it, so a bad previous version cannot stop the current one; and have `publish()` load the new version once (as the service would) before it switches `CURRENT.json`.
-   - **Memory.** `Store.refresh()` builds a `Version` for the current and the previous version at start-up, each holding all of `points.parquet` and the 0.25° grid. Loading the previous one lazily (above) roughly halves cold-start memory on Vercel's 2 GB. Measure peak memory with Sumatra, then with six regions, before 2.8 publishes.
-   - **Sep 2006, 105E 6S.** The harness history has 39 Aqua rows for that cell-month, from the FIRMS Indonesia country archive file, none dropped by its cleaning (all day, type 0). Diff the product's 41 against them and record the cause in `docs/cleaning-differences.md` (country archive versus area API is the likeliest).
-2. Data owner: deploy the real service to Vercel (the lead's choice, 14 Nov; see `DECISIONS.md`). Measure, in this order: memory with Sumatra's current and previous versions loaded (the limit is 2 GB); how the store version gets to the function (inside the deployment, or copied from public object storage into `/tmp`, about 158 MB free); cold start; then 2.6 AC6, the p95 of 20 Sumatra calendars against 3 s. The service loads the current and the previous version wholly into memory at start-up, so memory, not bundle size, is the likely limit for six regions.
+   - **AD-2 gate.** DONE (14–15 Nov): publish refuses converted counts unless the parity case passes, the pass carries the `c1_params.json` hash and code revision, and the publish command refuses uncommitted `burncal/` code; see `DECISIONS.md`. Was: `publish()` in `burncal/pipeline/publish.py` hashes the params but never runs the parity check; only pytest does, and it skips without the case folder. Publish should refuse converted counts unless parity passes, and the passing result should be tied to the exact code revision and `c1_params.json` hash of the version being published (Codex review, 14 Nov).
+   - **Null is not 0.** DONE (15 Nov): months with no feeding day loaded are null (`outside_coverage`). Was: In `burncal/service/answers.py` (`calendar()`), every month in the record gets a count even when no feeding day was loaded, so a coverage gap is served as `0.0`. `burncal/pipeline/aggregate.py` also writes 0 for in-record cell-months with no rows. Both should be null from coverage and missing days.
+   - **Static-mask inputs.** DONE (15 Nov): the build refuses without every tuning-year file. Was: `burncal/pipeline/clean.py` / `build_extent.py` build the mask from whatever raw files are present. Fail the build unless Aqua, Terra and Suomi NPP for 2014, 2016, 2017 and 2020 are all there (the McArthur River cell, 136E 16S).
+   - **2.5 AC2 record.** DONE (15 Nov): `DECISIONS.md` and tests. Australia's 5 misses remain after the rebuild with Suomi NPP 2016 and are not the static mask; a coastline difference is likelier, not yet checked. Was: Put the Australian grassland (967/972) and Amazon forest (672/672) threshold parity in `DECISIONS.md` and a test, with the 5 misses and their cause.
+   - **AD-11.** DONE (14–15 Nov): a version that fails to load leaves the last good one serving; the previous version loads only when a request names it; `publish()` loads the new version before switching `CURRENT.json`. Was: In `burncal/service/store.py` `refresh()`, a version that fails to load makes every request 500. Keep serving the last good version. Two cheap parts (Codex review, 14 Nov): load the previous version only when a request names it, so a bad previous version cannot stop the current one; and have `publish()` load the new version once (as the service would) before it switches `CURRENT.json`.
+   - **Memory.** DONE (15 Nov): points are read from disk with DuckDB, not held in memory. Hosted Sumatra: RSS 250 MB at start-up. Six regions publish locally at 4.0 GB peak but are not deployed: their start-up files are 901 MB, over the 120 MB gate (Story 2.8). Was: `Store.refresh()` builds a `Version` for the current and the previous version at start-up, each holding all of `points.parquet` and the 0.25° grid. Loading the previous one lazily (above) roughly halves cold-start memory on Vercel's 2 GB. Measure peak memory with Sumatra, then with six regions, before 2.8 publishes.
+   - **Sep 2006, 105E 6S.** Open. The harness history has 39 Aqua rows for that cell-month, from the FIRMS Indonesia country archive file, none dropped by its cleaning (all day, type 0). Diff the product's 41 against them and record the cause in `docs/cleaning-differences.md` (country archive versus area API is the likeliest).
+2. Data owner: deploy the real service to Vercel. DONE (15 Nov): see "Story 2.6 AC6 and hosting" above (Sumatra, p95 1.07 s). Six regions wait on the lead's choice among the options in `DECISIONS.md` (Story 2.8).
 3. Contract 0.4.0 merged into master on 15 Nov, with the data owner's agreement (`DECISIONS.md`, "Contract 0.4.0 drafted by the lead"). It touches `burncal/service/answers.py` and `app.py`, which `teammate/2.8-coverage` also edits: expect conflicts there when 2.8 merges.
-4. Low items from the reviews, not yet acted on: `share_of_max` can use a part-year as the 100% bar; a null `frp` would be written as `nan`; `validated_satellite` is true for months outside the record; `anomaly_count` can be `-0.0`; with `year` set, `/hotspots.csv` has no row limit; `/cells` serves threshold 0.0 after `data_through`; `compare_tuning` prints "fire days".
+4. Low items from the reviews: DONE 15 Nov except the card's missing-days caution, which needs a contract field (see `DECISIONS.md`). Were: `share_of_max` can use a part-year as the 100% bar; the current-month card gives no caution when days 1 to *d* have missing days; a null `frp` would be written as `nan`; `validated_satellite` is true for months outside the record; `anomaly_count` can be `-0.0`; with `year` set, `/hotspots.csv` has no row limit; `/cells` serves threshold 0.0 after `data_through`; `compare_tuning` prints "fire days".
 5. Lead: Story 3.4 (the dates tab) is at review on `claude/3-4-dates-ac58f0`, with sentences to add in a contract bump; Stories 5.5 and 5.6 go below the head-to-head table on the evidence page.
 6. **Lead: final reviews for Story 6.3 (planned 15 Nov).** Gitleaks over the whole history ran on 15 Nov at 12:28 SGT: 85 commits on every branch, including `teammate/2.8-coverage`, no leaks. Only `.env.example` and `web/.env.example` were ever committed, and `.env` is git-ignored. Still to run, once each, by the lead:
    - `/security-review` and the Codex review (`/codex:review`) on master.

@@ -139,9 +139,9 @@ def static_years(df: pd.DataFrame, cells, years=range(2014, 2022)) -> dict:
 def why_static_in_p(years_all, years_harness_sats, tuning=TUNING_YEARS) -> str:
     """Reason a cell is static under P but not under H, from the years that reach 50 days."""
     if any(y not in tuning for y in years_harness_sats):
-        return "50 or more fire days in a year outside the tuning years"
+        return "50 or more hotspot days in a year outside the tuning years"
     if years_all:
-        return "50 or more fire days only when NOAA-20 detections are added"
+        return "50 or more hotspot days only when NOAA-20 detections are added"
     return "other"
 
 

@@ -49,9 +49,9 @@ development_status:
   2-3-ingest-and-cleaning-for-one-extent-t: done
   2-4-weights-and-the-harmonized-record-t: done
   2-5-grids-thresholds-and-flags-t: in-progress  # merged; AC2 Australia and Amazon results not recorded; static-input check open
-  2-6-publish-a-version-and-serve-real-counts-t: in-progress  # merged; AC6 hosted p95 and the AD-2 publish gate open
+  2-6-publish-a-version-and-serve-real-counts-t: review  # AC6 measured on Vercel: p95 1.09 s
   2-7-hotspots-for-any-search-t: done
-  2-8-coverage-for-the-evaluated-regions-then-the-world-t: backlog
+  2-8-coverage-for-the-evaluated-regions-then-the-world-t: in-progress  # six regions published locally (20261113-d6f8b9e6), not deployed: 901 MB over the 120 MB gate; world waits for the lead
   2-9-the-current-month-refreshed-daily-t: backlog
   2-10-noaa-20-against-suomi-npp-reported-only-t: backlog
   epic-2-retrospective: optional

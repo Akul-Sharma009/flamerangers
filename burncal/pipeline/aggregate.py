@@ -63,7 +63,19 @@ def thresholds_1deg(g1: pd.DataFrame, cells: pd.DataFrame) -> pd.DataFrame:
                          "threshold": thr.ravel()})
 
 
-def flags_1deg(g1, thr, cells, *, data_through: date) -> pd.DataFrame:
+def null_uncovered(flags: pd.DataFrame, uncovered) -> pd.DataFrame:
+    """Months with no feeding day loaded: count null and flag_state outside_record (AD-12, missing is not 0).
+    The contract has no flag state for "not loaded"; outside_record is the nearest, with a null count."""
+    if not uncovered or "year" not in flags:
+        return flags
+    out = flags.copy()
+    hit = pd.Series(list(zip(out["year"], out["month"]))).isin(set(uncovered)).to_numpy()
+    out.loc[hit, "count"] = np.nan
+    out.loc[hit, "flag_state"] = "outside_record"
+    return out
+
+
+def flags_1deg(g1, thr, cells, *, data_through: date, uncovered=()) -> pd.DataFrame:
     """Every cell of the extent and every month from January 2002 to December of data_through's year."""
     years = np.arange(2002, data_through.year + 1)
     grid = pd.MultiIndex.from_product([cells["sw_lon"], years, range(1, 13)]).to_frame(index=False)
@@ -79,7 +91,7 @@ def flags_1deg(g1, thr, cells, *, data_through: date) -> pd.DataFrame:
     out["provisional"] = np.array([s[0] == "partial" for s in st])
     out["reference_year"] = grids.reference_year(out["year"])
     out.loc[~in_record, "count"] = np.nan  # missing is not zero (AD-12)
-    return out
+    return null_uncovered(out, uncovered)
 
 
 def tuning_thresholds_parity(region: str, record_dir) -> dict:
@@ -101,13 +113,25 @@ def tuning_thresholds_parity(region: str, record_dir) -> dict:
                         round(float(r.threshold_p90_aqua_2003_2011), 6)) for r in miss.itertuples()]}
 
 
+def _summed(parts):
+    return pd.concat(parts, ignore_index=True).groupby(KEY, as_index=False).sum()
+
+
 def build(record_dir, out_dir, data_through: date | None = None) -> dict:
-    df = read_record(record_dir)
-    data_through = data_through or df["utc_date"].max()
+    """One satellite-year file at a time; the cell-month sums of the files are added together."""
+    paths = sorted(Path(record_dir).glob("[A-Z]*_[0-9]*.parquet"))
+    p1, p025, last = [], [], None
+    for path in paths:
+        df = pd.read_parquet(path, columns=COLUMNS)
+        p1.append(cell_months(df, 1.0))
+        p025.append(cell_months(df, 0.25))
+        if len(df):
+            last = max(last, df["utc_date"].max()) if last else df["utc_date"].max()
+    data_through = data_through or last
     cells = pd.read_parquet(Path(record_dir) / "evidence_1deg.parquet")[["sw_lon", "sw_lat"]]
     out_dir = Path(out_dir)
     out_dir.mkdir(parents=True, exist_ok=True)
-    g1, g025 = cell_months(df, 1.0), cell_months(df, 0.25)
+    g1, g025 = _summed(p1), _summed(p025)
     thr = thresholds_1deg(g1, cells)
     flags = flags_1deg(g1, thr, cells, data_through=data_through)
     for name, t in (("cells_1deg", g1), ("cells_025deg", g025), ("thresholds_1deg", thr), ("flags_1deg", flags)):

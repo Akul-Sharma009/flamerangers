@@ -9,7 +9,15 @@ import pytest
 from burncal.pipeline import aggregate
 
 ROOT = Path(__file__).resolve().parents[2]
-SUMATRA_RECORD = ROOT / "store" / "record" / "sumatra"
+
+
+def _built_record(region: str) -> Path:
+    """The whole-tile build (Story 2.8) when present, else the earlier tuning-region record."""
+    built = ROOT / "store" / "build" / "record" / region
+    return built if built.exists() else ROOT / "store" / "record" / region
+
+
+SUMATRA_RECORD = _built_record("sumatra")
 
 
 def _record(rows):
@@ -53,6 +61,10 @@ def test_2_5_ac2_and_ac3_thresholds_and_dense_flags_cover_every_cell():
     assert f.loc[(102.0, -2.0, 2010, 1), "flag_state"] == "not_flaggable" and f.loc[(102.0, -2.0, 2010, 1), "count"] == 0
     assert bool(f.loc[(101.0, -2.0, 2002, 7), "provisional"]) and bool(f.loc[(101.0, -2.0, 2023, 3), "provisional"])
     assert bool(f.loc[(101.0, -2.0, 2005, 3), "reference_year"]) and not bool(f.loc[(101.0, -2.0, 2023, 3), "reference_year"])
+    # a month with no feeding day loaded is null, not 0
+    gap = aggregate.flags_1deg(g1, thr, cells, data_through=date(2023, 3, 2), uncovered={(2010, 1)})
+    g = gap.set_index(["sw_lon", "sw_lat", "year", "month"])
+    assert np.isnan(g.loc[(102.0, -2.0, 2010, 1), "count"]) and g.loc[(102.0, -2.0, 2010, 1), "flag_state"] == "outside_record"
 
 
 @pytest.mark.skipif(not SUMATRA_RECORD.exists(), reason="Sumatra record not built (store/ is git-ignored)")
@@ -63,3 +75,22 @@ def test_2_5_ac2_sumatra_thresholds_match_the_parity_targets():
     # where the harness history has 39 (Sumatra September 2003-2011: 36,686 against the stored 36,684).
     # Every other cell-month matches within 1e-6. See DECISIONS.md.
     assert got["misses"] == [(105.0, -6.0, 9, 21.0, 20.6)], got
+
+
+
+@pytest.mark.skipif(not _built_record("amazon_forest").exists(), reason="Amazon record not built")
+def test_2_5_ac2_amazon_thresholds_match_the_parity_targets():
+    got = aggregate.tuning_thresholds_parity("amazon_forest", _built_record("amazon_forest"))
+    assert got["cells"] == 56 and got["cell_months"] == 672 and got["misses"] == [], got
+
+
+@pytest.mark.skipif(not _built_record("australia_grassland").exists(), reason="Australia record not built")
+def test_2_5_ac2_australia_thresholds_match_except_the_known_cell():
+    got = aggregate.tuning_thresholds_parity("australia_grassland", _built_record("australia_grassland"))
+    assert got["cells"] == 81 and got["cell_months"] == 972
+    # KNOWN, open: the cell with south-west corner 136E 16S (Gulf of Carpentaria coast) is higher in 5 months.
+    # Not the static mask: the whole-tile rebuild with Suomi NPP 2016 misses the same 5 cell-months, and no
+    # 30-arc-second cell there reaches 50 hotspot days in a static-mask year. A coastline difference is the
+    # likelier cause, not yet checked against the harness's counts. See DECISIONS.md.
+    assert [m[:3] for m in got["misses"]] in ([], [(136.0, -16.0, 1), (136.0, -16.0, 2), (136.0, -16.0, 10),
+                                                  (136.0, -16.0, 11), (136.0, -16.0, 12)]), got

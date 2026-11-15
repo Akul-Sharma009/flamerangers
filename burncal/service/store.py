@@ -4,15 +4,19 @@ The fast path sums whole 0.25-degree grid cells inside the area and adds the poi
 that the area's edge cuts. It must equal the brute-force point sum (count_points).
 """
 import json
+import logging
 from datetime import date
 from pathlib import Path
 
+import duckdb
 import numpy as np
 import pandas as pd
+import pyarrow as pa
 import shapely
 
 from burncal.core import grids
 
+log = logging.getLogger("burncal.service")
 SATELLITES = ("AQUA", "TERRA", "SNPP", "NOAA20", "NOAA21")
 FEEDING_SATELLITES = ("AQUA", "SNPP", "NOAA20")
 FINE = 0.25
@@ -30,53 +34,135 @@ def _cell_ix(x):
     return np.floor(np.asarray(x, float) / FINE + 1e-9).astype(np.int64)
 
 
+# Everything a calendar needs from a version; hotspot record files are read on use.
+SERVING = ["manifest.json", "coverage_days.parquet", "missing_days.parquet", "points.parquet",
+           "grids/cells_1deg.parquet", "grids/cells_025deg.parquet", "grids/thresholds_1deg.parquet",
+           "grids/flags_1deg.parquet", "records/evidence_1deg.parquet"]
+
+
+HTTPFS = Path(__file__).resolve().parents[2] / "duckdb_ext" / "httpfs.duckdb_extension"  # shipped with the host bundle
+REMOTE_THREADS = 16
+
+
+def _load_httpfs(db) -> None:
+    """DuckDB reads URLs with its httpfs extension: the copy shipped beside the code when present, else installed."""
+    if HTTPFS.exists():
+        db.execute(f"LOAD '{HTTPFS.as_posix()}'")
+    else:
+        db.execute("INSTALL httpfs")
+        db.execute("LOAD httpfs")
+
+
 class Version:
-    def __init__(self, path):
+    def __init__(self, path, fetch=None, points=None):
+        """points: where this version's points.parquet is read from (a path or an https URL); default inside path."""
         self.path = Path(path)
+        self._fetch = fetch  # downloads a record file on first use when the store was synced from a URL
         self.manifest = json.loads((self.path / "manifest.json").read_text(encoding="utf-8"))
         self.record_version = self.manifest["record_version"]
         self.data_through = date.fromisoformat(self.manifest["data_through"])
-        self.extent = shapely.box(*self.manifest["extent"])
+        ext = self.manifest.get("extents") or [{"name": "", "bbox": self.manifest["extent"]}]
+        self.extents = {e["name"]: shapely.box(*e["bbox"]) for e in ext}
         self.n_months = (self.data_through.year - 2002) * 12 + self.data_through.month
         g = self.path / "grids"
         self.cells_1deg = pd.read_parquet(g / "cells_1deg.parquet")
         self.flags = pd.read_parquet(g / "flags_1deg.parquet")
         self.evidence = pd.read_parquet(self.path / "records" / "evidence_1deg.parquet")
         self.coverage_days = pd.read_parquet(self.path / "coverage_days.parquet")
-        self.missing = set(map(tuple, pd.read_parquet(self.path / "missing_days.parquet").to_numpy().tolist()))
-        c = pd.read_parquet(g / "cells_025deg.parquet")
-        self._c_ix, self._c_iy = _cell_ix(c["sw_lon"] + FINE / 2) , _cell_ix(c["sw_lat"] + FINE / 2)
-        self._c_key = _key(self._c_ix, self._c_iy)
-        self._c_k = self._month_index(c["year"], c["month"])
-        self._c_vals = self._values(c["count"].to_numpy(float), [c[f"raw_{s.lower()}"].to_numpy() for s in SATELLITES])
-        p = pd.read_parquet(self.path / "points.parquet")
-        self._p_lon, self._p_lat = p["longitude"].to_numpy(float), p["latitude"].to_numpy(float)
-        self._p_key = _key(_cell_ix(self._p_lon), _cell_ix(self._p_lat))
-        t = p["acq_datetime_utc"]
-        self._p_k = self._month_index(t.dt.year, t.dt.month)
-        self._p_day = t.dt.day.to_numpy()
-        sat = p["satellite"].to_numpy()
-        self._p_vals = self._values(np.where(p["feeds_record"].to_numpy(), p["weight"].to_numpy(float), 0.0),
-                                    [(sat == s).astype(float) for s in SATELLITES])
+        miss = pd.read_parquet(self.path / "missing_days.parquet")
+        if "extent" not in miss:
+            miss["extent"] = ""
+        if "extent" not in self.coverage_days:
+            self.coverage_days["extent"] = ""
+        if "uncovered" not in miss:
+            miss["uncovered"] = False
+        self._missing = {e: set(zip(g["year"], g["month"])) for e, g in miss.groupby("extent")}
+        unc = miss[miss["uncovered"].astype(bool).to_numpy()]  # an empty object column would select columns
+        self._uncovered = {e: set(zip(g["year"], g["month"])) for e, g in unc.groupby("extent")}
+        # Fine grid and points stay on disk; DuckDB reads them per request (memory does not grow with area).
+        self._db = duckdb.connect()
+        self._db.execute("SET threads = 2")
+        self._db.execute("SET memory_limit = '512MB'")
+        self._db.execute("SET TimeZone = 'UTC'")
+        cells = (self.path / "grids" / "cells_025deg.parquet").as_posix()
+        raws = ", ".join(f"raw_{s.lower()}::DOUBLE AS r_{s.lower()}" for s in SATELLITES)
+        self._db.execute(f"""CREATE VIEW cells AS SELECT
+            round(sw_lon / {FINE})::BIGINT AS ix, round(sw_lat / {FINE})::BIGINT AS iy,
+            (round(sw_lon / {FINE})::BIGINT + 1000) * 10000 + (round(sw_lat / {FINE})::BIGINT + 1000) AS key,
+            (year - 2002) * 12 + month - 1 AS k, "count"::DOUBLE AS cnt, {raws}
+            FROM read_parquet('{cells}')""")
+        pts = points or (self.path / "points.parquet").as_posix()
+        if pts.startswith(("http://", "https://")):
+            _load_httpfs(self._db)
+            # Range requests wait on the network, not the CPU: 16 at once took Southern Africa's first
+            # calendar from 31 s to 8 s (Story 2.8, option 1); more threads gained little.
+            self._db.execute(f"SET threads = {REMOTE_THREADS}")
+        cols = {r[0] for r in self._db.execute(f"DESCRIBE SELECT * FROM read_parquet('{pts}')").fetchall()}
+        if {"key", "k", "day"} <= cols:  # published since 15 Nov: sorted by key
+            derived = "key, k, day"
+        else:
+            derived = (f"(floor(longitude / {FINE} + 1e-9)::BIGINT + 1000) * 10000 + "
+                       f"(floor(latitude / {FINE} + 1e-9)::BIGINT + 1000) AS key, "
+                       "(year(acq_datetime_utc) - 2002) * 12 + month(acq_datetime_utc) - 1 AS k, "
+                       "day(acq_datetime_utc) AS day")
+        sats = ", ".join(f"(satellite = '{s}')::DOUBLE AS r_{s.lower()}" for s in SATELLITES)
+        self._db.execute(f"""CREATE VIEW pts AS SELECT {derived}, longitude AS lon, latitude AS lat,
+            CASE WHEN feeds_record THEN weight ELSE 0 END AS cnt, {sats} FROM read_parquet('{pts}')""")
+        keys = self._db.execute("SELECT DISTINCT key, ix, iy FROM cells").fetchnumpy()
+        self._c_key, self._c_ix, self._c_iy = (np.asarray(keys[c], np.int64) for c in ("key", "ix", "iy"))
 
-    @staticmethod
-    def _month_index(year, month):
-        return (np.asarray(year, np.int64) - 2002) * 12 + np.asarray(month, np.int64) - 1
+    def extent_of(self, geom):
+        """The name of the extent holding the whole area, or None (outside coverage)."""
+        return next((n for n, box in self.extents.items() if shapely.covers(box, geom)), None)
 
-    @staticmethod
-    def _values(count, raws):
-        return np.column_stack([count] + list(raws))
+    def covers(self, geom) -> bool:
+        return self.extent_of(geom) is not None
+
+    def missing(self, extent) -> set:
+        return self._missing.get(extent, set())
+
+    def uncovered(self, extent) -> set:
+        """Months of the record with no feeding day loaded: their count is null (outside_coverage)."""
+        return self._uncovered.get(extent, set())
+
+    def _records(self, extent) -> Path:
+        named = extent and "extents" in self.manifest
+        return self.path / "records" / extent if named else self.path / "records"
+
+    def _record_files(self, extent, sats, y0, y1) -> list:
+        d = self._records(extent)
+        if self._fetch is None:
+            return [p for p in sorted(d.glob("[A-Z]*_[0-9]*.parquet"))
+                    if p.stem.rsplit("_", 1)[0] in sats and y0 <= int(p.stem.rsplit("_", 1)[1]) <= y1]
+        want = sorted(d / f"{s}_{y}.parquet" for s in sats for y in range(y0, y1 + 1))
+        return [p for p in want if p.exists() or self._fetch(p)]
+
+    VALUE_COLUMNS = ["cnt"] + [f"r_{s.lower()}" for s in SATELLITES]
 
     def _sum(self, k, vals):
         """[n_months, 1 + len(SATELLITES)]: column 0 the harmonized count, then raw counts."""
+        k = np.asarray(k, np.int64)
         ok = (k >= 0) & (k < self.n_months)
         return np.column_stack([np.bincount(k[ok], weights=vals[ok, j], minlength=self.n_months)
                                 for j in range(vals.shape[1])])
 
-    def count_points(self, geom) -> np.ndarray:
-        """Brute force: every point row inside the area (edge counts as inside)."""
-        inside = shapely.intersects_xy(geom, self._p_lon, self._p_lat)
-        return self._sum(self._p_k[inside], self._p_vals[inside])
+    def _query(self, sql, **tables):
+        con = self._db.cursor()
+        con.execute("SET TimeZone = 'UTC'")  # a session setting: each cursor needs it, or months shift near midnight
+        for name, keys in tables.items():
+            con.register(name, pa.table({"key": pa.array(np.asarray(keys, np.int64))}))
+        return con.execute(sql).fetchnumpy()
+
+    def _points(self, keys=None, bbox=None, where="TRUE"):
+        """Point rows of the given fine cells (or inside a bounding box), as numpy columns."""
+        cols = ", ".join(["k", "lon", "lat", "day"] + self.VALUE_COLUMNS)
+        if keys is not None:
+            return self._query(f"SELECT {cols} FROM pts JOIN wanted USING (key) WHERE {where}", wanted=keys)
+        x0, y0, x1, y1 = bbox
+        return self._query(f"SELECT {cols} FROM pts WHERE lon BETWEEN {x0} AND {x1} AND lat BETWEEN {y0} AND {y1} AND {where}")
+
+    def _vals(self, r):
+        return np.column_stack([np.asarray(r[c], float) for c in self.VALUE_COLUMNS]) if len(r["k"]) else np.zeros((0, 6))
 
     def _cells_split(self, geom):
         """Keys of the fine cells wholly inside the area and of the cells its edge cuts."""
@@ -84,35 +170,46 @@ class Version:
         x0, y0, x1, y1 = geom.bounds
         near = ((self._c_ix >= _cell_ix(x0)) & (self._c_ix <= _cell_ix(x1))
                 & (self._c_iy >= _cell_ix(y0)) & (self._c_iy <= _cell_ix(y1)))
-        keys, first = np.unique(self._c_key[near], return_index=True)
-        ix, iy = self._c_ix[near][first], self._c_iy[near][first]
+        keys, ix, iy = self._c_key[near], self._c_ix[near], self._c_iy[near]
         boxes = shapely.box(ix * FINE, iy * FINE, (ix + 1) * FINE, (iy + 1) * FINE)
         covered = shapely.covers(geom, boxes)
         return keys[covered], keys[~covered & shapely.intersects(geom, boxes)]
 
-    def inside(self, geom) -> np.ndarray:
-        """Point rows inside the area: every point of a covered cell, and points of cut cells tested one by one."""
-        whole, cut = self._cells_split(geom)
-        mask = np.isin(self._p_key, whole)
-        edge = np.isin(self._p_key, cut)
-        edge[edge] = shapely.intersects_xy(geom, self._p_lon[edge], self._p_lat[edge])
-        return mask | edge
+    def _inside(self, geom, r):
+        return shapely.intersects_xy(geom, np.asarray(r["lon"], float), np.asarray(r["lat"], float))
 
-    def same_days(self, geom, month: int, day: int, years, mask=None) -> tuple[float, list[float]]:
-        """(count for days 1 to day of `month` in the data-through year, the same days in each of `years`)."""
-        m = self.inside(geom) if mask is None else mask
-        sel = m & (self._p_day <= day) & ((self._p_k % 12) == month - 1)
-        by_k = np.bincount(self._p_k[sel], weights=self._p_vals[sel, 0], minlength=self.n_months)
-        k = lambda y: (y - 2002) * 12 + month - 1  # noqa: E731
-        return float(by_k[k(self.data_through.year)]), [float(by_k[k(y)]) for y in years]
+    def count_points(self, geom) -> np.ndarray:
+        """Brute force: every point row inside the area (edge counts as inside)."""
+        r = self._points(bbox=geom.bounds)
+        m = self._inside(geom, r)
+        return self._sum(np.asarray(r["k"])[m], self._vals(r)[m])
 
     def count(self, geom) -> np.ndarray:
         """Fast path: whole fine cells inside the area from the grid, cut cells from the points."""
         whole, cut = self._cells_split(geom)
-        g = np.isin(self._c_key, whole)
-        edge = np.isin(self._p_key, cut)
-        edge[edge] = shapely.intersects_xy(geom, self._p_lon[edge], self._p_lat[edge])
-        return self._sum(self._c_k[g], self._c_vals[g]) + self._sum(self._p_k[edge], self._p_vals[edge])
+        cols = ", ".join(f"sum({c}) AS {c}" for c in self.VALUE_COLUMNS)
+        g = self._query(f"SELECT k, {cols} FROM cells JOIN wanted USING (key) GROUP BY k", wanted=whole)
+        e = self._points(keys=cut)
+        m = self._inside(geom, e)
+        return self._sum(g["k"], self._vals(g)) + self._sum(np.asarray(e["k"])[m], self._vals(e)[m])
+
+    def same_days(self, geom, month: int, day: int, years, brute: bool = False) -> tuple[float, list[float]]:
+        """(count for days 1 to day of `month` in the data-through year, the same days in each of `years`).
+        brute=True tests every point in the area's bounding box instead of using whole fine cells."""
+        where = f"k % 12 = {month - 1} AND day <= {day}"
+        if brute:
+            r = self._points(bbox=geom.bounds, where=where)
+            m = self._inside(geom, r)
+            k, w = np.asarray(r["k"])[m], self._vals(r)[m, 0]
+        else:
+            whole, cut = self._cells_split(geom)
+            a, e = self._points(keys=whole, where=where), self._points(keys=cut, where=where)
+            m = self._inside(geom, e)
+            k = np.concatenate([np.asarray(a["k"]), np.asarray(e["k"])[m]]).astype(np.int64)
+            w = np.concatenate([self._vals(a)[:, 0], self._vals(e)[m, 0]])
+        by_k = np.bincount(k, weights=w, minlength=self.n_months) if len(k) else np.zeros(self.n_months)
+        kk = lambda y: (y - 2002) * 12 + month - 1  # noqa: E731
+        return float(by_k[kk(self.data_through.year)]), [float(by_k[kk(y)]) for y in years]
 
     def hotspots(self, geom, start: date, end: date, *, all_satellites: bool, year: int | None):
         """Rows inside the area and the exact dates (every row, excluded ones too), or the years and
@@ -121,10 +218,9 @@ class Version:
         if year is not None:
             start, end = max(start, date(year, 1, 1)), min(end, date(year, 12, 31))
         sats = SATELLITES if all_satellites else FEEDING_SATELLITES
-        files = [p for p in sorted((self.path / "records").glob("[A-Z]*_[0-9]*.parquet"))
-                 if p.stem.rsplit("_", 1)[0] in sats and start.year <= int(p.stem.rsplit("_", 1)[1]) <= end.year]
+        files = self._record_files(self.extent_of(geom) or "", sats, start.year, end.year)
         if not files or start > end:
-            return pd.DataFrame(columns=HOTSPOT_COLUMNS), None
+            return iter(()), None
         x0, y0, x1, y1 = geom.bounds
         f = ((pads.field("utc_date") >= start) & (pads.field("utc_date") <= end)
              & (pads.field("longitude") >= x0) & (pads.field("longitude") <= x1)
@@ -138,8 +234,17 @@ class Version:
         if n > MAX_SYNC_ROWS and year is None:
             years = sorted({d.year for d in pos["utc_date"][inside]})
             return None, {"estimated_rows": n, "estimated_megabytes": round(n * CSV_BYTES_PER_ROW / 1e6, 1), "years": years}
-        rows = ds.to_table(columns=HOTSPOT_COLUMNS, filter=f).to_pandas()[inside]
-        return rows.sort_values("acq_datetime_utc", kind="stable").reset_index(drop=True), None
+        return self._hotspot_batches(ds, f, geom), None
+
+    @staticmethod
+    def _hotspot_batches(ds, f, geom, batch_rows=100_000):
+        """The rows inside the area, a batch at a time, so no request holds a whole year in memory.
+        Rows come file by file (satellite, then year), in each file's own order (by time)."""
+        for batch in ds.to_batches(columns=HOTSPOT_COLUMNS, filter=f, batch_size=batch_rows):
+            if batch.num_rows == 0:
+                continue
+            rows = batch.to_pandas()
+            yield rows[shapely.intersects_xy(geom, rows["longitude"].to_numpy(), rows["latitude"].to_numpy())]
 
     def cells_1deg_of(self, geom) -> pd.DataFrame:
         """The 1-degree cells of the extent that the area overlaps with positive area."""
@@ -154,36 +259,73 @@ class Version:
         return (f.assign(strong=f["flag_state"] == "strong", marginal=f["flag_state"] == "marginal")
                 .groupby(["year", "month"])[["strong", "marginal"]].sum())
 
-    def month_inputs(self) -> dict:
+    def month_inputs(self, extent) -> dict:
         out = {}
         order = {s: i for i, s in enumerate(SATELLITES)}
-        for r in sorted(self.coverage_days.itertuples(), key=lambda r: (order[r.satellite], r.quality)):
+        rows = self.coverage_days[self.coverage_days["extent"] == extent]
+        for r in sorted(rows.itertuples(), key=lambda r: (order[r.satellite], r.quality)):
             out.setdefault((r.year, r.month), []).append(
                 {"satellite": r.satellite, "quality": r.quality, "days": int(r.days), "feeds_record": bool(r.feeds_record)})
         return out
 
 
 class Store:
-    """The pointer file names the current version and the previous one; both are answered."""
+    """The pointer file names the current version and the previous one; both are answered. The current
+    one loads at start-up; the previous one only when a request names it, so a bad previous version
+    cannot stop the current one (Codex review, 14 Nov)."""
 
-    def __init__(self, root):
+    def __init__(self, root, fetch=None, points_location=None):
+        """points_location: version -> where its points.parquet is read from (option 1: a URL); default local."""
         self.root = Path(root)
+        self._fetch_file = fetch
+        self._points_location = points_location
         self.pointer = self.root / "CURRENT.json"
         self._mtime, self._versions, self.current, self.previous = None, {}, None, None
+        self._broken = {}
+        self.load_error = None
         self.refresh()
 
+    def _load(self, v: str) -> Version:
+        path = self.root / "versions" / v
+        remote = self._points_location(v) if self._points_location else None
+        if self._fetch_file is not None:
+            for rel in SERVING:
+                if not (remote and rel == "points.parquet"):
+                    self._fetch_file(path / rel)
+        return Version(path, self._fetch_file, remote)
+
     def refresh(self) -> None:
-        mtime = self.pointer.stat().st_mtime_ns
-        if mtime == self._mtime:
+        """Re-read the pointer when it changes. A version that fails to load is not switched to:
+        the last good versions keep answering (AD-11), and the failure is kept in load_error."""
+        try:
+            mtime = self.pointer.stat().st_mtime_ns
+            if mtime == self._mtime:
+                return
+            p = json.loads(self.pointer.read_text(encoding="utf-8"))
+            cur, prev = p["record_version"], p["previous"]
+            versions = {cur: self._versions.get(cur) or self._load(cur)}
+            if prev in self._versions:
+                versions[prev] = self._versions[prev]
+        except Exception as exc:  # noqa: BLE001
+            self._mtime = mtime if "mtime" in locals() else self._mtime  # do not retry a broken pointer on every request
+            self.load_error = f"{type(exc).__name__}: {exc}"
+            if self.current is None:
+                raise
+            log.warning("store refresh failed; still serving %s (%s)", self.current, self.load_error)
             return
-        p = json.loads(self.pointer.read_text(encoding="utf-8"))
-        keep = {p["record_version"], p["previous"]} - {None}
-        self._versions = {v: self._versions.get(v) or Version(self.root / "versions" / v) for v in keep}
-        self.current, self.previous, self._mtime = p["record_version"], p["previous"], mtime
+        self._versions, self.load_error = versions, None
+        self.current, self.previous, self._mtime = cur, prev, mtime
 
     def get(self, record_version: str) -> Version | None:
         self.refresh()
-        return self._versions.get(record_version)
+        v = record_version
+        if v is not None and v == self.previous and v not in self._versions and v not in self._broken:
+            try:
+                self._versions[v] = self._load(v)
+            except Exception as exc:  # noqa: BLE001
+                self._broken[v] = self.load_error = f"{type(exc).__name__}: {exc}"
+                log.warning("previous version %s does not load (%s)", v, self.load_error)
+        return self._versions.get(v)
 
     def latest(self) -> Version:
         self.refresh()

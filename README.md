@@ -31,6 +31,56 @@ brew install gitleaks
 uvx pre-commit install
 ```
 
+## Run the service
+
+Without a store, the service answers every endpoint from the contract fixture (placeholder data):
+
+```bash
+uv run uvicorn burncal.service.app:app --port 8000
+curl http://localhost:8000/meta
+```
+
+With a published store in `store/published/` (or any folder named by `BURNCAL_STORE_ROOT`), `/meta`, `/calendar`, `/cells` and both CSVs answer from the record and `/meta` says `placeholder: false`. Point the web at it with `VITE_SERVICE_BASE_URL=http://localhost:8000` and allow the web's origin with `CORS_ORIGINS` (default `http://localhost:5173`).
+
+## Rebuild the store for one region
+
+Each step prints counts only and never prints the key. Regions are the `region_id`s in `contract/regions.geojson`; every build covers whole 5° tiles around the region. `<dt>` is the store's data-through date (for example `2026-11-13`).
+
+1. **Land layer** (once): Natural Earth 1:10m land v5.1.1 as GeoJSON, sha256 `1ac90796408bc6ad6911d69448485d3c4dbf2190370080368a09976e1c9f7416`.
+
+   ```bash
+   mkdir -p store/static
+   curl -L -o store/static/ne_10m_land_v5.1.1.geojson \
+     https://raw.githubusercontent.com/nvkelso/natural-earth-vector/v5.1.1/geojson/ne_10m_land.geojson
+   shasum -a 256 store/static/ne_10m_land_v5.1.1.geojson
+   ```
+
+2. **Download** from FIRMS (needs `FIRMS_MAP_KEY` in `.env`). Rerun until it reports no failed years; it skips what it already has.
+
+   ```bash
+   uv run python -m burncal.pipeline.download punjab store/raw/punjab <dt>
+   ```
+
+3. **Clean** (marks offshore and static rows; refuses to run without every static-mask year), **convert** (weights) and **aggregate** (grids and flags):
+
+   ```bash
+   uv run python -m burncal.pipeline.build_extent store/raw/punjab store/static/ne_10m_land_v5.1.1.geojson store/clean/punjab
+   uv run python -m burncal.pipeline.convert store/clean/punjab store/record/punjab store/raw/punjab/coverage.json
+   uv run python -m burncal.pipeline.aggregate store/record/punjab store/grids/punjab <dt>
+   ```
+
+4. **Publish** a version and switch the pointer. Converted counts (from January 2022) are published only if the C1 parity check passes, which needs `BURNCAL_PARITY_CASE_DIR` pointing at the parity case kept in the planning record. Several regions go into one version by listing each `record,grids,raw` triple.
+
+   ```bash
+   uv run python -m burncal.pipeline.publish store/published <dt> store/record/punjab,store/grids/punjab,store/raw/punjab
+   ```
+
+5. **Check** that the calendar, both CSVs and the hotspot rows agree:
+
+   ```bash
+   uv run python tools/check_numbers.py store/published
+   ```
+
 ## Layout
 
 - `contract/`: the API contract and the Sumatra fixture (written first, changed only by both owners).

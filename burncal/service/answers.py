@@ -19,7 +19,7 @@ EVIDENCE = ("tuned", "tested_unseen", "reported_only", "not_evaluated")
 
 
 def r1(x):
-    return None if x is None else round(float(x), 1)
+    return None if x is None else round(float(x), 1) + 0.0  # + 0.0 turns -0.0 into 0.0
 
 
 def meta(v: Version, regions: dict) -> dict:
@@ -37,7 +37,7 @@ def meta(v: Version, regions: dict) -> dict:
         "flag_reference_years": {"start_year": grids.HISTORY_YEARS[0], "end_year": grids.HISTORY_YEARS[1]},
         "coverage": {"global": False, "regions": [
             {"region_id": rid, "name": name, "evidence_class": ev,
-             "status": "loaded" if shapely.covers(v.extent, geom) else "not_loaded"}
+             "status": "loaded" if v.covers(geom) else "not_loaded"}
             for rid, (name, ev, geom) in regions.items()]},
         "noaa20_check": None,
     }
@@ -52,7 +52,7 @@ def _aoi(v: Version, geom, name, regions) -> tuple[dict, object]:
 
 
 def r2(x):
-    return None if x is None else round(float(x), 2)
+    return None if x is None else round(float(x), 2) + 0.0
 
 
 def _ym(t):
@@ -63,14 +63,15 @@ def calendar(v: Version, geom, name, start: date, end: date, regions: dict) -> d
     aoi, cells = _aoi(v, geom, name, regions)
     sums = v.count(geom)
     flags = v.flag_counts(cells)
-    inputs = v.month_inputs()
+    ext = v.extent_of(geom)
+    inputs, missing, uncovered = v.month_inputs(ext), v.missing(ext), v.uncovered(ext)
     dt = v.data_through
     record_months = [(y, m) for y in range(2002, dt.year + 1) for m in range(1, 13)
                      if record.month_state(y, m, data_through=dt)[0] != "null"]
-    series = {t: float(sums[(t[0] - 2002) * 12 + t[1] - 1, 0]) for t in record_months}
+    series = {t: float(sums[(t[0] - 2002) * 12 + t[1] - 1, 0]) for t in record_months if t not in uncovered}
     complete = {t for t in record_months if not any(
         r in ("record_start", "data_through", "missing_days") for r in record.partial_reasons(
-            t[0], t[1], data_through=dt, missing_days=t in v.missing, start=date(t[0], t[1], 1), end=dt))}
+            t[0], t[1], data_through=dt, missing_days=t in missing, start=date(t[0], t[1], 1), end=dt))}
     shown = [(y, m) for y in range(start.year, end.year + 1) for m in range(1, 13)]
     in_range = {t for t in shown if (t[0], t[1]) >= (start.year, start.month) and (t[0], t[1]) <= (end.year, end.month)}
     ref_years = record.meta_dates(dt)["reference_period"]
@@ -82,7 +83,7 @@ def calendar(v: Version, geom, name, start: date, end: date, regions: dict) -> d
         year, month = t
         k = (year - 2002) * 12 + month - 1
         ins = inputs.get(t, [])
-        reasons = record.partial_reasons(year, month, data_through=dt, missing_days=t in v.missing, start=start, end=end)
+        reasons = record.partial_reasons(year, month, data_through=dt, missing_days=t in missing, start=start, end=end)
         in_record = t in series
         value = series.get(t)
         med, mean = st["reference"][month] if in_record else (None, None)
@@ -92,14 +93,14 @@ def calendar(v: Version, geom, name, start: date, end: date, regions: dict) -> d
         months.append({
             "month": _ym(t),
             "count": r1(value),
-            "null_reason": None if in_record else "outside_record",
+            "null_reason": None if in_record else ("outside_coverage" if t in uncovered else "outside_record"),
             "source": None if not in_record else ("aqua_real" if t <= (2021, 12) else "viirs_converted"),
             "inputs": ins,
             "raw": {s.lower(): (int(round(sums[k, j + 1])) if in_record and days.get(s, 0) > 0 else None)
                     for j, s in enumerate(SATELLITES)},
             "complete": t in complete,
             "partial_reasons": reasons,
-            "validated_satellite": all(i["satellite"] in ("SNPP", "AQUA") for i in ins if i["feeds_record"]),
+            "validated_satellite": in_record and all(i["satellite"] in ("SNPP", "AQUA") for i in ins if i["feeds_record"]),
             "reference_year": bool(grids.reference_year(year)),
             "provisional": in_record and t not in complete,
             "median": r1(med), "reference_mean": r1(mean), "no_typical_activity": cmp["no_typical_activity"],
@@ -145,14 +146,14 @@ def _card(v: Version, geom, complete, ref_years, months) -> dict:
     to_date, by_year = v.same_days(geom, dt.month, dt.day, years)
     cmp = stats.same_days(to_date, by_year)
     now = next((m for m in months if m["month"] == _ym((dt.year, dt.month))), None)
-    ins = v.month_inputs().get((dt.year, dt.month), [])
+    ins = v.month_inputs(v.extent_of(geom)).get((dt.year, dt.month), [])
     flags = v.flag_counts(v.cells_1deg_of(geom))
     fl = flags.loc[(dt.year, dt.month)] if (dt.year, dt.month) in flags.index else None
     return {
         "month": _ym((dt.year, dt.month)), "day": dt.day,
         "count_to_date": r1(to_date),
         # The month holds only days 1 to d, so a month with missing input days is missing some of days 1 to d.
-        "missing_days_to_date": (dt.year, dt.month) in v.missing,
+        "missing_days_to_date": (dt.year, dt.month) in v.missing(v.extent_of(geom)),
         "same_days_median": r1(cmp["same_days_median"]) if cmp["same_days_median"] is not None else 0.0,
         "no_typical_activity": cmp["no_typical_activity"],
         "ratio": r2(cmp["ratio"]),
@@ -180,7 +181,7 @@ def cells(v: Version, geom, year: int, month: int) -> dict:
         out.append({"sw_lon": int(r.sw_lon), "sw_lat": int(r.sw_lat), "size_deg": 1,
                     "flag_state": r.flag_state if isinstance(r.flag_state, str) else "outside_record",
                     "count": None if np.isnan(r.count) else r1(r.count),
-                    "threshold": None if np.isnan(r.threshold) else r1(r.threshold),
+                    "threshold": None if np.isnan(r.threshold) or np.isnan(r.count) else r1(r.threshold),
                     "partly_inside": bool(part), "evidence_class": r.evidence_class,
                     "provisional": bool(r.provisional) if isinstance(r.provisional, (bool, np.bool_)) else False,
                     "reference_year": bool(grids.reference_year(year))})
