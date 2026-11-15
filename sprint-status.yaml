@@ -52,7 +52,7 @@ development_status:
   2-6-publish-a-version-and-serve-real-counts-t: done  # closed by the lead 15 Nov; AD-2 gate and AC6 hosted p95 done
   2-7-hotspots-for-any-search-t: done
   2-8-coverage-for-the-evaluated-regions-then-the-world-t: in-progress  # six regions in production; one global year measured (docs/results/world_2025_measurement.md); six regions kept for the submission (15 Nov)
-  2-9-the-current-month-refreshed-daily-t: review  # hosted workflow passed its first run (15 Nov, run 43709476744); fix merged (PR 19); daily 09:30 SGT
+  2-9-the-current-month-refreshed-daily-t: done  # closed by the lead 15 Nov; hosted workflow passed its first run (15 Nov, run 43709476744); fix merged (PR 19); daily 09:30 SGT
   2-10-noaa-20-against-suomi-npp-reported-only-t: done  # closed by the lead 15 Nov; merged (PR 15), headline served by /meta; Siberia +17.3% reported
   epic-2-retrospective: optional
 
@@ -96,26 +96,26 @@ development_status:
   6-6-pitch-storyline-drafted-on-saturday-a: done
   epic-6-retrospective: optional
 
-  epic-7: in-progress
-  7-1-raw-splice-series-t: review  # built 15 Nov (contract 0.5.0, agreed); real-store tests pass and checked live on the hosted site 15 Nov
-  7-2-raw-against-harmonized-toggle-a: review  # built 15 Nov (contract 0.5.0, agreed); real-store tests pass and checked live on the hosted site 15 Nov
-  7-3-seasonal-profile-statistics-t: review  # built 15 Nov (contract 0.5.0, agreed); real-store tests pass and checked live on the hosted site 15 Nov
-  7-4-seasonal-profile-chart-a: review  # built 15 Nov (contract 0.5.0, agreed); real-store tests pass and checked live on the hosted site 15 Nov
-  7-5-season-to-date-statistics-t: review  # built 15 Nov (contract 0.5.0, agreed); real-store tests pass and checked live on the hosted site 15 Nov
-  7-6-season-to-date-chart-a: review  # built 15 Nov (contract 0.5.0, agreed); real-store tests pass and checked live on the hosted site 15 Nov
-  7-7-hotspot-map-for-a-month-a: review  # built 15 Nov (contract 0.5.0, agreed); real-store tests pass and checked live on the hosted site 15 Nov
+  epic-7: done
+  7-1-raw-splice-series-t: done  # closed by the lead 15 Nov; contract 0.5.0, real-store tests pass, checked live; UI reviewed by the lead (PR 23)
+  7-2-raw-against-harmonized-toggle-a: done  # closed by the lead 15 Nov; contract 0.5.0, real-store tests pass, checked live; UI reviewed by the lead (PR 23)
+  7-3-seasonal-profile-statistics-t: done  # closed by the lead 15 Nov; contract 0.5.0, real-store tests pass, checked live; UI reviewed by the lead (PR 23)
+  7-4-seasonal-profile-chart-a: done  # closed by the lead 15 Nov; contract 0.5.0, real-store tests pass, checked live; UI reviewed by the lead (PR 23)
+  7-5-season-to-date-statistics-t: done  # closed by the lead 15 Nov; contract 0.5.0, real-store tests pass, checked live; UI reviewed by the lead (PR 23)
+  7-6-season-to-date-chart-a: done  # closed by the lead 15 Nov; contract 0.5.0, real-store tests pass, checked live; UI reviewed by the lead (PR 23)
+  7-7-hotspot-map-for-a-month-a: done  # closed by the lead 15 Nov; contract 0.5.0, real-store tests pass, checked live; UI reviewed by the lead (PR 23)
   7-8-all-candidates-table-a: done
   epic-7-retrospective: optional
 
-  epic-8: in-progress
+  epic-8: done
   8-1-shareable-link-a: done
-  8-2-administrative-unit-selection-a: review  # built 15 Nov (contract 0.5.0, agreed); real-store tests pass and checked live on the hosted site 15 Nov
-  8-3-reference-period-as-a-request-option-t: review  # built 15 Nov (contract 0.5.0, agreed); real-store tests pass and checked live on the hosted site 15 Nov
-  8-4-reference-period-control-a: review  # built 15 Nov (contract 0.5.0, agreed); real-store tests pass and checked live on the hosted site 15 Nov
-  8-5-trend-test-t: review  # built 15 Nov (contract 0.5.0, agreed); real-store tests pass and checked live on the hosted site 15 Nov
-  8-6-trend-indicator-a: review  # built 15 Nov (contract 0.5.0, agreed); real-store tests pass and checked live on the hosted site 15 Nov
-  8-7-two-area-comparison-a: review  # built 15 Nov (contract 0.5.0, agreed); real-store tests pass and checked live on the hosted site 15 Nov
+  8-2-administrative-unit-selection-a: done  # closed by the lead 15 Nov; contract 0.5.0, real-store tests pass, checked live; UI reviewed by the lead (PR 23)
+  8-3-reference-period-as-a-request-option-t: done  # closed by the lead 15 Nov; contract 0.5.0, real-store tests pass, checked live; UI reviewed by the lead (PR 23)
+  8-4-reference-period-control-a: done  # closed by the lead 15 Nov; contract 0.5.0, real-store tests pass, checked live; UI reviewed by the lead (PR 23)
+  8-5-trend-test-t: done  # closed by the lead 15 Nov; contract 0.5.0, real-store tests pass, checked live; UI reviewed by the lead (PR 23)
+  8-6-trend-indicator-a: done  # closed by the lead 15 Nov; contract 0.5.0, real-store tests pass, checked live; UI reviewed by the lead (PR 23)
+  8-7-two-area-comparison-a: done  # closed by the lead 15 Nov; contract 0.5.0, real-store tests pass, checked live; UI reviewed by the lead (PR 23)
   8-8-featured-area-gallery-a: done
-  8-9-cell-states-for-one-month-worldwide-t: review  # built 15 Nov (contract 0.5.0, agreed); real-store tests pass and checked live on the hosted site 15 Nov
-  8-10-globe-of-unusual-burning-a: review  # built 15 Nov (contract 0.5.0, agreed); real-store tests pass and checked live on the hosted site 15 Nov
+  8-9-cell-states-for-one-month-worldwide-t: done  # closed by the lead 15 Nov; contract 0.5.0, real-store tests pass, checked live; UI reviewed by the lead (PR 23)
+  8-10-globe-of-unusual-burning-a: done  # closed by the lead 15 Nov; contract 0.5.0, real-store tests pass, checked live; UI reviewed by the lead (PR 23)
   epic-8-retrospective: optional

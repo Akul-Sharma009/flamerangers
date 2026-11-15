@@ -795,7 +795,8 @@ The points where the plan left room are listed in `DECISIONS.md` ("Contract 0.2.
 2. DONE (20:15): six regions for the submission, decided by the data owner. The submission's deeper views were checked live and the mark removed; Vercel Active CPU 43 min of 4 h for the cycle 16 Oct to 15 Nov.
 3. DONE (20:00): 6.2 fresh clone of master `bf17ab7` passes every check; see `DECISIONS.md` (Story 6.2, final master).
 4. Before judging: Active CPU was 43 min of 4 h for the cycle 16 Oct to 15 Nov; keep-warm runs every 5 minutes.
-5. Open, not before the build stop: `GZipMiddleware` for `/world_cells` (lead's code); the 400 answers' placeholder `record_version`; re-record the parity pass after any `burncal/core` change.
+5. DONE (20:35): the lead closed Story 2.9 and Epics 7 and 8 after reviewing the UI (PR 23). Spot-checked live on Sumatra: trend, reference period, raw splice, seasonal profile, season to date, month map, country picker, two-area comparison and the globe all load, with no console errors and no "unreachable" message.
+6. Open, not before the build stop: `GZipMiddleware` for `/world_cells` (lead's code); the 400 answers' placeholder `record_version`; re-record the parity pass after any `burncal/core` change.
 
 Earlier list (14–15 Nov), kept for the record:
 
