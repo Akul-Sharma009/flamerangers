@@ -8,8 +8,6 @@
 // and facts listed in TYPED_NUMBERS, which no response serves; about.test.tsx
 // checks that no other digit appears. Hotspots are never called "fires".
 
-export const PENDING_CITATION = "[pending: Story 6.1]";
-
 export const COPY = {
   kicker: "About the data",
   title: "What the numbers are, and what they are not",
@@ -38,7 +36,7 @@ export const COPY = {
       TERRA: "held and given in downloads, never counted in the record. The validation used it as an independent check on Aqua.",
       SNPP: "converted, from {viirs_from} through {snpp_through}. The conversion was fitted and tested on this satellite.",
       NOAA20: "converted with the same fixed method, from {noaa20_from}.",
-      NOAA21: "held, never counted in the record.",
+      NOAA21: "not used: none of its hotspots is downloaded, counted or given in downloads.",
     },
     citations: "The datasets and their citations are listed in the margin.",
   },
@@ -82,7 +80,7 @@ export const COPY = {
 
   validation: {
     heading: "What the validation does not cover",
-    noaa21: "{noaa21} is not covered either. It is held and never counted in the record.",
+    noaa21: "{noaa21} is not covered either. This site does not use its hotspots.",
     fed:
       "The conversion was fitted and tested on {snpp}. Since {noaa20_from} the record has been fed by {noaa20}, converted with the same method, on the untested assumption that it detects hotspots the way {snpp} did. A month fed by a satellite outside the validation says so:",
     more: "The evidence page lists the other limits of the scores.",
@@ -126,10 +124,9 @@ export const COPY = {
       unit: "Count unit",
     },
     sourcesHeading: "Data sources and citations",
-    sourcesIntro: "Each dataset's link and required citation is being checked and will replace the pending mark.",
     sources: [
       { id: "modis", name: "MODIS active-fire hotspots from FIRMS, standard and near real time", satellites: ["AQUA", "TERRA"] },
-      { id: "viirs", name: "VIIRS 375 m active-fire hotspots from FIRMS, standard and near real time", satellites: ["SNPP", "NOAA20", "NOAA21"] },
+      { id: "viirs", name: "VIIRS 375 m active-fire hotspots from FIRMS, standard and near real time", satellites: ["SNPP", "NOAA20"] },
       { id: "viirs-swath", name: "The VIIRS swath product used to fit the conversion", satellites: ["SNPP"] },
       { id: "natural-earth", name: "Natural Earth land outlines, for the land-only rule", satellites: [] },
     ],
@@ -139,4 +136,4 @@ export const COPY = {
 } as const;
 
 /** The digits COPY may hold: fixed rules and facts that no response serves. */
-export const TYPED_NUMBERS = ["1", "375", "50", "2014", "2016", "2017", "2020", "2012", "2013", "6.1"] as const;
+export const TYPED_NUMBERS = ["1", "375", "50", "2014", "2016", "2017", "2020", "2012", "2013"] as const;

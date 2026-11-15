@@ -74,7 +74,7 @@ What the organisers ask for: approach, tools, technologies and NASA datasets use
 <!-- field:details -->
 **What it does.** The calendar page draws a year-by-month grid for the chosen land area, newest year at the top, each month coloured by its hotspot count on one scale. Year totals with their ranks end each row and calendar-month medians foot each column. The switch from Aqua MODIS to converted VIIRS, between December 2021 and January 2022, is a ruled line with a note. Months outside the record are hatched, so they never look like zero; near-real-time, incomplete and range-cut months carry marks that do not rely on colour. Every month shows its exact served count and provenance on hover, focus or tap, and the same data is available as a table. The reader picks a featured area, draws one on a map, or types its coordinates, and can narrow the dates. A current-month card gives the count so far, the median for the same days of past years and a ruler with one mark per past year. An evidence page states the outcome in plain words and holds a head-to-head table of every scored method. The service also writes an analytics CSV and a hotspots CSV for any search.
 
-Still to come: per-cell provenance and caveats [pending: Story 3.6], the anomaly view [pending: Story 3.8], the most active months and years [pending: Story 3.9], an accessibility and phone-width pass [pending: Story 3.10], download controls and picture downloads [pending: Story 4.3, Story 4.4], and the evidence page's Aqua-only, limits and about-the-data sections [pending: Story 5.5, Story 5.6, Story 5.7].
+Each month also names every satellite that fed it, with its quality and days, and says when it falls outside the validation; an area the conversion was not tuned on carries a caveat beside the map. An anomaly view recolours each month by its difference from the reference-period mean and marks months with flagged 1° cells. Rankings list the most active months and years, and selecting one highlights it on the calendar. The six evaluated regions are one click away, and the page's link restores the area, dates and view. Both CSVs, and pictures of the calendar and the ruler, download from the page, which works by keyboard and at phone width. The evidence page adds every candidate's score, what an Aqua-only record would have shown, and what the scores can't show, including a reported-only comparison of NOAA-20 with Suomi NPP; an about page explains the data and its limits.
 
 **How it works.** A pipeline downloads hotspots per satellite from NASA FIRMS, in standard and near-real-time form; standard data replaces near-real-time data for each satellite-day. Every row is kept with its attributes; offshore rows and persistent static heat sources are marked, not deleted. Through December 2021 the record is the real Aqua MODIS count. From January 2022 each VIIRS hotspot is weighted by C1, so a month's weights add up to an Aqua-equivalent count. C1 blends two methods: a transfer table of Aqua-to-VIIRS ratios per calendar month, by day and by night, measured in years when both satellites flew; and a per-footprint detection model that groups VIIRS hotspots into the patches one Aqua pixel covers and estimates the chance Aqua would have detected each, from radiative power and viewing angle. The blend weight differs inside and outside each area's burning season. C1's parameters were fitted on tuning years and frozen; the product's code was rebuilt from the method notes and reproduces the scored predictions within 1e-6. The pipeline grids the record at 1° and 0.25°, computes the statistics and two tiers of anomaly flags, and publishes a versioned store. A read-only service answers the web app and writes the CSVs; every number has one implementation and the browser computes none. A check confirms the calendar, the analytics CSV and the hotspot rows agree.
 
@@ -104,24 +104,24 @@ Still to come: per-cell provenance and caveats [pending: Story 3.6], the anomaly
 
 The record holds satellite hotspot counts over land. It holds no smoke, haze, air quality or burned area, and cloud, thick smoke and smouldering peat can hide burning from the satellites.
 
-**What exists today.** NASA FIRMS serves MODIS and VIIRS hotspots, each sensor as it is, and offers no harmonization or climatology tool; FIRMS and Worldview map hotspot dots for a date; GWIS distributes burned area, not hotspot counts; INPE's operational rule keeps to one reference satellite, Aqua [pending: Story 6.1, links for FIRMS, Worldview, GWIS and INPE]. This project joins MODIS and VIIRS into one monthly record in Aqua units, chosen by a rule fixed before scoring, and states its own failures beside the numbers.
+**What exists today.** NASA FIRMS serves MODIS and VIIRS hotspots, each sensor as it is, and offers no harmonization or climatology tool; FIRMS and Worldview map hotspot dots for a date; GWIS distributes burned area, not hotspot counts; INPE's operational rule keeps to one reference satellite, Aqua (links in field 8; INPE's rule is still `[unverified]`). This project joins MODIS and VIIRS into one monthly record in Aqua units, chosen by a rule fixed before scoring, and states its own failures beside the numbers.
 
 **Tools and technologies.** Python 3.14 with uv, FastAPI, Uvicorn, DuckDB, PyArrow, Shapely, NumPy and pandas for the pipeline and the service; React, TypeScript, Vite, D3, MapLibre GL, Terra Draw, topojson-client and world-atlas (Natural Earth land outlines) for the web app; pytest, Vitest and Playwright for tests; gitleaks for secret scanning; Vercel hosts the service. The code is open in the public repository [pending: repository address].
 
-**NASA datasets.** [pending: Story 6.1]. Named in field 7.
+**NASA datasets.** MODIS and VIIRS hotspots from NASA FIRMS, and the VIIRS swath product from NASA LP DAAC. Named in field 7.
 <!-- /field:details -->
 
-Words: 1034. Long; if the form has a limit, cut "Still to come", "What exists today" and the `comparator-vs-b` claim first.
+Words: 1137. Long; if the form has a limit, cut the paragraph after "What it does", "What exists today" and the `comparator-vs-b` claim first.
 
 ## 7. NASA data
 
 The brief: name each NASA dataset, give its source link, and explain how it supports the solution. Story 6.1 (the data owner drafts, the lead reviews) writes this field. What 6.1 lists, from its criteria: the MODIS and VIIRS hotspot products from FIRMS, in standard and near-real-time form, per satellite; and the VIIRS swath product used to fit C1. Each with its source link, its required citation, and one or two sentences on its use.
 
 <!-- field:nasa-data -->
-[pending: Story 6.1]
+Paste field 7 from `docs/submission/datasets-references.md` (Story 6.1, reviewed by the lead on 15 Nov). It keeps the official product names, which the lead exempted from the "hotspots" rule.
 <!-- /field:nasa-data -->
 
-Words: 3.
+Words: 28. A pointer, not the pasted text.
 
 ## 8. References
 
@@ -130,10 +130,10 @@ Every external resource: code, text, images, even open source. Story 6.1 writes 
 Items this draft relies on, for 6.1 to cover: a checked source on Singapore's transboundary haze (summary); product documentation for the MODIS and VIIRS hotspot products (summary); public links for FIRMS, Worldview, GWIS and INPE's reference-satellite rule (details); Natural Earth, through world-atlas (details); and each library named under "Tools and technologies".
 
 <!-- field:references -->
-[pending: Story 6.1]
+Paste field 8 from `docs/submission/datasets-references.md` (Story 6.1, reviewed by the lead on 15 Nov). Three items there are still `[unverified]`.
 <!-- /field:references -->
 
-Words: 3.
+Words: 20. A pointer, not the pasted text.
 
 ## 9. Members tab and project link
 

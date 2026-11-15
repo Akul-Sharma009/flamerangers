@@ -9,7 +9,8 @@ import type { Evidence } from "../evidence/types";
 import { ROUTES, routeFromHash } from "../route";
 import { ABOUT_CLAIMS, SATELLITES, aboutClaims, aboutValues, countingLimits, fill } from "./about";
 import { AboutView } from "./AboutView";
-import { COPY, PENDING_CITATION, TYPED_NUMBERS } from "./copy";
+import { CITATIONS, FIRMS_ACKNOWLEDGEMENT } from "./citations";
+import { COPY, TYPED_NUMBERS } from "./copy";
 
 const evidence = evidenceJson as unknown as Evidence;
 const meta = metaJson as unknown as Meta;
@@ -170,16 +171,25 @@ describe("Story 5.7 AC2: the counting limits, record version, sources and eviden
     expect(html).toContain(`data-fact="record_version"><code>${meta.record_version}</code>`);
   });
 
-  it("lists every data source, each with a visible citation mark until Story 6.1 supplies it", () => {
+  it("lists every data source with its Story 6.1 citation and links, and the FIRMS acknowledgement", () => {
     const sources = COPY.margin.sources;
     expect(sources.map((s) => s.id)).toEqual(["modis", "viirs", "viirs-swath", "natural-earth"]);
     for (const s of sources) {
       expect(html).toContain(`data-source="${s.id}"`);
-      expect(html).toContain(`data-citation="${s.id}">${PENDING_CITATION}<`);
+      const c = CITATIONS[s.id];
+      expect(c.links.length).toBeGreaterThan(0);
+      expect(text(html)).toContain(c.text);
+      for (const l of c.links) {
+        expect(l.href).toMatch(/^https:\/\//);
+        expect(html).toContain(`href="${l.href}"`);
+      }
     }
-    // Every satellite the page names belongs to a listed dataset.
-    const covered = new Set(sources.flatMap((s) => s.satellites));
-    for (const id of SATELLITES) expect(covered.has(id)).toBe(true);
+    expect(html).not.toContain("[pending");
+    expect(text(html)).toContain(FIRMS_ACKNOWLEDGEMENT);
+    // Every satellite whose hotspots the site uses belongs to a listed dataset. NOAA-21's are
+    // not downloaded (Story 6.1), so it is named on the page but cited nowhere.
+    const covered = new Set<string>(sources.flatMap((s) => s.satellites));
+    for (const id of SATELLITES) expect(covered.has(id)).toBe(id !== "NOAA21");
   });
 
   it("links to the evidence view", () => {
@@ -224,9 +234,14 @@ describe("Story 5.7: numbers, words and claims", () => {
   });
 
   it('says "hotspots", never "fires"', () => {
-    expect(page).not.toMatch(/\bfires\b/i);
+    // Official product names and the FIRMS acknowledgement are quoted as published (the lead, 15 Nov):
+    // they are removed exactly, so every other sentence still follows the rule.
+    let own = page.split(FIRMS_ACKNOWLEDGEMENT).join("");
+    for (const c of Object.values(CITATIONS)) own = own.split(c.text).join("");
+    for (const c of Object.values(CITATIONS)) for (const l of c.links) own = own.split(l.href).join("");
+    expect(own).not.toMatch(/\bfires\b/i);
     // "fire" appears only in "not a fire" and in the names of FIRMS and its products.
-    const rest = page
+    const rest = own
       .replace(/not a fire/g, "")
       .replace(/Fire Information for Resource Management System/g, "")
       .replace(/active-fire/g, "");

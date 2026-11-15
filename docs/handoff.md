@@ -496,7 +496,7 @@ One year (2024) of FIRMS standard data, MODIS_SP (Aqua and Terra rows) and VIIRS
 - **Margin:** the record's facts from `/meta` (record version, record start, switch dates, satellite switch dates, data through, unit); four data sources with `[pending: Story 6.1]` where each citation goes; a link to the evidence view.
 - No change to the contract, `evidence/`, other pages or shared CSS. The page's CSS is its own file.
 - **Approved by the lead on 15 Nov:** all of the copy in `web/src/about/copy.ts` and the `counting_limits` plan (`DECISIONS.md`, "Story 5.7"). The page reads the contract's `counting_limits` list when present and shows `copy.ts`'s six otherwise; master's contract has none, so the fallback shows until contract 0.4.0 merges. The draft's list was checked against the page: same six, same words.
-- **Waiting:** Story 6.1 for dataset names, links and citations. **The `[pending: Story 6.1]` marks must be replaced before submission.**
+- **Done 15 Nov:** the `[pending: Story 6.1]` marks are replaced by the 6.1 citations and links, with the FIRMS acknowledgement; NOAA-21 is described as not used (see `DECISIONS.md`, "Story 6.1 on the site and in the submission text").
 - Checks (after the counting-limits change): `npm run test` 241 passed (21 of them Story 5.7); `npm run build`; wording check on the fresh build; import check. Nothing in `evidence/` changed, so its checks were not rerun. Looked at in the built-in browser at 1280 × 900 and 375 × 812 (fixture mode): no horizontal page scroll, no console errors. One fix from that look: the "Not counted" labels got a lead-in line.
 
 | Criterion | Test or evidence |

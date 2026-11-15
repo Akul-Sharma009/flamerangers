@@ -3,7 +3,8 @@ import { messages } from "../api/messages";
 import { repoLink } from "../evidence/outcome";
 import { ROUTES } from "../route";
 import { ABOUT_CLAIMS, SATELLITES, aboutValues, countingLimits, fill, type ClaimTexts } from "./about";
-import { COPY, PENDING_CITATION } from "./copy";
+import { CITATIONS, FIRMS_ACKNOWLEDGEMENT } from "./citations";
+import { COPY } from "./copy";
 import "./about.css";
 
 const EVIDENCE_HASH = ROUTES.find((r) => r.id === "evidence")!.hash;
@@ -187,11 +188,19 @@ export function AboutView({
               <li key={s.id} data-source={s.id}>
                 <span className="name">{s.name}</span>
                 {s.satellites.length > 0 && <span className="sats">{s.satellites.map((id) => sat[id]).join(", ")}</span>}
-                <span className="pending" data-citation={s.id}>{PENDING_CITATION}</span>
+                <span className="citation" data-citation={s.id}>
+                  {CITATIONS[s.id].text}{" "}
+                  {CITATIONS[s.id].links.map((l, i) => (
+                    <span key={l.href}>
+                      {i > 0 ? " · " : null}
+                      <a href={l.href} rel="noopener noreferrer">{l.label}</a>
+                    </span>
+                  ))}
+                </span>
               </li>
             ))}
           </ol>
-          <p className="aside">{COPY.margin.sourcesIntro}</p>
+          <p className="aside" data-note="firms-acknowledgement">{FIRMS_ACKNOWLEDGEMENT}</p>
         </section>
 
         <section aria-labelledby="evidence-link-title">
