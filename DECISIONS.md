@@ -833,3 +833,33 @@ Each entry has: a status (**ASSUMED** or **TESTED**), its evidence, and a "revis
 - **Decision:** Global history would come from the area API on the world extent, as the regions did, not from the country files. The country files end with 2025 (no 2026 file), have no NOAA-21, and would need a land-mask join to match the area API's extents; the area API serves every source to the present at 2 transactions per day of range, so the quota (5,000 per 10 minutes) is not the limit: the whole record is 27,818 to 37,612 transactions, about 1 hour of quota. The limits are disk and serving size: 31–54 GB of CSV and a 15–25 GB store version. No global download is made; the lead sees these numbers first (AC3).
 - **Evidence:** HEAD and byte-range requests on `data/country/` (every year 2000–2025 for MODIS, 2012–2025 Suomi NPP, 2018–2025 NOAA-20; 404 for 2026 and for `viirs-jpss2`); `mapkey_status` before and after 1-day and 5-day requests over Punjab, Siberia and Southern Africa; zip ratio of five raw CSVs (16.3–17.5 bytes a row); the six-region version's bytes per row (points 11.2, whole version 36.3). Figures in `docs/handoff.md`, Story 2.8 AC2.
 - **Revisit if:** a one-day world sample shows a world request weighs more than 2 transactions a day, or downloads slower than 0.6 MB/s; or the country files gain a 2026 file.
+
+## Story 2.8, option 1: points read remotely; the re-sort did not help, concurrency did (15 Nov)
+
+- **Status:** TESTED (counts and times from the data owner's machine); hosting ASSUMED (not yet measured on Vercel)
+- **Decision:** The lead chose option 1: the service reads each version's `points.parquet` from the public store by HTTP range requests (DuckDB `httpfs`) instead of syncing it, so the start-up sync drops from 901 MB to about 9 MB for six regions. `create_app(points_location=...)` and `remote.sync(with_points=False)` do it; the host ships the `httpfs` extension in its bundle so nothing downloads at start. Remote reads run with 16 DuckDB threads. The points keep their layout (sorted by 0.25° cell key, 100,000-row groups): the trial re-sort by 1° block with 25,000-row groups is not adopted.
+- **Evidence:** six-region version `20261113-d6f8b9e6`, from Singapore. "First" is the first calendar count for an area on a fresh connection, after the file is opened; opening (the footer) took 1.0–1.9 s and happens when the version loads.
+
+| Area | Before (old layout, 2 threads) | Re-sort trial (2 threads) | Re-sort trial (16 threads) | **Adopted (old layout, 16 threads)** |
+| --- | --- | --- | --- | --- |
+| Tiny box, 0.06° (Sumatra) | 1.0–1.9 s | 3.9 s | 1.9 s | **1.7 s** |
+| Sumatra polygon | 11.7 s | 17.8 s | 6.6 s | **5.6 s** |
+| Australian grassland polygon | 20.0 s | 46.2 s | 18.0 s | **6.2 s** |
+| Amazon forest polygon | 5.3 s | 18.4 s | 7.4 s | **3.0 s** |
+| Southern Africa polygon | 42.4 s | 69.0 s | 12.7 s | **8.6 s** |
+| Siberia polygon | 25.2 s | 26.7 s | 10.4 s | **7.4 s** |
+| Punjab polygon | 9.5 s | 16.3 s | 7.2 s | **6.2 s** |
+| Sumatra whole extent | 6.9 s | 13.1 s | 6.6 s | **4.1 s** |
+| Australian grassland whole extent | 22.9 s | 47.2 s | 15.7 s | **9.1 s** |
+| Amazon forest whole extent | 15.7 s | 30.3 s | 7.6 s | **6.1 s** |
+| Southern Africa whole extent | 42.7 s | 92.0 s | 19.6 s | **9.5 s** |
+| Siberia whole extent | 20.4 s | 31.2 s | 15.9 s | **10.8 s** |
+| Punjab whole extent | 6.1 s | 11.1 s | 5.0 s | **3.4 s** |
+
+  - Repeat requests: 0.3–0.7 s in every column (DuckDB keeps the fetched ranges in memory).
+  - Why the re-sort lost: DuckDB 2.0 already prunes the old layout through its join filter (both layouts scan about 1.2M rows for Southern Africa's polygon), so the cost is the number of range requests, and 4× smaller row groups mean about 4× more requests, plus a 3.2 MB footer instead of 0.8 MB.
+  - Threads: 32 and 64 threads gave 9.1–11.8 s on the three worst whole extents, no better than 16: the reads are now bandwidth-bound.
+  - Counts: equal to the local copy in every timed case; `tools/check_numbers.py`, now over all 12 areas plus the Amazon polygon, gives 0 failures with local points (before) and with remote points (after). Every `/calendar` answer for those 13 searches is identical before and after: 0 differences over 3,900 months, counts and raw counts per satellite.
+  - The tiny box shows the fixed part: about 1.7 s of any first request is round trips that no layout removes.
+- **Not done:** the `/tmp` cache fallback. The worst first request is still over 10 s (Siberia's whole extent, 10.8 s), but a `/tmp` cache only speeds up repeat reads on the same instance, which are already 0.3–0.7 s; it cannot speed up the first read on a fresh instance. Held for the lead's decision.
+- **Revisit if:** first requests from Vercel (sin1) differ from these; or a whole-extent area must meet 10 s on a cold instance, which then needs warming the instance's cache at start-up or a coarser pre-summed table for the cut cells.

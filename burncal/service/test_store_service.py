@@ -446,9 +446,11 @@ def test_2_8_check_numbers_searches_every_region_the_version_holds():
     regions = {"a": {"type": "Polygon", "coordinates": [[[1, 1], [2, 1], [2, 2], [1, 2], [1, 1]]]},
                "b": {"type": "Polygon", "coordinates": [[[11, 1], [12, 1], [12, 2], [11, 2], [11, 1]]]},
                "c": {"type": "Polygon", "coordinates": [[[31, 1], [32, 1], [32, 2], [31, 2], [31, 1]]]}}
-    names = [n for n, _ in check_numbers.searches(regions, [[0, 0, 5, 5], [10, 0, 15, 5]])]
-    assert names == ["a", "b"]
-    assert [n for n, _ in check_numbers.searches(regions, [[-60, -15, -50, -5]])] == ["amazon"]  # the drawn polygon
+    found = check_numbers.searches(regions, [[0, 0, 5, 5], [10, 0, 15, 5]])
+    assert [n for n, _ in found] == ["a", "b", "extent 0,0,5,5", "extent 10,0,15,5"]
+    box = dict(found)["extent 0,0,5,5"]["coordinates"][0]
+    assert min(x for x, _ in box) > 0 and max(x for x, _ in box) < 5  # just inside the extent, so it is covered
+    assert [n for n, _ in check_numbers.searches(regions, [[-60, -15, -50, -5]])] == ["extent -60,-15,-50,-5", "amazon"]
 
 
 def test_4_5_ac2_a_failing_check_fails(client, versions, monkeypatch):
@@ -591,3 +593,34 @@ def test_3_4_ac3_rankings_follow_the_range_median_and_anomalies_keep_the_referen
     assert all(m["rank"] is None for m in cut["months"] if not "2010-03" <= m["month"] <= "2012-06")
     # The record high is the whole record's, whatever the range (contract: record_high).
     assert cut["statistics"]["record_high"] == full["statistics"]["record_high"]
+
+
+# --- Story 2.8, option 1: a version's points read from another location (a URL on the host) ---
+def test_2_8_a_version_reads_its_points_from_another_location(store_root, versions, tmp_path):
+    import shutil
+    v = versions[0]
+    local = tmp_path / "nopoints"
+    shutil.copytree(store_root, local, ignore=shutil.ignore_patterns("points.parquet"))
+    elsewhere = tmp_path / "remote" / v
+    elsewhere.mkdir(parents=True)
+    shutil.copy2(store_root / "versions" / v / "points.parquet", elsewhere / "points.parquet")
+    where = lambda version: (tmp_path / "remote" / version / "points.parquet").as_posix()  # noqa: E731
+    app = TestClient(create_app(local, points_location=where))
+    direct = TestClient(create_app(store_root))
+    for geom in (SUMATRA, AMAZON, PUNJAB):
+        body = _body(v, geom, name=None)
+        assert app.post("/calendar", json=body).json() == direct.post("/calendar", json=body).json()
+
+
+def test_2_8_sync_without_points_reads_them_from_the_store_url(store_root, versions, tmp_path):
+    from burncal.service import remote
+    local = remote.sync(store_root.as_uri(), tmp_path / "tmpstore", with_points=False)
+    # DuckDB reads the points from a plain path here, as it reads an https URL on the host
+    assert not (local / "versions" / versions[0] / "points.parquet").exists()
+    app = TestClient(create_app(local, fetch=remote.fetcher(store_root.as_uri(), local),
+                                points_location=remote.points_url(store_root.as_posix())))
+    direct = TestClient(create_app(store_root))
+    for v in versions[:2]:  # the previous version too, loaded on demand
+        body = _body(v, AMAZON, name=None)
+        assert app.post("/calendar", json=body).json() == direct.post("/calendar", json=body).json()
+    assert not list((local / "versions").glob("*/points.parquet"))

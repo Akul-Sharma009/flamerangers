@@ -32,8 +32,9 @@ def _get(url: str, dest: Path) -> bool:
     return True
 
 
-def sync(base_url: str, local_root) -> Path:
-    """Copy the pointer and the serving files of the current version. Returns the local root."""
+def sync(base_url: str, local_root, with_points: bool = True) -> Path:
+    """Copy the pointer and the serving files of the current version. Returns the local root.
+    with_points False: leave points.parquet at the URL; the service reads it by range requests (Story 2.8)."""
     root, base = Path(local_root), base_url.rstrip("/")
     root.mkdir(parents=True, exist_ok=True)
     tmp = root / "CURRENT.json.download"
@@ -43,7 +44,8 @@ def sync(base_url: str, local_root) -> Path:
     pointer = json.loads(tmp.read_text(encoding="utf-8"))
     v = pointer["record_version"]
     for rel in SERVING:
-        _get(f"{base}/versions/{v}/{rel}", root / "versions" / v / rel)
+        if with_points or rel != "points.parquet":
+            _get(f"{base}/versions/{v}/{rel}", root / "versions" / v / rel)
     new = tmp.read_text(encoding="utf-8")
     cur = root / "CURRENT.json"
     if not cur.exists() or cur.read_text(encoding="utf-8") != new:
@@ -51,6 +53,12 @@ def sync(base_url: str, local_root) -> Path:
     else:
         tmp.unlink()
     return root
+
+
+def points_url(base_url: str):
+    """version -> the URL of its points.parquet, for create_app(points_location=...)."""
+    base = base_url.rstrip("/")
+    return lambda version: f"{base}/versions/{version}/points.parquet"
 
 
 def fetcher(base_url: str, local_root):

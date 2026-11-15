@@ -12,7 +12,6 @@ import duckdb
 import numpy as np
 import pandas as pd
 import pyarrow as pa
-import pyarrow.parquet as pq
 import shapely
 
 from burncal.core import grids
@@ -41,8 +40,22 @@ SERVING = ["manifest.json", "coverage_days.parquet", "missing_days.parquet", "po
            "grids/flags_1deg.parquet", "records/evidence_1deg.parquet"]
 
 
+HTTPFS = Path(__file__).resolve().parents[2] / "duckdb_ext" / "httpfs.duckdb_extension"  # shipped with the host bundle
+REMOTE_THREADS = 16
+
+
+def _load_httpfs(db) -> None:
+    """DuckDB reads URLs with its httpfs extension: the copy shipped beside the code when present, else installed."""
+    if HTTPFS.exists():
+        db.execute(f"LOAD '{HTTPFS.as_posix()}'")
+    else:
+        db.execute("INSTALL httpfs")
+        db.execute("LOAD httpfs")
+
+
 class Version:
-    def __init__(self, path, fetch=None):
+    def __init__(self, path, fetch=None, points=None):
+        """points: where this version's points.parquet is read from (a path or an https URL); default inside path."""
         self.path = Path(path)
         self._fetch = fetch  # downloads a record file on first use when the store was synced from a URL
         self.manifest = json.loads((self.path / "manifest.json").read_text(encoding="utf-8"))
@@ -78,8 +91,13 @@ class Version:
             (round(sw_lon / {FINE})::BIGINT + 1000) * 10000 + (round(sw_lat / {FINE})::BIGINT + 1000) AS key,
             (year - 2002) * 12 + month - 1 AS k, "count"::DOUBLE AS cnt, {raws}
             FROM read_parquet('{cells}')""")
-        pts = (self.path / "points.parquet").as_posix()
-        cols = set(pq.read_schema(pts).names)
+        pts = points or (self.path / "points.parquet").as_posix()
+        if pts.startswith(("http://", "https://")):
+            _load_httpfs(self._db)
+            # Range requests wait on the network, not the CPU: 16 at once took Southern Africa's first
+            # calendar from 31 s to 8 s (Story 2.8, option 1); more threads gained little.
+            self._db.execute(f"SET threads = {REMOTE_THREADS}")
+        cols = {r[0] for r in self._db.execute(f"DESCRIBE SELECT * FROM read_parquet('{pts}')").fetchall()}
         if {"key", "k", "day"} <= cols:  # published since 15 Nov: sorted by key
             derived = "key, k, day"
         else:
@@ -256,9 +274,11 @@ class Store:
     one loads at start-up; the previous one only when a request names it, so a bad previous version
     cannot stop the current one (Codex review, 14 Nov)."""
 
-    def __init__(self, root, fetch=None):
+    def __init__(self, root, fetch=None, points_location=None):
+        """points_location: version -> where its points.parquet is read from (option 1: a URL); default local."""
         self.root = Path(root)
         self._fetch_file = fetch
+        self._points_location = points_location
         self.pointer = self.root / "CURRENT.json"
         self._mtime, self._versions, self.current, self.previous = None, {}, None, None
         self._broken = {}
@@ -267,10 +287,12 @@ class Store:
 
     def _load(self, v: str) -> Version:
         path = self.root / "versions" / v
+        remote = self._points_location(v) if self._points_location else None
         if self._fetch_file is not None:
             for rel in SERVING:
-                self._fetch_file(path / rel)
-        return Version(path, self._fetch_file)
+                if not (remote and rel == "points.parquet"):
+                    self._fetch_file(path / rel)
+        return Version(path, self._fetch_file, remote)
 
     def refresh(self) -> None:
         """Re-read the pointer when it changes. A version that fails to load is not switched to:

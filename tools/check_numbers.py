@@ -1,6 +1,6 @@
 """Story 4.5: the numbers-agree check. Exits 1 when any number disagrees.
 
-Run against a published store: uv run python tools/check_numbers.py [store root]
+Run against a published store: uv run python tools/check_numbers.py [store root] [points base URL]
 For each search (every region polygon inside the version's extents, and a drawn Amazon polygon), over the whole record:
   - every analytics CSV row equals the matching /calendar month, field by field, as text;
   - for every complete month up to December 2021, the hotspot CSV's rows that feed the record
@@ -80,16 +80,24 @@ def _inside(geometry, bbox) -> bool:
 
 
 def searches(regions: dict, bboxes: list) -> list:
-    """(name, geometry): every region polygon inside one of the version's extents, then the drawn Amazon polygon."""
+    """(name, geometry): every region polygon inside one of the version's extents, each whole extent (a box
+    0.01 degree inside it, so every edge cell is cut), then the drawn Amazon polygon."""
     out = [(n, g) for n, g in regions.items() if any(_inside(g, b) for b in bboxes)]
+    for w, s, e, n in bboxes:
+        d = 0.01
+        ring = [[w + d, s + d], [e - d, s + d], [e - d, n - d], [w + d, n - d], [w + d, s + d]]
+        out.append((f"extent {w:g},{s:g},{e:g},{n:g}", {"type": "Polygon", "coordinates": [ring]}))
     return out + [("amazon", AMAZON)] * any(_inside(AMAZON, b) for b in bboxes)
 
 
-def main(store_root):
+def main(store_root, points_base=None):
+    """points_base: read each version's points.parquet from <points_base>/versions/<v>/ (a URL; option 1)."""
     from fastapi.testclient import TestClient
     sys.path.insert(0, str(ROOT))
     from burncal.service.app import create_app
-    client = TestClient(create_app(store_root))
+    from burncal.service import remote
+    where = remote.points_url(points_base) if points_base else None
+    client = TestClient(create_app(store_root, points_location=where))
     regions = {f["properties"]["region_id"]: f["geometry"]
                for f in json.loads((ROOT / "contract" / "regions.geojson").read_text(encoding="utf-8"))["features"]}
     rv = client.get("/meta").json()["record_version"]
@@ -105,4 +113,4 @@ def main(store_root):
 
 
 if __name__ == "__main__":
-    sys.exit(main(sys.argv[1] if len(sys.argv) > 1 else ROOT / "store" / "published"))
+    sys.exit(main(sys.argv[1] if len(sys.argv) > 1 else ROOT / "store" / "published", *sys.argv[2:3]))

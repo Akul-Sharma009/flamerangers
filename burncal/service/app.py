@@ -115,9 +115,9 @@ def _regions():
                                            shape(f["geometry"])) for f in gj["features"]}
 
 
-def _open_store(root, fetch=None):
+def _open_store(root, fetch=None, points_location=None):
     root = Path(root or environ.get("BURNCAL_STORE_ROOT", DEFAULT_STORE))
-    return Store(root, fetch) if (root / "CURRENT.json").exists() else None
+    return Store(root, fetch, points_location) if (root / "CURRENT.json").exists() else None
 
 
 def _hotspot_cells(rows):
@@ -134,9 +134,10 @@ def _hotspot_cells(rows):
     return list(zip(*(cols[c] for c in HOTSPOT_COLUMNS)))
 
 
-def create_app(store_root=None, fetch=None) -> FastAPI:
-    """fetch: set when the store was synced from a URL (burncal.service.remote), to get record files on use."""
-    store, regions = _open_store(store_root, fetch), _regions()
+def create_app(store_root=None, fetch=None, points_location=None) -> FastAPI:
+    """fetch: set when the store was synced from a URL (burncal.service.remote), to get record files on use.
+    points_location: version -> where its points.parquet is read (a URL, read by range requests; Story 2.8)."""
+    store, regions = _open_store(store_root, fetch, points_location), _regions()
     load = lambda p: json.loads((CONTRACT / "fixture" / p).read_text(encoding="utf-8"))  # noqa: E731
     # The fixture answers are only needed without a store (they are not shipped to the host).
     meta, calendar, cells, hotspot_rows = (None, None, None, None) if store else (
