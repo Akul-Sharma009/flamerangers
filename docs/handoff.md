@@ -797,6 +797,8 @@ The points where the plan left room are listed in `DECISIONS.md` ("Contract 0.2.
 
 ## Next
 
+**As of 18 Nov:** the daily refresh failed every run from 15 Nov (runs 5 to 8) at "Check the numbers agree": a hotspot on 110°E, the edge Sumatra's and Kalimantan's extents share, was counted twice for Kalimantan. Fixed in `publish.py` (`DECISIONS.md`, 18 Nov). Production serves data through 14 Nov until the next run passes; run the workflow by hand after merging, or wait for 09:30 SGT.
+
 **As of 15 Nov 20:45 SGT (build stops 21:00):**
 
 1. DONE (19:55): PR 17 and PR 18 merged, `HF_DATASET` set; the daily workflow's first run passed from the fix branch (run 43709476744) and production serves `20261114-072d10c1`. Lead: merge the fix PR (`teammate/2.9-ci-fix`) so the 09:30 schedule uses it. The submission's daily-refresh sentence is filled.

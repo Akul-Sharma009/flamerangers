@@ -121,20 +121,56 @@ def publish(record_dir, grids_dir, raw_dir, store_root, *, data_through: date, c
                         code_revision=code_revision, parity_check=parity_check)
 
 
-def write_points(record_files, out: Path, data_through: date) -> int:
+def owned_by(i: int, boxes: list, lon: str, lat: str) -> str:
+    """SQL condition: the place at (lon, lat) belongs to extent i of boxes. Neighbouring extents share an
+    edge, and each extent's rows include its edges, so a hotspot on a shared edge is in both. It belongs
+    to the first extent whose half-open box [west, east) x [south, north) holds it; one on an outer edge,
+    held by no half-open box, to the first extent whose closed box holds it. Applied to hotspot rows and
+    to grid cells (by their south-west corner), so every hotspot is counted once."""
+    def half(b):
+        return f"({lon} >= {b[0]} AND {lon} < {b[2]} AND {lat} >= {b[1]} AND {lat} < {b[3]})"
+
+    def closed(b):
+        return f"({lon} >= {b[0]} AND {lon} <= {b[2]} AND {lat} >= {b[1]} AND {lat} <= {b[3]})"
+
+    def none_of(conds):
+        return " AND ".join(f"NOT {c}" for c in conds) or "TRUE"
+
+    own = f"({half(boxes[i])} AND {none_of([half(b) for b in boxes[:i]])})"
+    edge = (f"({none_of([half(b) for b in boxes])} AND {closed(boxes[i])}"
+            f" AND {none_of([closed(b) for b in boxes[:i]])})")
+    return f"({own} OR {edge})"
+
+
+def owned_rows(df: pd.DataFrame, i: int, boxes: list, lon="sw_lon", lat="sw_lat") -> pd.DataFrame:
+    """The rows of df (a grid) whose cell belongs to extent i (owned_by, on the cell's south-west corner)."""
+    if len(boxes) < 2:
+        return df
+    con = duckdb.connect()
+    con.register("t", df)
+    return con.execute(f"SELECT * FROM t WHERE {owned_by(i, boxes, lon, lat)}").df()
+
+
+def write_points(record_files, out: Path, data_through: date, keep: dict | None = None) -> int:
     """The rows in any count (excluded_reason none, up to data_through), sorted by 0.25-degree cell key,
     with the key, month index and day stored, so the service reads only the cells a request needs.
-    DuckDB sorts out of core, so this works for extents larger than memory."""
+    keep: file -> SQL condition a row must meet (owned_by), so a hotspot on an edge two extents share is
+    stored once. DuckDB sorts out of core, so this works for extents larger than memory."""
     con = duckdb.connect()
     con.execute("SET TimeZone = 'UTC'")
     if not record_files:
         pd.DataFrame(columns=["key", "k", "day"] + POINT_COLUMNS).to_parquet(out, index=False)
         return 0
-    files = ", ".join(f"'{Path(f).as_posix()}'" for f in record_files)
+    keep = keep or {}
+    by_cond = {}
+    for f in record_files:
+        by_cond.setdefault(keep.get(f, "TRUE"), []).append(f"'{Path(f).as_posix()}'")
+    rows = " UNION ALL BY NAME ".join(
+        f"SELECT * FROM read_parquet([{', '.join(fs)}], union_by_name = true) WHERE {cond}" for cond, fs in by_cond.items())
     q = f"""SELECT (floor(longitude / {FINE} + 1e-9)::BIGINT + 1000) * 10000 + (floor(latitude / {FINE} + 1e-9)::BIGINT + 1000) AS key,
                    ((year(acq_datetime_utc) - 2002) * 12 + month(acq_datetime_utc) - 1)::INTEGER AS k,
                    day(acq_datetime_utc)::TINYINT AS day, {", ".join(POINT_COLUMNS)}
-            FROM read_parquet([{files}], union_by_name = true)
+            FROM ({rows})
             WHERE excluded_reason = 'none' AND acq_datetime_utc::DATE <= DATE '{data_through.isoformat()}'
             ORDER BY key, k"""
     con.execute(f"COPY ({q}) TO '{out.as_posix()}' (FORMAT parquet, COMPRESSION zstd, ROW_GROUP_SIZE 100000)")
@@ -183,8 +219,10 @@ def publish_many(builds, store_root, *, data_through: date, code_revision: str, 
                  noaa20_check=None) -> str:
     """Several extents in one version. builds: (record dir, grids dir, raw dir) per extent; the extent's
     name is its raw dir's name. Extents must not overlap. Each keeps its own coverage tables, and its
-    record rows under records/<name>/; grids, evidence and points are joined."""
+    record rows under records/<name>/; grids, evidence and points are joined, each hotspot and grid cell
+    once even where two extents share an edge (owned_by)."""
     builds = [tuple(map(Path, b)) for b in builds]
+    boxes = [json.loads((raw / "coverage.json").read_text(encoding="utf-8"))["extent"] for _, _, raw in builds]
     gate = _parity_gate(data_through, parity_check, code_revision)
     root = Path(store_root)
     n20_sha = _sha256(Path(noaa20_check)) if noaa20_check else None
@@ -196,7 +234,8 @@ def publish_many(builds, store_root, *, data_through: date, code_revision: str, 
         shutil.rmtree(tmp, ignore_errors=True)
         (tmp / "grids").mkdir(parents=True)
         extents, days_all, missing_all, ev_all, pts_all, grids_all, inputs = [], [], [], [], [], {g: [] for g in GRIDS}, {}
-        for record_dir, grids_dir, raw_dir in builds:
+        keep = {}
+        for i, (record_dir, grids_dir, raw_dir) in enumerate(builds):
             name = raw_dir.name
             if any(e["name"] == name for e in extents):
                 raise ValueError(f"two extents are both named {name!r}")
@@ -209,22 +248,24 @@ def publish_many(builds, store_root, *, data_through: date, code_revision: str, 
             (tmp / "records" / name).mkdir(parents=True)
             for part in parts:
                 shutil.copy2(part, tmp / "records" / name / part.name)
-            ev_all.append(pd.read_parquet(record_dir / "evidence_1deg.parquet"))
+            ev_all.append(owned_rows(pd.read_parquet(record_dir / "evidence_1deg.parquet"), i, boxes))
             days, missing = coverage_tables(coverage, data_through=data_through)
             uncovered = set(zip(missing["year"][missing["uncovered"]], missing["month"][missing["uncovered"]]))
             for g in GRIDS:
-                t = pd.read_parquet(grids_dir / f"{g}.parquet")
+                t = owned_rows(pd.read_parquet(grids_dir / f"{g}.parquet"), i, boxes)
                 grids_all[g].append(aggregate.null_uncovered(t, uncovered) if g == "flags_1deg" else t)
             days_all.append(days.assign(extent=name))
             missing_all.append(missing.assign(extent=name))
             pts_all += [tmp / "records" / name / part.name for part in parts]
+            if len(boxes) > 1:
+                keep.update({tmp / "records" / name / part.name: owned_by(i, boxes, "longitude", "latitude") for part in parts})
             inputs[name] = input_manifest(raw_dir)
         for g in GRIDS:
             pd.concat(grids_all[g], ignore_index=True).to_parquet(tmp / "grids" / f"{g}.parquet", compression="zstd", index=False)
         pd.concat(ev_all, ignore_index=True).to_parquet(tmp / "records" / "evidence_1deg.parquet", index=False)
         pd.concat(days_all, ignore_index=True).to_parquet(tmp / "coverage_days.parquet", index=False)
         pd.concat(missing_all, ignore_index=True).to_parquet(tmp / "missing_days.parquet", index=False)
-        n_points = write_points(pts_all, tmp / "points.parquet", data_through)
+        n_points = write_points(pts_all, tmp / "points.parquet", data_through, keep)
         manifest = {"record_version": version, "data_through": data_through.isoformat(), "extents": extents,
                     "code_revision": code_revision, "params_sha256": params_sha256(),
                     "inputs": inputs, "rows_in_counts": n_points, "parity": gate}

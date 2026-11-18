@@ -212,3 +212,59 @@ def test_2_10_ac2_publish_puts_the_noaa20_headline_in_the_version(tmp_path):
     assert json.loads((root / "versions" / v / "noaa20_check.json").read_text()) == head
     man = json.loads((root / "versions" / v / "manifest.json").read_text())
     assert man["noaa20_check_sha256"]
+
+
+def _extent(base, name, extent, rows):
+    """One extent's build inputs: record rows, evidence cells (half-open, as convert writes them), grids."""
+    rec, grids, raw = base / name / "record", base / name / "grids", base / name / name
+    for d in (rec, grids, raw):
+        d.mkdir(parents=True)
+    rows.to_parquet(rec / "AQUA_2015.parquet")
+    x0, y0, x1, y1 = (int(v) for v in extent)
+    cells = pd.DataFrame([(float(x), float(y)) for x in range(x0, x1) for y in range(y0, y1)], columns=["sw_lon", "sw_lat"])
+    cells.assign(evidence_class="not_evaluated").to_parquet(rec / "evidence_1deg.parquet")
+    _grids(rows, cells, grids)
+    (raw / "MODIS_SP_2015.csv").write_text("latitude\n")
+    (raw / "coverage.json").write_text(json.dumps({"extent": extent, "sources": {"MODIS_SP": [["2002-07-01", "2015-12-31"]]}}))
+    return rec, grids, raw
+
+
+def _aqua(points):
+    n = len(points)
+    when = pd.to_datetime([f"2015-09-{i + 1:02d} 06:00" for i in range(n)], utc=True)
+    return pd.DataFrame({"longitude": [p[0] for p in points], "latitude": [p[1] for p in points], "satellite": ["AQUA"] * n,
+                         "acq_datetime_utc": when, "utc_date": when.date,
+                         "excluded_reason": ["none"] * n, "feeds_record": [True] * n, "weight": [1.0] * n})
+
+
+def test_2_9_a_hotspot_on_an_edge_two_extents_share_is_counted_once(tmp_path):
+    # Sumatra's box ends at 110 E and Kalimantan's starts there; both downloads hold a hotspot on 110.0.
+    # It was counted twice in the joined points and 0.25-degree grid, so the calendar of an area whose
+    # edge is on 110 read one more than its hotspot rows (the daily refresh's check, 15-18 Nov).
+    edge = (110.0, -1.0)
+    west = _extent(tmp_path, "west", [100.0, -2.0, 110.0, 0.0], _aqua([(105.0, -1.0), edge]))
+    east = _extent(tmp_path, "east", [110.0, -2.0, 120.0, 0.0], _aqua([edge, (115.0, -1.0), (120.0, -1.0)]))
+    root = tmp_path / "store"
+    v = publish.publish_many([west, east], root, data_through=date(2026, 11, 13), code_revision="x", parity_check=PARITY_OK)
+    vdir = root / "versions" / v
+    pts = pd.read_parquet(vdir / "points.parquet")
+    assert sorted(pts["longitude"]) == [105.0, 110.0, 115.0, 120.0]  # the edge hotspot once; the outer edge kept
+    for g in ("cells_025deg", "cells_1deg"):
+        t = pd.read_parquet(vdir / "grids" / f"{g}.parquet")
+        assert t["count"].sum() == 4 and not t.duplicated(["sw_lon", "sw_lat", "year", "month"]).any(), g
+    ev = pd.read_parquet(vdir / "records" / "evidence_1deg.parquet")
+    assert not ev.duplicated(["sw_lon", "sw_lat"]).any() and len(ev) == 2 * 10 * 2
+    # each extent's own record files stay whole: the hotspot list of either extent still has its edge row
+    assert len(pd.read_parquet(vdir / "records" / "west" / "AQUA_2015.parquet")) == 2
+
+
+def test_2_9_owned_by_gives_every_place_one_extent():
+    # interior, shared edges, a corner three boxes touch, and outer edges
+    import duckdb
+    boxes = [[0.0, 0.0, 10.0, 10.0], [10.0, 0.0, 20.0, 10.0], [0.0, 10.0, 10.0, 20.0]]
+    places = pd.DataFrame({"x": [5.0, 10.0, 10.0, 0.0, 20.0, 10.0, 5.0], "y": [5.0, 5.0, 10.0, 0.0, 10.0, 20.0, 10.0]})
+    con = duckdb.connect()
+    con.register("p", places)
+    cols = ", ".join(f"({publish.owned_by(i, boxes, 'x', 'y')})::INT AS o{i}" for i in range(len(boxes)))
+    owners = con.execute(f"SELECT {cols} FROM p").df().sum(axis=1)
+    assert owners.tolist() == [1] * len(places)
